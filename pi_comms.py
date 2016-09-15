@@ -9,28 +9,28 @@ bufferSize = 0
 
 def start():
 
-ser = serial.Serial(‘/dev/ttyAMA0’, 9600, timeout=1)
+	ser = serial.Serial(‘/dev/ttyAMA0’, 115200, timeout=3)
 
-incomingByte = 0
-  
-packet_size = 0
-packet_size_count = 0
-  
-packet_seq = '0'
+	incomingByte = 0
+	  
+	packet_size = 0
+	packet_size_count = 0
+	  
+	packet_seq = '0'
 
-numComponent = 0 // MAX 10
-componentID[10] = {0}
-componentFlag = '0'
-componentTemp = 0
+	numComponent = 0 // MAX 10
+	componentID[10] = {0}
+	componentFlag = '0'
+	componentTemp = 0
 
-dataIndex = 0 
-payloadData = 1 // need to findout why is it it bugging out
+	dataIndex = 0 
+	payloadData = 1 // need to findout why is it it bugging out
 
-crcCount = 4
-crcData = 1 // need to findout why is it it bugging out
-  
-rxMode CurrMode = READY
-readStatus = False
+	crcCount = 4
+	crcData = 1 // need to findout why is it it bugging out
+	  
+	rxMode CurrMode = READY
+	readStatus = False
   
 def read(): 
 	if ser.in_waiting>0:
