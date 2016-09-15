@@ -41,33 +41,33 @@ def read():
 	   	if CurrMode == READY: 
 	      	if incomingByte == 60:
 	              CurrMode = PACKET_TYPE
-	              print("Recieved Start")
+	              #ser.println("Recieved Start")
 	       	
 	   	elif CurrMode == PACKET_TYPE:
 	       	if incomingByte == 40:
-	         	print("Recieved ACK")
+	         	#ser.println("Recieved ACK")
 	           	CurrMode = PAYLOAD_LENGTH
 	       	elif incomingByte == 41:
-	           	print("Recieved NACK")
+	           	#ser.println("Recieved NACK")
 	           	CurrMode = PAYLOAD_LENGTH
 	      	elif incomingByte == 42:
-	           	print("Recieved Prob")
+	           	#ser.println("Recieved Prob")
 	           	CurrMode = PAYLOAD_LENGTH
 	       	elif incomingByte == 43:
-	           	print("Recieved Read")
+	           	#ser.println("Recieved Read")
 	           	CurrMode = PAYLOAD_LENGTH
 	       	elif incomingByte == 44:
-	           	print("Recieved Data")
+	           	#ser.println("Recieved Data")
 	           	CurrMode = PAYLOAD_LENGTH
 	       	elif incomingByte == 45:
-	           	print("Recieved Request")
+	           	#ser.println("Recieved Request")
 	          	CurrMode = PAYLOAD_LENGTH
 	      	else:
 	           	CurrMode = CORRUPT
-	           	print("CORRUPT")
+	           	#ser.println("CORRUPT")
 
 	   	elif CurrMode == PAYLOAD_LENGTH:
-	      	print("Payload_length")
+	      	ser.println("Payload_length")
 	      	if packet_size_count == 0:
 	       		packet_size += (incomingByte-48) * 100
 	            packet_size_count += 1
@@ -78,22 +78,22 @@ def read():
 	            packet_size += (incomingByte-48)
 	            packet_size_count = 0
 	            CurrMode = PACKET_SEQ
-	            print("DEBUG!!!")
-	            print(packet_size)
-	            print("DEBUG!!!")
+	            #ser.println("DEBUG!!!")
+	            #ser.println(packet_size)
+	            #ser.println("DEBUG!!!")
 	            dataIndex = packet_size
 	         
 	   	elif CurrMode == PACKET_SEQ :
-	       	print("Payload_seq")
+	       	ser.println("Payload_seq")
 	      	if packet_seq == (incomingByte-48): 
 	        	CurrMode = CORRUPT
-	            print("CORRUPT")
+	            #ser.println("CORRUPT")
 	       	else: 
 	            CurrMode = COMPONENT_ID
 	            packet_seq = !packet_seq
 	   
 	   	elif CurrMode == COMPONENT_ID :
-	        print("component_id")
+	        #ser.println("component_id")
 	      	if componentFlag == '0': 
 	            componentTemp += (incomingByte-48)*10
 	            componentFlag = !componentFlag
@@ -106,16 +106,16 @@ def read():
 	         
 	       	if numComponent == 11:
 	        	CurrMode = CORRUPT
-	            print("CORRUPT")
+	            #ser.println("CORRUPT")
 	          
 	        elif incomingByte == 64:
 	           	if componentFlag == '1':
 	              	CurrMode = CORRUPT;
-	              	print("CORRUPT")
+	              	ser.println("CORRUPT")
 	            CurrMode = PAYLOAD
 	  
 	   	elif CurrMode == PAYLOAD :
-	        print("payload")
+	        #ser.println("payload")
 	       	if dataIndex > -1: 
 	        	payloadData = payloadData + pow(10.0,dataIndex-1) * (incomingByte-48)
 	            dataIndex = dataIndex - 1
@@ -124,12 +124,12 @@ def read():
 	            
 	        # need to kiv the different sensors and the number of bytes of data sent respectively
 	   	elif CurrMode == CRC :
-	      	print("crc")
+	      	#ser.println("crc")
 	       	if crcCount > -1:
-	           	print("~")
-	            print(incomingByte)
+	           	#Serial.println("~")
+	            #Serial.println(incomingByte)
 	            crcData = crcData + pow(10.0,crcCount-1) * (incomingByte-48)
-	            print(crcData)
+	            #Serial.println(crcData)
 	            crcCount = crcCount - 1
 	            if crcCount == 0:
 	           		crcCount = 4
@@ -137,20 +137,20 @@ def read():
 
 	            
 	   	elif CurrMode == TERMINATE:
-	        print("terminate")
+	        #Serial.println("terminate")
 	      	if incomingByte != 62 :
 	            CurrMode = CORRUPT
-	            print("CORRUPT")
+	            #ser.println("CORRUPT")
 	            readStatus = False
 	        else:
 	            CurrMode = READY;
-	            print(componentID[0])
-	            print(payloadData)
-	            print(crcData)
+	            #ser.println(componentID[0])
+	            #ser.println(payloadData)
+	            #ser.println(crcData)
 	            readStatus = False
 	         
 	   	elif CurrMode == CORRUPT:
-	          print("handling corrupt packet")
+	          #ser.println("handling corrupt packet")
 	          CurrMode = READY
 	          readStatus = False
 
