@@ -1,6 +1,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import sys
+import numpy.linalg as la
 
 X_DIM            = 30
 Y_DIM            = 30
@@ -37,9 +38,23 @@ def calculate_next_move():
 		Find max of 1/(1+ obstacle_density) v . w where v is unit vector of next step, w is direction of target - curr
 		obstacle_density is sum of all obstacles discovered in direction of v
 	"""
-	direction = dest - state[0]
+	def calc_obs_density(slice_):
+		if not isinstance(slice_, np.ndarray):
+			slice_ = np.array([slice_])
+		else:
+			if len(slice_) == 0:
+				return 0.0
+		print slice_
+		weights     = np.where(slice_==1, slice_, -1 * np.ones(slice_.shape))
+		obs_sum     = np.dot(weights, np.power((1/np.e), np.array([x for x in range(1, 1+slice_.shape[0])])))
+		obs_density = obs_sum / slice_.shape[0]
+		return obs_density
+
+	direction = (dest - state[0]) / la.norm(dest - state[0])
 	dots = []
 	dist_to_dir = {}
+	# alpha = np.e * (1 - 1 / np.e)
+	alpha = 2 * np.e ** 2 / (1 + np.e)
 	for i in range(-1,2): # X
 		for j in range(-1,2): # Y
 			# Calculate max. dot product with direction vector
@@ -47,24 +62,36 @@ def calculate_next_move():
 			if state[0][0] + i >= 0 and state[0][0] + i < 30 and state[0][1] + j >= 0 and state[0][1] + j < 30:
 				# Exclude diagonal moves
 				if (i == 0 or j == 0) and (not (i == 0 and j == 0)):
-					# if no obstacle
-					if agent_map[state[0][0]+i, state[0][1]+j] == 0:
-						x = state[0][0]
-						y = state[0][1]
+					is_obs = agent_map[state[0][0]+i, state[0][1]+j]
+					x = state[0][0]
+					y = state[0][1]
+					try:
 						if i == -1 and j == 0:
-							obs_density = np.sum(agent_map[x,0:y])
+							slice_ = agent_map[0:x, y]
+							obs_density = calc_obs_density(slice_)
 						elif i == 0 and j == 1:
-							obs_density = np.sum(agent_map[0:x,y])
+							slice_ = agent_map[x, y+1:]
+							obs_density = calc_obs_density(slice_)
 						elif i == 1 and j == 0:
-							obs_density = np.sum(agent_map[x,y:])
+							slice_ = agent_map[x+1:, y]
+							obs_density = calc_obs_density(slice_)
 						elif i == 0 and j == -1:
-							obs_density = np.sum(agent_map[x:, y])
+							slice_ = agent_map[x, 0:y]
+							obs_density = calc_obs_density(slice_)
 						else:
 							pass
-						move_vec = np.array([i,j])
-						product = 1 / (1 + obs_density) * np.dot(move_vec, direction)
-						dots.append(product)
-						dist_to_dir[product] = np.array([i,j])
+					except Exception as e:
+						print e
+						obs_density = 0.0
+					obs_density = np.nan_to_num(obs_density)
+					move_vec = np.array([i,j])
+					if is_obs:
+						product = np.dot(move_vec, direction) - alpha * (obs_density + np.inf)
+					else:
+						product = np.dot(move_vec, direction) - alpha * (obs_density)
+					print(i, j, product, obs_density)
+					dots.append(product)
+					dist_to_dir[product] = np.array([i,j])
 	if len(dots) == 0:
 		print("No legal move!")
 	else:
