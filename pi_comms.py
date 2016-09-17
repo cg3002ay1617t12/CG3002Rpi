@@ -22,7 +22,7 @@ packet_size_count = 0
 	  
 packet_seq = '0'
 
-dataSize[8] 
+dataSize = [] 
 data = 0 
 numComponent = 0 # MAX 10
 componentID = []
@@ -148,11 +148,11 @@ ser.write("<")
 time.sleep(1)
 ser.write(",")
 time.sleep(1)
-ser.write(1)
+ser.write(b"1")
 time.sleep(1)
-ser.write(2)
+ser.write(b"2")
 time.sleep(1)
-ser.write(232)
+ser.write(b"232")
 time.sleep(1)
 ser.write("1111")
 time.sleep(1)
