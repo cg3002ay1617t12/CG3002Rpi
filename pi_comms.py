@@ -54,11 +54,12 @@ def convertAndSend(number, numdigit):
 def read():
 	CurrMode = 0; 
 	if ser.inWaiting()>0:
+		print "wait > 0"
 		readStatus = True
 		while readStatus:
-
+			print("enter read mode")
 			incomingByte = ser.read()
-
+			print(incomingByte)
 			if CurrMode == 0: 
 				if incomingByte == 60:
 					CurrMode = 1
@@ -157,20 +158,5 @@ def read():
 				readStatus = False
 
 
-ser.write("<")
-time.sleep(1)
-ser.write(",")
-time.sleep(1)
-# packet_seq
-convertAndSend(0,1)
-time.sleep(1)
-# component id
-convertAndSend(245,1)
-time.sleep(1)
-# packet data
-convertAndSend(2039,8)
-time.sleep(1)
-# crc
-convertAndSend(1000,4)
-ser.write(">")
-
+while 1:
+	read()
