@@ -3,41 +3,40 @@ import time
 
 #enum {0, 1, 2, 3, 4 , 5, 6, 7, 8 }
 
+CurrMode = 0
+
 booted = '0'
 bufferSize = 0
 
-
-def start():
-
-	ser = serial.Serial(
-		port ='/dev/ttyAmA0', 
-		baudrate = 115200,
+ser = serial.Serial(
+		port ='/dev/ttyAMA0', 
+		baudrate = 57600,
 		timeout = 3
-	)
+)
 
-	incomingByte = 0
+incomingByte = 0
 	  
-	packet_size = 0
-	packet_size_count = 0
+packet_size = 0
+packet_size_count = 0
 	  
-	packet_seq = '0'
+packet_seq = '0'
 
-	numComponent = 0 # MAX 10
-	componentID[10] = {0}
-	componentFlag = '0'
-	componentTemp = 0
+numComponent = 0 # MAX 10
+componentID = []
+componentFlag = '0'
+componentTemp = 0
 
-	dataIndex = 0 
-	payloadData = 1 # need to findout why is it it bugging out
+dataIndex = 0 
+payloadData = 1 # need to findout why is it it bugging out
 
-	crcCount = 4
-	crcData = 1 # need to findout why is it it bugging out
+crcCount = 4
+crcData = 1 # need to findout why is it it bugging out
 	  
-	CurrMode = 0
-	readStatus = False
+readStatus = False
 
-def read(): 
-	if ser.in_waiting>0:
+def read():
+	CurrMode = 0; 
+	if ser.inWaiting()>0:
 		readStatus = True
 		while readStatus:
 
@@ -158,4 +157,24 @@ def read():
 				CurrMode = 0
 				readStatus = False
 
-ser.close()
+
+ser.write("<")
+time.sleep(1)
+ser.write(",")
+time.sleep(1)
+ser.write("005")
+time.sleep(1)
+ser.write("1")
+time.sleep(1)
+ser.write("01")
+time.sleep(1)
+ser.write("@")
+time.sleep(1)
+ser.write("22222")
+time.sleep(1)
+ser.write("1111")
+time.sleep(1)
+ser.write(">")
+
+while(True):
+   read()

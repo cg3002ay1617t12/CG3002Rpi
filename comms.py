@@ -3,7 +3,7 @@ import serial
 
 ser = serial.Serial( 
    port='/dev/ttyAMA0',
-   baudrate = 115200,
+   baudrate = 57600,
    timeout= 3
 )
 
