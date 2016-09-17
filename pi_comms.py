@@ -40,7 +40,6 @@ crcData = []# need to findout why is it it bugging out
 readStatus = False
 
 def convertAndSend(number, numdigit):
-	temp = [] 
 	count = numdigit
 	while (count > 0):
 		count = count - 1
@@ -162,14 +161,16 @@ ser.write("<")
 time.sleep(1)
 ser.write(",")
 time.sleep(1)
-convertAndSend(1,1)
+# packet_seq
+convertAndSend(0,1)
 time.sleep(1)
-convertAndSend(2,2)
+# component id
+convertAndSend(245,1)
 time.sleep(1)
-convertAndSend(2222,8)
+# packet data
+convertAndSend(2039,8)
 time.sleep(1)
-convertAndSend(1111,4)
+# crc
+convertAndSend(1000,4)
 ser.write(">")
 
-while(True):
-   read()
