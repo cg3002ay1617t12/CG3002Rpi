@@ -8,16 +8,25 @@ Y_DIM            = 30
 dest             = np.array([25, 25])
 src              = (0,0)
 state            = [np.array([0,0]), 0] # X,Y,bearing where bearing is UP (0), DOWN (180), LEFT (270), RIGHT (90)
-agent_map        = [] # global map reflecting agent's current knowledge of the map
+agent_map        = [] # global map reflecting agent's current knowledge of the map, 1 is unexplored, -1 is visited, -2 is obstacle, 2 is no obstacle
 obstacle_field   = []
 obstacle_density = 0.2
-sensor           = ['front', 'left', 'right']
+sensor           = ['front', 'left', 'right', 'back']
 moves_x          = [0]
 moves_y          = [0]
+backtrack_penalty = -1
 
-def update_map(loc):
+def update_map(loc, marker):
 	global agent_map
-	agent_map[loc[0], loc[1]] = 1
+	if marker == 'obstacle':
+		value = -2
+	elif marker == 'visited':
+		value = -1
+	elif marker == 'free':
+		value = 2
+	else:
+		value = 0
+	agent_map[loc[0], loc[1]] = value
 
 def plotter(ax, x, y, params):
 	ax.cla()
@@ -27,7 +36,7 @@ def plotter(ax, x, y, params):
 	ax.set_ylim(-1, 30)
 	ax.scatter(moves_x[:-1], moves_y[:-1], **{'c':'r', 's':40, 'marker':"x"})
 	ax.scatter(moves_x[-1:], moves_y[-1:], **{'c':'r', 's':40, 'marker':"o"})
-	indices = np.where(agent_map==1)
+	indices = np.where(agent_map==-2)
 	ax.scatter(indices[0], indices[1], **{'marker':"+"})
 	x = raw_input("Press [Enter] to continue\n")
 	if x == 'q':
@@ -44,11 +53,13 @@ def calculate_next_move():
 		else:
 			if len(slice_) == 0:
 				return 0.0
-		print slice_
 		weights     = np.where(slice_==1, slice_, -1 * np.ones(slice_.shape))
 		obs_sum     = np.dot(weights, np.power((1/np.e), np.array([x for x in range(1, 1+slice_.shape[0])])))
 		obs_density = obs_sum / slice_.shape[0]
 		return obs_density
+
+	def calc_penalty():
+		pass
 
 	direction = (dest - state[0]) / la.norm(dest - state[0])
 	dots = []
@@ -62,7 +73,7 @@ def calculate_next_move():
 			if state[0][0] + i >= 0 and state[0][0] + i < 30 and state[0][1] + j >= 0 and state[0][1] + j < 30:
 				# Exclude diagonal moves
 				if (i == 0 or j == 0) and (not (i == 0 and j == 0)):
-					is_obs = agent_map[state[0][0]+i, state[0][1]+j]
+					is_obs = (agent_map[state[0][0]+i, state[0][1]+j] == -2)
 					x = state[0][0]
 					y = state[0][1]
 					try:
@@ -86,10 +97,12 @@ def calculate_next_move():
 					obs_density = np.nan_to_num(obs_density)
 					move_vec = np.array([i,j])
 					if is_obs:
-						product = np.dot(move_vec, direction) - alpha * (obs_density + np.inf)
+						product = -1 * np.inf
+						# product = np.dot(move_vec, direction) - alpha * (obs_density + np.inf)
 					else:
-						product = np.dot(move_vec, direction) - alpha * (obs_density)
-					print(i, j, product, obs_density)
+						product = np.dot(move_vec, direction) + agent_map[state[0][0] + move_vec[0], state[0][1] + move_vec[1]]
+						# product = np.dot(move_vec, direction) - alpha * (obs_density)
+					print(i, j, product)
 					dots.append(product)
 					dist_to_dir[product] = np.array([i,j])
 	if len(dots) == 0:
@@ -104,7 +117,7 @@ def bearing_to_vec(bearing):
 	return np.array([np.cos((np.pi / 180) * bearing - np.pi / 2), np.sin((np.pi / 180) * bearing + np.pi / 2)])
 
 def detect_obstacle():
-	"""Obstacle is reported relative to agent's bearing. Can only be one of FRONT, LEFT, RIGHT"""
+	"""Obstacle is reported relative to agent's bearing. Can only be one of FRONT, LEFT, RIGHT, BACK"""
 	global state
 	sense_dir = sensor[np.random.choice(3, 1)[0]]
 	bearing = state[1]
@@ -112,6 +125,8 @@ def detect_obstacle():
 		loc = state[0] + bearing_to_vec(bearing)
 	elif sense_dir == 'left':
 		loc = state[0] + bearing_to_vec((bearing - 90) % 360)
+	elif sense_dir == 'back':
+		loc = state[0] + bearing_to_vec((bearing + 180) % 360)
 	else:
 		loc = state[0] + bearing_to_vec((bearing + 90) % 360)
 	is_obstacle = (obstacle_field[loc[0], loc[1]]==1)
@@ -124,9 +139,10 @@ def move(coord):
 	print("Move [%d, %d]" % (coord[0], coord[1]))
 	new_state = state[0] + coord
 	if obstacle_field[new_state[0], new_state[1]] == 1:
-		update_map(new_state)
+		update_map(new_state, 'obstacle')
 		print("Obstacle encountered! Illegal move!")
 	else:
+		update_map(new_state, 'visited')
 		state[0] = new_state
 		moves_x.append(state[0][0])
 		moves_y.append(state[0][1])
@@ -137,7 +153,7 @@ def init(ax1, ax2):
 	obstacle_field = np.where(a > (1 - obstacle_density), np.ones(a.shape), np.zeros(a.shape))
 	obstacle_field[src[0], src[1]] = 0 # Clear player's spawn location
 	obstacle_field[dest[0], dest[0]] = 0 # Clear destination
-	agent_map = np.zeros(obstacle_field.shape)
+	agent_map = np.ones(obstacle_field.shape)
 	ax2.set_xticks(np.arange(0,30,1))
 	ax2.set_yticks(np.arange(0,30,1))
 	indices = np.where(obstacle_field==1)
@@ -163,7 +179,9 @@ def main():
 	while (not win):
 		(loc, is_obstacle) = detect_obstacle()
 		if is_obstacle:
-			update_map(loc)
+			update_map(loc, 'obstacle')
+		else:
+			update_map(loc, 'free')
 		plotter(ax1, moves_x[:-1], moves_y[:-1], {'c':'r', 's':40, 'marker':"x"})
 		coord = calculate_next_move()
 		move(coord)
