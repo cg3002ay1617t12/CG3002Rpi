@@ -1,4 +1,5 @@
 import serial
+import struct
 import time
 
 #enum {0, 1, 2, 3, 4 , 5, 6, 7, 8 }
@@ -37,6 +38,19 @@ crcIndex=0
 crcData = []# need to findout why is it it bugging out
 	  
 readStatus = False
+
+def convertAndSend(number, numdigit):
+	temp = [] 
+	count = numdigit
+	while (count > 0):
+		count = count - 1
+		if number>=255:
+			number = number - 255
+			ser.write(struct.pack('!B', 255))
+		else: 
+			ser.write(struct.pack('!B', number))
+			number = 0
+	
 
 def read():
 	CurrMode = 0; 
@@ -148,14 +162,13 @@ ser.write("<")
 time.sleep(1)
 ser.write(",")
 time.sleep(1)
-ser.write(b"1")
+convertAndSend(1,1)
 time.sleep(1)
-ser.write(b"2")
+convertAndSend(2,2)
 time.sleep(1)
-ser.write(b"232")
+convertAndSend(2222,8)
 time.sleep(1)
-ser.write("1111")
-time.sleep(1)
+convertAndSend(1111,4)
 ser.write(">")
 
 while(True):
