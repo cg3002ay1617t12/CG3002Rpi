@@ -13,6 +13,9 @@ bufferSize = 0
 ser = serial.Serial(
 		port ='/dev/ttyAMA0', 
 		baudrate = 115200,
+		Bits:8,
+		Parity: none,
+		stopbits: 1,
 		timeout = 3
 )
 
@@ -58,7 +61,7 @@ def read():
 		readStatus = True
 		#while readStatus:
 		print("enter read mode")
-		incomingByte = ser.read()
+		incomingByte = ser.readlines(None)
 		print(incomingByte)
 		if CurrMode == 0: 
 			if incomingByte == 60:
