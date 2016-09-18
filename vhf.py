@@ -31,7 +31,10 @@ def update_map(loc, marker):
 		value = 2
 	else:
 		value = 0
-	agent_map[loc[0], loc[1]] = value
+	prev_value = agent_map[loc[0], loc[1]]
+	# Do not overwrite if already visited
+	if not prev_value == -1:
+		agent_map[loc[0], loc[1]] = value
 
 def plotter(ax):
 	ax.cla()
@@ -53,7 +56,7 @@ def plotter(ax):
 def within_map(x, y):
 	return (x >= 0) and (x < X_DIM) and (y >= 0) and (y < Y_DIM)
 
-def calculate_next_move():
+def calculate_next_move(greedy=True):
 	""" 
 		Find max of 1/(1+ obstacle_density) v . w where v is unit vector of next step, w is direction of target - curr
 		obstacle_density is sum of all obstacles discovered in direction of v
@@ -129,26 +132,33 @@ def calculate_next_move():
 					obs_density = np.nan_to_num(obs_density)
 					free_config  = look_ahead(new_i, new_j)
 					move_vec = np.array([i,j])
-					if is_obs:
-						product = -1 * np.inf
-						# product = np.dot(move_vec, direction) - alpha * (obs_density + np.inf)
+					if greedy:
+						if is_obs:
+							product = -1 * np.inf
+							# product = np.dot(move_vec, direction) - alpha * (obs_density + np.inf)
+						else:
+							# product = np.dot(move_vec, direction) + agent_map[state[0][0] + move_vec[0], state[0][1] + move_vec[1]]
+							product = np.dot(move_vec, direction) + obs_density + free_config
+							# product = np.dot(move_vec, direction) - alpha * (obs_density)
 					else:
-						# product = np.dot(move_vec, direction) + agent_map[state[0][0] + move_vec[0], state[0][1] + move_vec[1]]
-						product = np.dot(move_vec, direction) + obs_density + free_config
-						# product = np.dot(move_vec, direction) - alpha * (obs_density)
-					# print(i, j, product)
+						is_visited = (agent_map[state[0][0]+i, state[0][1]+j] == -1)
+						if is_obs or is_visited:
+							product = -1 * np.inf
+						else:
+							product = np.dot(move_vec, direction) + obs_density + free_config
+					print(i, j, product)
 					dots.append(product)
 					dist_to_dir[product] = np.array([i,j])
 	if len(dots) == 0:
 		print("No legal move!")
 	else:
-		if len(filter(lambda x: x!=-np.inf, dots)) > 1:
+		if len(filter(lambda x: x!=-np.inf, dots)) > 2:
 			try:
 				added = branches[str(state[0][0])+str(state[0][1])]
 			except KeyError as e:
 				dfs_branches.append(state[0]) # Save location of branching to come back later
 				branches[str(state[0][0])+str(state[0][1])] = 1
-			print("Branches: %d" % len(dfs_branches))
+				print("Branches: %d" % len(dfs_branches))
 		# print(dots)
 	return dist_to_dir[max(dots)]
 
@@ -192,6 +202,7 @@ def detect_obstacle(direction='front', mode='random'):
 	else:
 		# right
 		loc = state[0] + bearing_to_vec((bearing + 90) % 360)
+	if not within_map(loc[0], loc[1]): raise Exception("Out of Map")	
 	is_obstacle = (obstacle_field[loc[0], loc[1]]==1)
 	# if is_obstacle: print("Obstacle [%d, %d, %s]" % (state[0][0], state[0][1], sense_dir))
 	return (loc, is_obstacle)
@@ -213,11 +224,13 @@ def move(coord, backtrack=False):
 
 def init(ax1, ax2):
 	global obstacle_field, agent_map
-	a = np.random.random((30, 30))
+	a = np.random.random((X_DIM, Y_DIM))
 	obstacle_field = np.where(a > (1 - obstacle_density), np.ones(a.shape), np.zeros(a.shape))
 	obstacle_field[src[0], src[1]] = 0 # Clear player's spawn location
 	obstacle_field[dest[0], dest[0]] = 0 # Clear destination
 	agent_map = np.ones(obstacle_field.shape)
+	agent_map[state[0][0], state[0][1]] = -1
+	dfs_branches.append(state[0])
 	ax2.set_xticks(np.arange(0,30,1))
 	ax2.set_yticks(np.arange(0,30,1))
 	indices = np.where(obstacle_field==1)
@@ -234,8 +247,23 @@ def init(ax1, ax2):
 	plt.ion()
 	plt.show()
 
+def out_of_options():
+	options = 0
+	x = state[0][0]
+	y = state[0][1]
+	if within_map(x+1, y) and (agent_map[x+1,y] > 0):
+		options += 1
+	if within_map(x, y+1) and (agent_map[x,y+1] > 0):
+		options += 1
+	if within_map(x-1, y) and (agent_map[x-1,y] > 0):
+		options += 1
+	if within_map(x, y-1) and (agent_map[x, y-1] > 0):
+		options += 1
+	return (options == 0)
+
 def main():
 	global curr_dest
+	backtracked = False
 	np.random.seed()
 	fig, (ax1, ax2)  = plt.subplots(2,1, figsize=(17,8))
 	init(ax1, ax2)
@@ -243,19 +271,19 @@ def main():
 	count = 0
 	while (not win):
 		for x in range(0, NUM_SENSORS):
-			(loc, is_obstacle) = detect_obstacle(direction=sensor[x], mode='directed')
+			try:
+				(loc, is_obstacle) = detect_obstacle(direction=sensor[x], mode='directed')
+			except Exception as e:
+				pass
 			if is_obstacle:
 				update_map(loc, 'obstacle')
 			else:
 				update_map(loc, 'free')
 		plotter(ax1)
-		coord = calculate_next_move()
-		move(coord)
-		count += 1
-		if detect_cycle(N_CYCLE):
+		if out_of_options():
 			try:
 				curr_dest = dfs_branches.pop()
-				print("Cycle detected, backtrack to last branch [%d, %d]" % (curr_dest[0], curr_dest[1]))
+				print("Backtrack to last branch [%d, %d]" % (curr_dest[0], curr_dest[1]))
 				index = 1
 				while (state[0][0] != curr_dest[0]) or (state[0][1] != curr_dest[1]):
 					prev_x = moves_x[-1*index]
@@ -269,6 +297,10 @@ def main():
 				sys.exit(1)
 			print("Reached last checkpoint [%d, %d]" % (curr_dest[0], curr_dest[1]))
 			curr_dest = dest
+		else:
+			coord = calculate_next_move(greedy=False)
+			move(coord)
+			count += 1
 		if state[0][0] == dest[0] and state[0][1] == dest[1]:
 			win = True
 		if count > 100: break
