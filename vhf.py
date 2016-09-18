@@ -42,8 +42,9 @@ def plotter(ax):
 	ax.set_yticks(np.arange(0,30,1))
 	ax.set_xlim(-1, 30)
 	ax.set_ylim(-1, 30)
-	ax.scatter(moves_x[:-1], moves_y[:-1], **{'c':'r', 's':40, 'marker':"x"})
-	ax.scatter(moves_x[-1:], moves_y[-1:], **{'c':'r', 's':40, 'marker':"o"})
+	ax.scatter(moves_x[-1:], moves_y[-1:], **{'c':'r', 's':40, 'marker':"o"}) # Current location
+	indices = np.where(agent_map==-1)
+	ax.scatter(indices[0], indices[1], **{'c':'r', 's':40, 'marker':"x"}) # Visited
 	indices = np.where(agent_map==-2)
 	ax.scatter(indices[0], indices[1], **{'marker':"*"})
 	indices = np.where(agent_map==2)
@@ -146,19 +147,17 @@ def calculate_next_move(greedy=True):
 							product = -1 * np.inf
 						else:
 							product = np.dot(move_vec, direction) + obs_density + free_config
-					print(i, j, product)
+					# print(i, j, product)
 					dots.append(product)
 					dist_to_dir[product] = np.array([i,j])
 	if len(dots) == 0:
 		print("No legal move!")
 	else:
-		if len(filter(lambda x: x!=-np.inf, dots)) > 2:
-			try:
-				added = branches[str(state[0][0])+str(state[0][1])]
-			except KeyError as e:
-				dfs_branches.append(state[0]) # Save location of branching to come back later
-				branches[str(state[0][0])+str(state[0][1])] = 1
-				print("Branches: %d" % len(dfs_branches))
+		choices = len(filter(lambda x: x!=-np.inf, dots)) - 1
+		for c in range(0, choices):
+			dfs_branches.append(state[0]) # Save location of branching to come back later
+			# branches[str(state[0][0])+str(state[0][1])] = 1
+			print("Branches: %d" % len(dfs_branches))
 		# print(dots)
 	return dist_to_dir[max(dots)]
 
@@ -284,8 +283,10 @@ def main():
 			try:
 				curr_dest = dfs_branches.pop()
 				print("Backtrack to last branch [%d, %d]" % (curr_dest[0], curr_dest[1]))
-				index = 1
-				while (state[0][0] != curr_dest[0]) or (state[0][1] != curr_dest[1]):
+				index = 2
+				while True:
+					if (state[0][0] == curr_dest[0]) and (state[0][1] == curr_dest[1]):
+						break
 					prev_x = moves_x[-1*index]
 					prev_y = moves_y[-1*index]
 					move(np.array([prev_x - state[0][0], prev_y - state[0][1]]), backtrack=False)
@@ -296,6 +297,11 @@ def main():
 				print("Error! No last branch to backtrack to...There exists no path to the dest.")
 				sys.exit(1)
 			print("Reached last checkpoint [%d, %d]" % (curr_dest[0], curr_dest[1]))
+			# Discard steps taken since checkpoint
+			while index > 2:
+				moves_x.pop()
+				moves_y.pop()
+				index -= 1
 			curr_dest = dest
 		else:
 			coord = calculate_next_move(greedy=False)
@@ -303,7 +309,7 @@ def main():
 			count += 1
 		if state[0][0] == dest[0] and state[0][1] == dest[1]:
 			win = True
-		if count > 100: break
+		# if count > 100: break
 	if win: 
 		print("Won in %d moves" % count)
 	else:
