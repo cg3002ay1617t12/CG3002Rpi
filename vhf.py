@@ -17,8 +17,6 @@ sensor           = ['front', 'left', 'right', 'back']
 moves_x          = [0]
 moves_y          = [0]
 dfs_branches     = [] # Stack containing branches encountered so far
-dfs_heap         = [] # Heap containing all scores for branches
-branches         = {} # Mapping from score -> branch coordinates
 backtrack_penalty = -1
 curr_dest        = dest
 
@@ -65,9 +63,22 @@ def calc_dir(src, dest):
 def calc_dist(src, dest):
 	return la.norm(dest - src)
 
+def calc_steps(coord):
+	""" Calculates number of steps needed to backtrack to the given coord"""
+	count = 0
+	for x in range(0, len(moves_x)):
+		step_x = moves_x[-x]
+		step_y = moves_y[-x]
+		if step_x == coord[0] and step_y == coord[1]:
+			return x
+	return len(moves_x)
+
 def select_branch(n):
 	""" For all branches, check whether valid paths still exist and calculate a score based on how close those paths are to the dest"""
 	choices = []
+	if n / len(dfs_branches) > 10:
+		print("Infinite recursion detected...exiting")
+		sys.exit()
 	n = min(len(dfs_branches), n)
 	for i,b in enumerate(dfs_branches[-n:]):
 		score = 0
@@ -78,13 +89,13 @@ def select_branch(n):
 		left = b + np.array([-1,0])
 		right = b + np.array([1,0])
 		if within_map(up[0], up[1]) and (agent_map[up[0], up[1]] == 2):
-			score += np.dot(np.array([0,1]), direction) / distance
+			score += 1 + np.dot(np.array([0,1]), direction) / distance - calc_steps(b)
 		if within_map(down[0], down[1]) and (agent_map[down[0], down[1]] == 2):
-			score += np.dot(np.array([0,-1]), direction) / distance
+			score += 1 + np.dot(np.array([0,-1]), direction) / distance - calc_steps(b)
 		if within_map(left[0], left[1]) and (agent_map[left[0], left[1]] == 2):
-			score += np.dot(np.array([-1,0]), direction) / distance
+			score += 1 + np.dot(np.array([-1,0]), direction) / distance - calc_steps(b)
 		if within_map(right[0], right[1]) and (agent_map[right[0], right[1]] == 2):
-			score += np.dot(np.array([1,0]), direction) / distance
+			score += 1 + np.dot(np.array([1,0]), direction) / distance - calc_steps(b)
 		if score == 0:
 			# Prune branches with no more unvisited and free paths
 			print("Pruned (%d, %d)" % (dfs_branches[len(dfs_branches) - n + i][0], dfs_branches[len(dfs_branches) - n + i][1]))
@@ -101,6 +112,21 @@ def select_branch(n):
 		dfs_branches.pop()
 		n -= 1
 	return result
+
+def reversi():
+	""" Clean up the agent_map by running a conversion algorithm - i.e. +2 which are surrounded by -1 will be converted to -1 automatically because there is no point exploring them"""
+	for x in range(0,agent_map.shape[1]):
+		frontier = []
+		for y in range(0, agent_map.shape[0]):
+			v = agent_map[x,y]
+			if v == -1:
+				frontier.append(y)
+		for i in range(0,len(frontier),2):
+			if i+1 >= len(frontier): break
+			start = frontier[i]
+			end   = frontier[i+1]
+			agent_map[x,start+1:end] = -1
+	return
 
 def calculate_next_move(greedy=True):
 	""" 
@@ -326,7 +352,7 @@ def main():
 		plotter(ax1)
 		if out_of_options():
 			try:
-				curr_dest = select_branch(5)
+				curr_dest = select_branch(6)
 				print("Backtrack to last branch [%d, %d]" % (curr_dest[0], curr_dest[1]))
 				index = 2
 				while True:
@@ -351,6 +377,7 @@ def main():
 		else:
 			coord = calculate_next_move(greedy=False)
 			move(coord)
+			# reversi()
 			count += 1
 		if state[0][0] == dest[0] and state[0][1] == dest[1]:
 			win = True
