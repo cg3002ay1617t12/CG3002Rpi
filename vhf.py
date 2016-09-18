@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 import numpy as np
-import sys
+import sys, heapq
 import numpy.linalg as la
 
 X_DIM            = 30
@@ -16,8 +16,9 @@ obstacle_density = 0.3
 sensor           = ['front', 'left', 'right', 'back']
 moves_x          = [0]
 moves_y          = [0]
-dfs_branches     = []
-branches         = {}
+dfs_branches     = [] # Stack containing branches encountered so far
+dfs_heap         = [] # Heap containing all scores for branches
+branches         = {} # Mapping from score -> branch coordinates
 backtrack_penalty = -1
 curr_dest        = dest
 
@@ -49,13 +50,57 @@ def plotter(ax):
 	ax.scatter(indices[0], indices[1], **{'marker':"*"})
 	indices = np.where(agent_map==2)
 	ax.scatter(indices[0], indices[1], **{'marker':"+"})
-	# plt.pause(1)
+	# plt.pause(0.5)
 	x = raw_input("Press [Enter] to continue\n")
 	if x == 'q':
 		sys.exit(1)
 
 def within_map(x, y):
 	return (x >= 0) and (x < X_DIM) and (y >= 0) and (y < Y_DIM)
+
+def calc_dir(src, dest):
+	""" Returns unit vector representing direction from src to dest, src and dest must be np.ndarray"""
+	return (dest - src) / la.norm(dest - src)
+
+def calc_dist(src, dest):
+	return la.norm(dest - src)
+
+def select_branch(n):
+	""" For all branches, check whether valid paths still exist and calculate a score based on how close those paths are to the dest"""
+	choices = []
+	n = min(len(dfs_branches), n)
+	for i,b in enumerate(dfs_branches[-n:]):
+		score = 0
+		distance  = calc_dist(b, dest)
+		direction = calc_dir(b, dest)
+		up = b + np.array([0,1])
+		down = b + np.array([0,-1])
+		left = b + np.array([-1,0])
+		right = b + np.array([1,0])
+		if within_map(up[0], up[1]) and (agent_map[up[0], up[1]] == 2):
+			score += np.dot(np.array([0,1]), direction) / distance
+		if within_map(down[0], down[1]) and (agent_map[down[0], down[1]] == 2):
+			score += np.dot(np.array([0,-1]), direction) / distance
+		if within_map(left[0], left[1]) and (agent_map[left[0], left[1]] == 2):
+			score += np.dot(np.array([-1,0]), direction) / distance
+		if within_map(right[0], right[1]) and (agent_map[right[0], right[1]] == 2):
+			score += np.dot(np.array([1,0]), direction) / distance
+		if score == 0:
+			# Prune branches with no more unvisited and free paths
+			print("Pruned (%d, %d)" % (dfs_branches[len(dfs_branches) - n + i][0], dfs_branches[len(dfs_branches) - n + i][1]))
+		else:
+			print(dfs_branches[len(dfs_branches) - n + i], score)
+			choices.append([i, score])
+	try:
+		choice = max(choices, key=lambda x: x[1])[0]
+	except ValueError as e:
+		# Increase search size, TODO - risk of inifinite recursion here
+		return select_branch(n+5)
+	result = dfs_branches[choice - n]
+	while (n > choice + 1):
+		dfs_branches.pop()
+		n -= 1
+	return result
 
 def calculate_next_move(greedy=True):
 	""" 
@@ -281,7 +326,7 @@ def main():
 		plotter(ax1)
 		if out_of_options():
 			try:
-				curr_dest = dfs_branches.pop()
+				curr_dest = select_branch(5)
 				print("Backtrack to last branch [%d, %d]" % (curr_dest[0], curr_dest[1]))
 				index = 2
 				while True:
@@ -293,7 +338,7 @@ def main():
 					index += 2
 					plotter(ax1)
 					count+= 1
-			except IndexError as e:
+			except (ValueError, IndexError) as e:
 				print("Error! No last branch to backtrack to...There exists no path to the dest.")
 				sys.exit(1)
 			print("Reached last checkpoint [%d, %d]" % (curr_dest[0], curr_dest[1]))
