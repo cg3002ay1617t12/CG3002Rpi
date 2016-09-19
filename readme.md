@@ -41,7 +41,8 @@ Make sure that fpython is an executable, if not, ```sudo chmod +x fpython``` on 
 Connect arduino with IMU chip to serial port, find address of your serial port. Easiest way is to open arduino IDE,
 tools -> port, or another way is to go to /dev (for MAC users) and trial and error from all the file descriptors listed there
 
-Open serial_input, change SERIAL to your own serial address, DO NOT COMMIT this change
+Open serial_input.py, change SERIAL to your own serial address and PIPE to your own local address, DO NOT COMMIT this change
+Open step_dectection.py, change PIPE to your own local address, DO NOT COMMIT this change
 
 Open 2 terminal window - first: fpython step_dection.py (this is the master process, hence must run first)
 						 second: fpython serial_input.py
@@ -50,3 +51,36 @@ How to terminate: fpython will run forever and is not well behaved to CTRL-C sig
 
 2 files will be created in local folder - pid contains pid of the master process, so client can send signal interrupts to master,
 pipe is the named pipe created to transfer data between 2 processes
+
+This is the arduino code for the IMU, please use this as the serial comms is sensitive to the data formatted here
+
+```c++
+#include <Wire.h>
+#include <LSM303.h>
+
+LSM303 compass;
+
+void setup()
+{
+  Serial.begin(115400);
+  Wire.begin();
+  compass.init();
+  compass.enableDefault();
+}
+
+void loop()
+{
+  compass.read();
+  double x = (compass.a.x / 1600.0);
+  double y = (compass.a.y / 1600.0);
+  double z = (compass.a.z / 1600.0);
+  Serial.print(x);
+  Serial.print(",");
+  Serial.print(y);
+  Serial.print(",");
+  Serial.print(z);
+  Serial.println();
+
+  delay(20);
+}
+```
