@@ -39,16 +39,18 @@ crcData = []# need to findout why is it it bugging out
 	  
 readStatus = False
 
-def convertAndSend(number, numdigit):
-	count = numdigit
+def convert(number):
+	count = 8
+	toSend = [] 
 	while (count > 0):
 		count = count - 1
 		if number>=255:
 			number = number - 255
-			ser.write(struct.pack('!B', 255))
+			toSend.append(struct.pack('!B', 255))
 		else: 
-			ser.write(struct.pack('!B', number))
+			toSend.append(struct.pack('!B', number))
 			number = 0
+	return toSend
 	
 
 def read(): 
