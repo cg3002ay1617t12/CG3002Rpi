@@ -116,6 +116,8 @@ def read():
 				print("CORRUPT")
 		
 		elif CurrMode == 5 :
+			incomingByte = ord(incomingByte)
+			incomingByte = int(incomingByte)
 			global dataIndex
 			global data
 			print("payload")
@@ -126,6 +128,8 @@ def read():
 					CurrMode = 6
 	
 		elif CurrMode == 6 :
+			incomingByte = ord(incomingByte)
+			incomingByte = int(incomingByte)
 			global crcSize
 			global crcIndex
 			print("crc")
