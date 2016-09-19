@@ -52,7 +52,7 @@ def convertAndSend(number, numdigit):
 	
 
 def read(): 
-	CurrMode = 0; 
+	global CurrMode
 	if ser.inWaiting()>0:
 		print "wait > 0"
 		readStatus = True
@@ -161,11 +161,4 @@ def read():
 
 
 while 1:
-	try:
-		read()
-except KeyboardInterrupt:
-    print "shutting down"
-    ser.close()
-except IOError:
-    print "IO error"
-    ser.close()
+	read()
