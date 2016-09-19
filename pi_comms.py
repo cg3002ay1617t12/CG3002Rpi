@@ -96,6 +96,7 @@ def read():
 				print("CORRUPT")
 			
 		elif CurrMode == 3 :
+			global packet_seq
 			print("Payload_seq")
 			if packet_seq == 0: 
 				CurrMode = 8
@@ -113,6 +114,8 @@ def read():
 				print("CORRUPT")
 		
 		elif CurrMode == 5 :
+			global dataIndex
+			global data
 			print("payload")
 			if dataIndex > -1: 
 				data = data + incomingByte
@@ -121,6 +124,8 @@ def read():
 					CurrMode = 6
 	
 		elif CurrMode == 6 :
+			global crcSize
+			global crcIndex
 			print("crc")
 			if crcSize > -1:
 				crcData[crcIndex] = incomingByte
