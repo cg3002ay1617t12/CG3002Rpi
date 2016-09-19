@@ -135,14 +135,15 @@ def read():
 			global crcSize
 			global crcIndex
 			print("crc")
-			if crcSize > -1:
+			if crcIndex <4:
 				crcData[crcIndex] = incomingByte
 				crcIndex = crcIndex+1 
 				print(crcData[crcIndex])
-				crcSize = crcSize - 1
-				if crcSize == 0:
-					crcSize = 4
+				#crcSize = crcSize - 1
+				if crcIndex == 3:
+					#crcSize = 4
 					CurrMode = 7
+					crcIndex = 0
 	
 		elif CurrMode == 7:
 			incomingByte = ord(incomingByte)
