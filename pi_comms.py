@@ -52,19 +52,29 @@ def convertAndSend(number, numdigit):
 	
 
 def read():
+	try: 
 	CurrMode = 0; 
 	if ser.inWaiting()>0:
 		print "wait > 0"
 		readStatus = True
 		#while readStatus:
 		print("enter read mode")
-		incomingByte = ord(ser.read()) # might or might not be a good idea to do this
+		try:
+			incomingByte = ser.read() 
+		except KeyboardInterrupt:
+    		print "shutting down"
+    		ser.close()
+		except IOError:
+    		print "IO error"
+    		ser.close()
 		if CurrMode == 0: 
+			incomingByte = ord(incomingByte)
 			if incomingByte == 60:
 				CurrMode = 1
 				print("Recieved Start")
 
 		elif CurrMode == 1:
+			incomingByte = ord(incomingByte)
 			if incomingByte == 40:
 				print("Recieved ACK")
 				packet_type = 1 
@@ -130,6 +140,7 @@ def read():
 					CurrMode = 7
 	
 		elif CurrMode == 7:
+			incomingByte = ord(incomingByte)
 			print("Terminate")
 			if incomingByte != 62 :
 				CurrMode = 8
