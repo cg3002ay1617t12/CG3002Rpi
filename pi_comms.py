@@ -58,8 +58,7 @@ def read():
 		readStatus = True
 		#while readStatus:
 		print("enter read mode")
-		incomingByte = ser.readlines(None)
-		print(incomingByte)
+		incomingByte = ord(ser.read()) # might or might not be a good idea to do this
 		if CurrMode == 0: 
 			if incomingByte == 60:
 				CurrMode = 1
