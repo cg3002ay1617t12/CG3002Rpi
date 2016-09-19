@@ -56,10 +56,10 @@ def convert(number):
 def read(): 
 	global CurrMode
 	if ser.inWaiting()>0:
-		print "wait > 0"
+		#print "wait > 0"
 		readStatus = True
 		#while readStatus:
-		print("enter read mode")
+		#print("enter read mode")
 		incomingByte = ser.read() 
 		if CurrMode == 0: 
 			incomingByte = ord(incomingByte)
@@ -135,7 +135,7 @@ def read():
 			global crcSize
 			global crcIndex
 			print("crc")
-			if crcSize > -1:
+			if crcSize > 0:
 				crcData[crcIndex] = incomingByte
 				crcIndex = crcIndex+1 
 				print(crcData[crcIndex])
