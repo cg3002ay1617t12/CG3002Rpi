@@ -51,22 +51,14 @@ def convertAndSend(number, numdigit):
 			number = 0
 	
 
-def read():
-	try: 
+def read(): 
 	CurrMode = 0; 
 	if ser.inWaiting()>0:
 		print "wait > 0"
 		readStatus = True
 		#while readStatus:
 		print("enter read mode")
-		try:
-			incomingByte = ser.read() 
-		except KeyboardInterrupt:
-    		print "shutting down"
-    		ser.close()
-		except IOError:
-    		print "IO error"
-    		ser.close()
+		incomingByte = ser.read() 
 		if CurrMode == 0: 
 			incomingByte = ord(incomingByte)
 			if incomingByte == 60:
@@ -169,4 +161,11 @@ def read():
 
 
 while 1:
-	read()
+	try:
+		read()
+except KeyboardInterrupt:
+    print "shutting down"
+    ser.close()
+except IOError:
+    print "IO error"
+    ser.close()
