@@ -96,6 +96,7 @@ def read():
 				print("CORRUPT")
 			
 		elif CurrMode == 3 :
+			incomingByte = ord(incomingByte)
 			global packet_seq
 			print("Payload_seq")
 			if packet_seq == 0: 
@@ -106,6 +107,7 @@ def read():
 				packet_seq = not packet_seq
 		
 		elif CurrMode == 4 :
+			incomingByte = ord(incomingByte)
 			print("component_id")
 			if incomingByte >0 and incomingByte <41: 
 				CurrMode = 5 
