@@ -33,7 +33,7 @@ componentTemp = 0
 dataIndex = 8 
 payloadData = 1 # need to findout why is it it bugging out
 
-crcSize = 4
+crcSize = 3
 crcIndex=0
 crcData = []# need to findout why is it it bugging out
 	  
@@ -135,7 +135,7 @@ def read():
 			global crcSize
 			global crcIndex
 			print("crc")
-			if crcSize > 0:
+			if crcSize > -1:
 				crcData[crcIndex] = incomingByte
 				crcIndex = crcIndex+1 
 				print(crcData[crcIndex])
