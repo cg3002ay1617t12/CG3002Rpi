@@ -26,4 +26,3 @@ except KeyboardInterrupt:
 except IOError:
     print "IO error"
     ser.close()
-   
