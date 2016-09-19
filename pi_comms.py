@@ -136,7 +136,7 @@ def read():
 			global crcIndex
 			print("crc")
 			if crcIndex <4:
-				crcData[crcIndex] = incomingByte
+				crcData[crcIndex].append(incomingByte)
 				crcIndex = crcIndex+1 
 				print(crcData[crcIndex])
 				#crcSize = crcSize - 1
