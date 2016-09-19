@@ -13,9 +13,6 @@ bufferSize = 0
 ser = serial.Serial(
 		port ='/dev/ttyAMA0', 
 		baudrate = 115200,
-		Bits:8,
-		Parity: none,
-		stopbits: 1,
 		timeout = 3
 )
 
