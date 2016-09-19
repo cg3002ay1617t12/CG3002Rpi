@@ -1,5 +1,5 @@
 import numpy as np
-import math, random, os, sys, signal, time, serial
+import math, random, os, sys, signal, time, serial, itertools
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from collections import deque
@@ -8,6 +8,7 @@ np.set_printoptions(threshold=np.inf)
 random.seed()
 
 NUM_POINTS = 1000
+SAMPLES_PER_PACKET = 25
 PIPE = '/Users/Jerry/CG3002Rpi/pipe'
 COEFFICIENTS_LOW_0_HZ = {
     'alpha': [1, -1.979133761292768, 0.979521463540373],
@@ -25,9 +26,21 @@ COEFFICIENTS_HIGH_1_HZ = {
 ax = deque(np.zeros((NUM_POINTS,)), NUM_POINTS)
 ay = deque(np.zeros((NUM_POINTS,)), NUM_POINTS)
 az = deque(np.zeros((NUM_POINTS,)), NUM_POINTS)
+xg = deque(np.zeros((NUM_POINTS,)), NUM_POINTS)
+yg = deque(np.zeros((NUM_POINTS,)), NUM_POINTS)
+zg = deque(np.zeros((NUM_POINTS,)), NUM_POINTS)
+xu = deque(np.zeros((NUM_POINTS,)), NUM_POINTS)
+yu = deque(np.zeros((NUM_POINTS,)), NUM_POINTS)
+zu = deque(np.zeros((NUM_POINTS,)), NUM_POINTS)
+a  = deque(np.zeros((NUM_POINTS,)), NUM_POINTS)
+a_l= deque(np.zeros((NUM_POINTS,)), NUM_POINTS)
+a_h= deque(np.zeros((NUM_POINTS,)), NUM_POINTS)
+step = 0
+interrupt_count = 0
 
-def filter_sig(data, coefficients):
-	filtered_data = [0,0]
+def filter_sig(start, data, coefficients):
+	data = list(data)
+	filtered_data = start
 	for i in range(2, len(data)):
 		filtered_data.append(coefficients['alpha'][0] * 
 							data[i] * coefficients['beta'][0] +
@@ -35,7 +48,7 @@ def filter_sig(data, coefficients):
 							data[i-2] * coefficients['beta'][2] -
 							filtered_data[i-1] * coefficients['alpha'][1] -
 							filtered_data[i-2] * coefficients['alpha'][2])
-	return filtered_data
+	return filtered_data[2:]
 
 def generate_data(amp=10, period=4, noise=1):
 	"""Generate sinuisoidal data to test our filter 
@@ -96,16 +109,31 @@ def setup_comm():
 	pipe = os.fdopen(pipe_desc)
 	return pipe
 
+def count_steps(z_c_idx, p_t_idx):
+	global step
+	if len(z_c_idx) == 0 or len(p_t_idx) == 0:
+		return
+	j = 0
+	for i in range(0,len(z_c_idx)):
+		v = z_c_idx[i]
+		try:
+			while (p_t_idx[j] < v):
+				j += 1
+			step += 1
+			print("Step detected: %d" % step)
+		except Exception as e:
+			break
+
 t = np.array([x for x in range(0, NUM_POINTS)])
 def main():
-	global count
+	global count,ax,ay,az,xg,yg,zg,xu,yu,zu,a,a_l,a_h,step,interrupt_count
 	# Define variables
-	THRES = 1 # threshold for peaks, to be determined empirically
+	THRES = 2 # threshold for peaks, to be determined empirically
 	FPS  = 30
 	start = time.time()
 	pipe = setup_comm()
-	start = time.time()
 	def serial_handler(signum, frame, *args, **kwargs):
+		global interrupt_count
 		def process(datum):
 			try:
 				(x,y,z) = map(lambda x: x.strip('\r\n'), datum.split(','))
@@ -114,38 +142,68 @@ def main():
 				az.append(float(z))
 			except ValueError as e:
 				print e
-		line_count = 25
+		line_count = SAMPLES_PER_PACKET
 		buffer_ = []
 		while line_count > 0:
 			data = pipe.readline()
 			buffer_.append(data)
 			line_count -= 1
 		map(process, buffer_)
+		window = NUM_POINTS - SAMPLES_PER_PACKET
+		xg.extend(filter_sig([xg[-2], xg[-1]], itertools.islice(ax, window, None), COEFFICIENTS_LOW_0_HZ))
+		yg.extend(filter_sig([yg[-2], yg[-1]], itertools.islice(ay, window, None), COEFFICIENTS_LOW_0_HZ))
+		zg.extend(filter_sig([zg[-2], zg[-1]], itertools.islice(az, window, None), COEFFICIENTS_LOW_0_HZ))
 
+		xu.extend(np.array(list(itertools.islice(ax, window, None))) - np.array(list(itertools.islice(xg, window, None))))
+		yu.extend(np.array(list(itertools.islice(ay, window, None))) - np.array(list(itertools.islice(yg, window, None))))
+		zu.extend(np.array(list(itertools.islice(az, window, None))) - np.array(list(itertools.islice(zg, window, None))))
+
+		# Isolate user acceleration in direction of gravity
+		a.extend(np.array(list(itertools.islice(xu, window, None)))
+			* np.array(list(itertools.islice(xg, window, None))) 
+			+ np.array(list(itertools.islice(yu, window, None)))
+			* np.array(list(itertools.islice(yg, window, None)))
+			+ np.array(list(itertools.islice(zu, window, None)))
+			* np.array(list(itertools.islice(zg, window, None))))
+
+		# Remove all signals above 5 Hz
+		a_l.extend(filter_sig([a_l[-2], a_l[-1]], itertools.islice(a, window, None), COEFFICIENTS_LOW_5_HZ))
+		# Remove slow peaks
+		a_h.extend(filter_sig([a_h[-2], a_h[-1]], itertools.islice(a_l, window, None), COEFFICIENTS_HIGH_1_HZ))
+
+		interrupt_count += 1
+		if interrupt_count % 4 == 0:
+			steps_window = NUM_POINTS - 4 * SAMPLES_PER_PACKET
+			# find negative zero crossings
+			combined_window = list(itertools.islice(a_h, steps_window, None))
+			f_two_shifted = np.hstack(([1,1], np.sign(combined_window)))
+			f_one_b_one_shifted = np.hstack(([1], np.sign(combined_window), [1]))
+			b_two_shifted = np.hstack((np.sign(combined_window), [1,1]))
+			zero_crossings = np.multiply(b_two_shifted, f_one_b_one_shifted)
+			negative_zero_crossings = np.multiply(np.where(zero_crossings==-1, zero_crossings, np.zeros(len(zero_crossings))), f_two_shifted)
+			z_c_idx = np.where(negative_zero_crossings[2:]==1)[0]
+			# print(z_c_idx)
+
+			# Find positive threshold crossings
+			translated = np.sign(combined_window - np.ones(len(combined_window))*THRES)
+			f_two_shifted = np.hstack(([1,1], translated))
+			f_one_b_one_shifted = np.hstack(([1], translated,[1]))
+			b_two_shifted = np.hstack((translated,[1,1]))
+			thres_crossings = np.multiply(b_two_shifted, f_one_b_one_shifted)
+			positive_thres_crossings = np.multiply(np.where(thres_crossings==-1, thres_crossings, np.zeros(len(thres_crossings))), f_two_shifted)
+			p_t_idx = np.where(positive_thres_crossings[2:]==-1)[0]
+			# print(p_t_idx)
+
+			count_steps(z_c_idx, p_t_idx)
 	
 	# Register signals and handlers
 	signal.signal(signal.SIGUSR1, serial_handler)
 	(fig, axx, axy, axz, linex, liney, linez) = init()
+	steps = 0
 	while True:
 		# Before filter
-		xg = filter_sig(ax, COEFFICIENTS_LOW_0_HZ)
-		yg = filter_sig(ay, COEFFICIENTS_LOW_0_HZ)
-		zg = filter_sig(az, COEFFICIENTS_LOW_0_HZ)
-
-		xu = np.array(ax) - xg
-		yu = np.array(ay) - yg
-		zu = np.array(az) - zg
-
-		# Isolate user acceleration in direction of gravity
-		a = xu * xg + yu * yg + zu * zg
-
-		# Remove all signals above 5 Hz
-		a_l = filter_sig(a, COEFFICIENTS_LOW_5_HZ)
-		# Remove slow peaks
-		a_h = filter_sig(a_l, COEFFICIENTS_HIGH_1_HZ)
-
+		
 		# Step counting
-		prev_one = a_h[-1]
 		if (time.time() - start) > 1/FPS:
 			start = time.time()
 			plot(linex, a_h)
