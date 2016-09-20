@@ -1,4 +1,5 @@
 from path_finder import PathFinder
+from step_detection import StepDetector, counter
 import os, signal, sys, subprocess, shlex, time
 from fsm import *
 
@@ -31,12 +32,17 @@ class App(object):
 		# cmd = "python keyboard_sim.py"
 		# self.child_process = subprocess.Popen(shlex.split(cmd), stdin=subprocess.PIPE) # Connect stdin of child_process to stdin of this process
 		self.master = True
-		self.PathFinder = PathFinder()
 		self.state = State.START
-		# pipe_desc = os.open(DATA_PIPE, os.O_RDONLY)
-		# self.data_pipe = os.fdopen(pipe_desc)
+		pipe_desc = os.open(DATA_PIPE, os.O_RDONLY)
+		self.data_pipe = os.fdopen(pipe_desc)
 		pipe_desc = os.open(EVENT_PIPE, os.O_RDWR)
 		self.event_pipe = os.fdopen(pipe_desc, 'w+')
+		
+		# Init submodules
+		self.PathFinder = PathFinder()
+		self.StepDetector = counter
+		self.StepDetector.run()
+		
 		# Transit to READY state
 		self.event_pipe.write("SW_READY\r\n")
 		os.kill(self.pid, signal.SIGUSR1)

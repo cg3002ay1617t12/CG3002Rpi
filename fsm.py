@@ -18,6 +18,7 @@ class Transitions(Enum):
 
 	@classmethod
 	def recognize_input(cls, string):
+		"""Define keystrokes for valid transitions here"""
 		string = string.strip('\r\n')
 		if string == 'a':
 			return Transitions.KEY_ACCEPT_COORD
