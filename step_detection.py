@@ -39,8 +39,9 @@ class StepDetector(object):
 		self.a               = deque(np.zeros((StepDetector.NUM_POINTS,)), StepDetector.NUM_POINTS)
 		self.a_l             = deque(np.zeros((StepDetector.NUM_POINTS,)), StepDetector.NUM_POINTS)
 		self.a_h             = deque(np.zeros((StepDetector.NUM_POINTS,)), StepDetector.NUM_POINTS)
-		self.THRES = 2 # threshold for peaks, to be determined empirically
-		self.FPS  = 30
+		self.THRES           = 2 # threshold for peaks, to be determined empirically
+		self.FPS             = 30
+		self.plot            = plot
 		if plot:
 			self.init_plot()
 
@@ -152,7 +153,7 @@ class StepDetector(object):
 					self.plot(self.linez, self.zu)
 					self.fig.canvas.draw()
 
-counter = StepDetector(plot=True)
+counter = StepDetector(plot=False)
 def serial_handler(signum, frame, *args, **kwargs):
 	global counter
 	self = counter
