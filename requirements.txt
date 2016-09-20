@@ -1,3 +1,4 @@
 matplotlib
 numpy
 pyserial
+requests==2.11.1
