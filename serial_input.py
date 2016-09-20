@@ -1,13 +1,17 @@
 import serial, os, sys, signal
 
-PIPE               = '/Users/Jerry/CG3002Rpi/pipe'
+DATA_PIPE          = '/Users/Jerry/CG3002Rpi/data_pipe'
+EVENT_PIPE         = '/Users/Jerry/CG3002Rpi/event_pipe'
 BAUD               = 115400
 SERIAL             = '/dev/cu.usbmodem1411'
 SAMPLES_PER_PACKET = 25
-if not os.path.exists(PIPE):
-	os.mkfifo(PIPE)
 
-pipe_out = os.open(PIPE, os.O_WRONLY)
+if not os.path.exists(DATA_PIPE):
+	os.mkfifo(DATA_PIPE)
+if not os.path.exists(EVENT_PIPE):
+	os.mkfifo(EVENT_PIPE)
+
+pipe_out = os.open(DATA_PIPE, os.O_WRONLY)
 fpid     = open('./pid', 'r')
 pid      = fpid.read()
 ser      = serial.Serial(SERIAL, BAUD, timeout=1)

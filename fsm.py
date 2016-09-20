@@ -16,6 +16,24 @@ class Transitions(Enum):
 				return v
 		return None
 
+	@classmethod
+	def recognize_input(cls, string):
+		string = string.strip('\r\n')
+		if string == 'a':
+			return Transitions.KEY_ACCEPT_COORD
+		elif string == 'r':
+			return Transitions.KEY_RESET
+		elif string == 'w':
+			return Transitions.KEY_WHERE_AM_I
+		elif string == 'q':
+			return Transitions.KEY_SHUTDOWN
+		elif string == 'CHECKPOINT_REACHED':
+			return Transitions.SW_REACHED_NODE
+		elif string == 'SW_READY':
+			return Transitions.SW_READY
+		else:
+			return None
+
 class State(Enum):
 	START      = 0
 	READY      = 1
@@ -45,4 +63,10 @@ State.transitions = {
 		Transitions.SW_REACHED_NODE : State.REACHED,
 		Transitions.KEY_SHUTDOWN : State.END
 	},
+	State.REACHED: {
+		Transitions.KEY_SHUTDOWN : State.END
+	},
+	State.RESET: {
+		Transitions.KEY_SHUTDOWN : State.END
+	}
 }
