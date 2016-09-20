@@ -8,8 +8,8 @@ SAMPLES_PER_PACKET = 25
 
 if not os.path.exists(DATA_PIPE):
 	os.mkfifo(DATA_PIPE)
-if not os.path.exists(EVENT_PIPE):
-	os.mkfifo(EVENT_PIPE)
+# if not os.path.exists(EVENT_PIPE):
+# 	os.mkfifo(EVENT_PIPE)
 
 pipe_out = os.open(DATA_PIPE, os.O_WRONLY)
 fpid     = open('./pid', 'r')

@@ -1,6 +1,6 @@
 from path_finder import PathFinder
 from vhf import LocalPathFinder
-from step_detection import StepDetector, counter
+from step_detection import StepDetector, counter, serial_handler
 import os, signal, sys, subprocess, shlex, time
 from fsm import *
 
@@ -10,7 +10,6 @@ DATA_PIPE  = '/Users/Jerry/CG3002Rpi/data_pipe'
 
 class App(object):
 	def __init__(self):
-		# signal.signal(signal.SIGUSR1, transition_handler)
 		self.pid = os.getpid()
 		fpid = open('./pid', 'w')
 		fpid.write(str(self.pid))
@@ -20,10 +19,10 @@ class App(object):
 		# self.child_process = subprocess.Popen(shlex.split(cmd), stdin=subprocess.PIPE) # Connect stdin of child_process to stdin of this process
 		self.master = True
 		self.state = State.START
-		# pipe_desc = os.open(DATA_PIPE, os.O_RDONLY)
-		# print("Starting data pipe...listening for serial comms...")
-		# self.data_pipe = os.fdopen(pipe_desc)
-		# print("Serial comms connected!")
+		pipe_desc = os.open(DATA_PIPE, os.O_RDONLY)
+		print("Starting data pipe...listening for serial comms...")
+		self.data_pipe = os.fdopen(pipe_desc)
+		print("Serial comms connected!")
 		pipe_desc = os.open(EVENT_PIPE, os.O_RDWR)
 		print("Starting event pipe...listening for keystrokes...")
 		self.event_pipe = os.fdopen(pipe_desc, 'w+')
@@ -32,32 +31,40 @@ class App(object):
 		# Init submodules
 		self.PathFinder = PathFinder()
 		self.StepDetector = counter
-		# self.StepDetector.run()
-		self.LPF = LocalPathFinder()
+		self.LPF = LocalPathFinder(mode='demo')
+
+	def register_handler(self):
+		signal.signal(signal.SIGUSR2, transition_handler)
+		signal.signal(signal.SIGUSR1, serial_handler)
 
 	def run(self):
 		while True:
 			if self.state is State.END:
 				break
 			elif self.state is State.READY:
-				# Do something, can be blocking or non-blocking
+				# Do something, make sure its interruptible and non-blocking
 				print(self.state)
-				time.sleep(5)
+				self.StepDetector.run()
+				self.LPF.run(plot=False)
 				pass
 			elif self.state is State.NAVIGATING:
-				# Do something, can be blocking or non-blocking
+				# Do something, make sure its interruptible and non-blocking
 				print(self.state)
-				time.sleep(5)
+				self.StepDetector.run()
+				self.LPF.run(plot=False)
 				pass
 			elif self.state is State.REACHED:
-				# Do something, can be blocking or non-blocking
+				# Do something, make sure its interruptible and non-blocking
 				print(self.state)
-				time.sleep(5)
+				self.StepDetector.run()
+				self.LPF.run(plot=False)
 				pass
 			elif self.state is State.RESET:
-				# Do something, can be blocking or non-blocking
+				# Do something, make sure its interruptible and non-blocking
 				print(self.state)
-				time.sleep(5)
+				self.StepDetector.reset_step()
+				self.StepDetector.run()
+				self.LPF.run(plot=False)
 				pass
 			else:
 				pass
@@ -80,10 +87,10 @@ def transition_handler(signum, frame, *args, **kwargs):
 def main():
 	""" Main program of the Finite State Machine"""
 	global app
-	signal.signal(signal.SIGUSR1, transition_handler)
+	app.register_handler()
 	# Transit to READY state
 	app.event_pipe.write("SW_READY\r\n")
-	os.kill(app.pid, signal.SIGUSR1)
+	os.kill(app.pid, signal.SIGUSR2)
 	app.run()
 
 if __name__ == "__main__":

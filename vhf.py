@@ -24,6 +24,8 @@ class LocalPathFinder(object):
 		self.dfs_branches     = [] # Stack containing branches encountered so far
 		self.curr_dest        = self.dest
 		self.mode             = mode
+		self.win              = False
+		self.count            = 0
 		self.init_sim()
 
 	def update_map(self, loc, marker):
@@ -341,6 +343,55 @@ class LocalPathFinder(object):
 		if plot:
 			self.fig, (self.ax1, self.ax2)  = plt.subplots(2,1, figsize=(17,8))
 			self.init_plot(self.ax1, self.ax2)
+		if not self.win:
+			for x in range(0, LocalPathFinder.NUM_SENSORS):
+				try:
+					(loc, is_obstacle) = self.detect_obstacle(direction=LocalPathFinder.sensor[x], mode='directed')
+					if is_obstacle:
+						self.update_map(loc, 'obstacle')
+					else:
+						self.update_map(loc, 'free')
+				except Exception as e:
+					pass
+			if plot: self.plotter(self.ax1)
+			if self.out_of_options():
+				try:
+					self.curr_dest = self.select_branch(6)
+					print("Backtrack to last branch [%d, %d]" % (self.curr_dest[0], self.curr_dest[1]))
+					index = 2
+					while True:
+						if (self.state[0][0] == self.curr_dest[0]) and (self.state[0][1] == self.curr_dest[1]):
+							break
+						prev_x = self.moves_x[-1*index]
+						prev_y = self.moves_y[-1*index]
+						self.move(np.array([prev_x - self.state[0][0], prev_y - self.state[0][1]]), backtrack=False)
+						index += 2
+						if plot: self.plotter(self.ax1)
+						self.count+= 1
+				except (ValueError, IndexError) as e:
+					print("Error! No last branch to backtrack to...There exists no path to the dest.")
+				print("Reached last checkpoint [%d, %d]" % (self.curr_dest[0], self.curr_dest[1]))
+				# Discard steps taken since checkpoint
+				while index > 2:
+					self.moves_x.pop()
+					self.moves_y.pop()
+					index -= 1
+				self.curr_dest = self.dest
+			else:
+				coord = self.calculate_next_move(greedy=False)
+				self.move(coord)
+				self.count += 1
+			if self.state[0][0] == self.dest[0] and self.state[0][1] == self.dest[1]:
+				self.win = True
+			# if count > 100: break
+		if self.win: 
+			print("Won in %d moves" % self.count)
+
+	def run_to_end(self, plot=False):
+		np.random.seed()
+		if plot:
+			self.fig, (self.ax1, self.ax2)  = plt.subplots(2,1, figsize=(17,8))
+			self.init_plot(self.ax1, self.ax2)
 		win   = False
 		count = 0
 		while (not win):
@@ -392,7 +443,7 @@ class LocalPathFinder(object):
 
 def main(plot=True, mode='demo'):
 	lpf = LocalPathFinder(30, 30, np.array([25,25]), np.array([0,0]), 0, mode=mode)
-	lpf.run(plot)
+	lpf.run_to_end(plot)
 
 if __name__ == "__main__":
 	if len(sys.argv) == 2:

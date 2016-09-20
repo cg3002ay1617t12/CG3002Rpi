@@ -13,4 +13,4 @@ pid      = fpid.read()
 while True:
 	user_input = raw_input()
 	os.write(pipe_out, user_input + "\r\n")
-	os.kill(int(pid), signal.SIGUSR1) # Raise SIGUSR1 signal
+	os.kill(int(pid), signal.SIGUSR2) # Raise SIGUSR2 signal
