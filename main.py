@@ -1,23 +1,30 @@
-from parser import get_node_info, get_adjacency_list
-from path_finder import get_shortest_path
-from helper import get_detailed_path
+import path_finder
+import random, math, os, signal
+from fsm import *
 
-node_info = get_node_info()
+# Global variables
 
-print str(node_info) + "\n"
 
-adjacency_matrix = get_adjacency_list(node_info)
+def init():
+	""" Start child processes, setup pipes, download and parse map"""
+	pass
 
-print str(adjacency_matrix) + "\n"
+def main():
+	""" Main program of the Finite State Machine"""
+	def transition_handler(signum, frame):
+		pass
+	state = State.START
+	init()
+	while True:
+		if state is State.END:
+			break
+		try:
+			# Wait for state transitions to occur
+			state = State.transitions[state][transition]
+		except KeyError as e:
+			pass
+	# Clean up system resources, close files and pipes, delete temp files
+	sys.exit(1)
 
-start = 1
-end = 9
-
-shortest_path, distance = get_shortest_path(adjacency_matrix, start, end)
-
-print str(shortest_path) + "\n"
-print str(distance) + "\n"
-
-detailed_path = get_detailed_path(start, end, shortest_path, distance, node_info)
-
-print str(detailed_path) + "\n"
+if __name__ == "__main__":
+	main()
