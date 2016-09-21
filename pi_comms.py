@@ -152,7 +152,7 @@ def read():
 			print("crc")
 			if incomingByte == 1: 
 				CurrMode = 7 
-			else
+			else:
 				CurrMode = 8 
 				print("CORRUPT")
 
