@@ -1,4 +1,4 @@
-#import serial
+import serial
 import struct
 import time
 import heapq
@@ -12,7 +12,7 @@ packet_type = 0 #save the type of packet
 booted = '0'
 bufferSize = 0
 
-#ser = serial.Serial(port ='/dev/ttyAMA0', baudrate = 115200, timeout = 3)
+ser = serial.Serial(port ='/dev/ttyAMA0', baudrate = 115200, timeout = 3)
 
 incomingByte = 0
 	
