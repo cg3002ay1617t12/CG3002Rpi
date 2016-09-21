@@ -1,6 +1,8 @@
-import serial
+#import serial
 import struct
 import time
+import heapq
+import binascii
 
 #enum {0, 1, 2, 3, 4 , 5, 6, 7, 8 }
 
@@ -10,23 +12,19 @@ packet_type = 0 #save the type of packet
 booted = '0'
 bufferSize = 0
 
-ser = serial.Serial(
-		port ='/dev/ttyAMA0', 
-		baudrate = 115200,
-		timeout = 3
-)
+#ser = serial.Serial(port ='/dev/ttyAMA0', baudrate = 115200, timeout = 3)
 
 incomingByte = 0
-	  
+	
 packet_size = 0
 packet_size_count = 0
-	  
+	
 packet_seq = '0'
 
 dataSize = [] 
 data = 0 
 numComponent = 0 # MAX 10
-componentID = []
+componentID = 0
 componentFlag = '0'
 componentTemp = 0
 
@@ -35,9 +33,25 @@ payloadData = 1 # need to findout why is it it bugging out
 
 crcSize = 4
 crcIndex=0
-crcData = []# need to findout why is it it bugging out
-	  
+crcData = [] # need to findout why is it it bugging out
+crcPoly = "100000111"
+txCrcIndex = 12
+rxCrcIndex = 14
+	
 readStatus = False
+flag = 0
+
+class PriorityQueue:
+	def __init__(self):
+		self._queue = []
+		self._index = 0
+
+	def push(self, item, priority):
+		heapq.heappush(self._queue, (priority, self._index, item))
+		self._index += 1
+
+	def pop(self):
+		return heapq.heappop(self._queue)[-1]
 
 def convert(number):
 	count = 8
@@ -110,6 +124,7 @@ def read():
 		
 		elif CurrMode == 4 :
 			incomingByte = ord(incomingByte)
+			component_id = ord(incomingByte)
 			print("component_id")
 			if incomingByte >0 and incomingByte <41: 
 				CurrMode = 5 
@@ -135,13 +150,12 @@ def read():
 			global crcSize
 			global crcIndex
 			print("crc")
-			if crcIndex <4:
-				crcData.append(incomingByte)
-				if crcIndex == 3:
-					#crcSize = 4
-					CurrMode = 7
-					crcIndex = 0
-			crcIndex = crcIndex + 1	
+			if incomingByte == 1: 
+				CurrMode = 7 
+			else
+				CurrMode = 8 
+				print("CORRUPT")
+					
 		elif CurrMode == 7:
 			incomingByte = ord(incomingByte)
 			print("Terminate")
@@ -157,19 +171,133 @@ def read():
 				print(crcData[2])
 				print(crcData[3])
 				readStatus = False
-					#add switch case (if ack/nack/data received what happens)
-					#if packet_type == 1: 
-					#	ser.write(40)
-					#elif packet_type ==2:
-					#	ser.write()
-					#elif packet_type ==3:
-					#	ser.write()
+				#handling packets funct here
 		
 		elif CurrMode == 8:
 			print("Handling Corrupt Packet")
 			CurrMode = 0
 			readStatus = False
 
+def send(): 
+	global packet_seq
+	global packet_type
+	global component_id
+	global data
+	ser.write("<")
+	ser.write(packet_type)
+	ser.write(packet_seq)
+	ser.write(component_id)
+	ser.write(data)
+	ser.write(1111)
+	ser.write(">")
+
+def handling_packets(): 
+	global packet_type
+	if packet_type == 3: #PROBE
+		send()
+
+
+def txCRC():
+	global packet_type
+	global packet_seq
+	global component_id
+	global data
+	toBeDivided = []
+	toBeDivided.append(format(60, "08b")) #START
+	toBeDivided.append(format(11, "08b")) #PACKET_TYPE
+	toBeDivided.append(format(22, "08b")) #PACKET_SEQ
+	toBeDivided.append(format(44, "08b")) #COMPONENT_ID
+	toBeDivided.append(format(65, "064b")) #DATA
+	toBeDivided.append(format(0, "08b")) #PAD 8 ZEROS
+	divided_string = ''.join(toBeDivided)
+	#print divided_string
+	return divided_string
+
+# Returns XOR of 'a' and 'b'
+# (both of same length)
+def xor(a, b):
+	# initialize result
+	result = []
+
+	# Traverse all bits, if bits are
+	# same, then XOR is 0, else 1
+	for i in range(1, len(b)):
+		if a[i] == b[i]:
+			result.append('0')
+		else:
+			result.append('1')
+
+	return ''.join(result)
+
+# Performs Modulo-2 division
+def mod2div(divident, divisor):
+
+	# Number of bits to be XORed at a time.
+	pick = len(divisor)
+
+	# Slicing the divident to appropriate
+	# length for particular step
+	tmp = divident[0 : pick]
+
+	while pick < len(divident):
+
+		if tmp[0] == '1':
+
+			# replace the divident by the result
+			# of XOR and pull 1 bit down
+			tmp = xor(divisor, tmp) + divident[pick]
+
+		else:   # If leftmost bit is '0'
+			# If the leftmost bit of the dividend (or the
+			# part used in each step) is 0, the step cannot
+			# use the regular divisor; we need to use an
+			# all-0s divisor.
+			tmp = xor('0'*pick, tmp) + divident[pick]
+
+		# increment pick to move further
+		pick += 1
+
+	# For the last n bits, we have to carry it out
+	# normally as increased value of pick will cause
+	# Index Out of Bounds.
+	if tmp[0] == '1':
+		tmp = xor(divisor, tmp)
+	else:
+		tmp = xor('0'*pick, tmp)
+
+	checkword = tmp
+	return checkword
+
+# Function used at the sender side to encode
+# data by appending remainder of modular divison
+# at the end of data.
+def encodeData(data, key):
+
+	l_key = len(key)
+
+	# Appends n-1 zeroes at end of data
+	appended_data = data + '0'*(l_key-1)
+	remainder = mod2div(appended_data, key)
+
+	# Append remainder in the original data
+	codeword = data + remainder
+	print("Remainder:")
+	print(remainder)
+	print("Encoded Data (Data + Remainder Appended):")
+	print(codeword)
+
+#q = PriorityQueue() 
+#q.push("hello world", 5)
+#q.push("this is high priority", 3)
+#q.push("second highest", 4)
+#q.pop()
+#q.pop()
+#q.pop()
 
 while 1:
+	#read()
+	#txCRC()
+	#if flag==0:
+	#	encodeData(txCRC() ,crcPoly)
+	#	flag =1
 	read()
