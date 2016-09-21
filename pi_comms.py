@@ -124,7 +124,7 @@ def read():
 		
 		elif CurrMode == 4 :
 			incomingByte = ord(incomingByte)
-			component_id = ord(incomingByte)
+			component_id = incomingByte
 			print("component_id")
 			if incomingByte >0 and incomingByte <41: 
 				CurrMode = 5 
