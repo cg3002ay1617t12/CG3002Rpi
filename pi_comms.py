@@ -41,6 +41,11 @@ rxCrcIndex = 14
 readStatus = False
 flag = 0
 
+packet_type_TS = 44 #PKT_TYPE IS DATA TO SEND
+packet_seq_TS = 0
+component_ID_TS = 12
+data_TS = 277
+
 class PriorityQueue:
 	def __init__(self):
 		self._queue = []
@@ -180,15 +185,11 @@ def read():
 			readStatus = False
 
 def send(): 
-	global packet_seq
-	global packet_type
-	global component_ID
-	global data
 	ser.write("<")
-	ser.write(str(packet_type))
-	ser.write(str(packet_seq))
-	ser.write(str(component_ID))
-	ser.write(str(data))
+	ser.write(str(packet_type_TS))
+	ser.write(str(packet_seq_TS))
+	ser.write(str(component_ID_TS))
+	ser.write(str(data_TS))
 	ser.write("1")
 	ser.write(">")
 
