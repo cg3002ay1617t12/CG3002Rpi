@@ -155,7 +155,7 @@ def read():
 			else
 				CurrMode = 8 
 				print("CORRUPT")
-					
+
 		elif CurrMode == 7:
 			incomingByte = ord(incomingByte)
 			print("Terminate")
@@ -188,7 +188,7 @@ def send():
 	ser.write(packet_seq)
 	ser.write(component_id)
 	ser.write(data)
-	ser.write(1111)
+	ser.write(1)
 	ser.write(">")
 
 def handling_packets(): 
