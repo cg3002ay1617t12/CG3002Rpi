@@ -152,6 +152,7 @@ def read():
 			print("crc")
 			if incomingByte == 1: 
 				CurrMode = 7 
+				crcData = incomingByte
 			else:
 				CurrMode = 8 
 				print("CORRUPT")
@@ -166,10 +167,7 @@ def read():
 			else:
 				CurrMode = 0
 				print(data)
-				print(crcData[0])
-				print(crcData[1])
-				print(crcData[2])
-				print(crcData[3])
+				print(crcData)
 				readStatus = False
 				#handling packets funct here
 		
