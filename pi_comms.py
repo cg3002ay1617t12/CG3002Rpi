@@ -69,7 +69,8 @@ def convert(number):
 		else: 
 			toSend.append(struct.pack('!B', number))
 			number = 0
-	return toSend
+	divided_string = ''.join(toSend)
+	return divided_string
 	
 
 def read(): 
@@ -186,10 +187,10 @@ def read():
 
 def send(): 
 	ser.write("<")
-	ser.write(str(packet_type_TS))
-	ser.write(str(packet_seq_TS))
-	ser.write(str(component_ID_TS))
-	ser.write(str(data_TS))
+	ser.write(chr(packet_type_TS))
+	ser.write(chr(packet_seq_TS))
+	ser.write(chr(component_ID_TS))
+	ser.write(convert(data_TS))
 	ser.write("1")
 	ser.write(">")
 
