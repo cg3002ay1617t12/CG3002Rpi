@@ -149,6 +149,7 @@ def read():
 			#incomingByte = int(incomingByte)
 			global crcSize
 			global crcIndex
+			global crcData
 			print("crc")
 			if incomingByte == 1: 
 				CurrMode = 7 
@@ -158,6 +159,7 @@ def read():
 				print("CORRUPT")
 
 		elif CurrMode == 7:
+			global crcData
 			incomingByte = ord(incomingByte)
 			print("Terminate")
 			if incomingByte != 62 :
