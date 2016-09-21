@@ -146,7 +146,7 @@ def read():
 	
 		elif CurrMode == 6 :
 			incomingByte = ord(incomingByte)
-			incomingByte = int(incomingByte)
+			#incomingByte = int(incomingByte)
 			global crcSize
 			global crcIndex
 			print("crc")
