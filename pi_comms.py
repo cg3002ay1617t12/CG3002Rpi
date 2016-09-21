@@ -33,7 +33,7 @@ payloadData = 1 # need to findout why is it it bugging out
 
 crcSize = 4
 crcIndex=0
-crcData = [] # need to findout why is it it bugging out
+crcData = 0 # need to findout why is it it bugging out
 crcPoly = "100000111"
 txCrcIndex = 12
 rxCrcIndex = 14
