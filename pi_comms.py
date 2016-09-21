@@ -24,7 +24,7 @@ packet_seq = '0'
 dataSize = [] 
 data = 0 
 numComponent = 0 # MAX 10
-componentID = 0
+component_ID = 0
 componentFlag = '0'
 componentTemp = 0
 
@@ -125,7 +125,7 @@ def read():
 		
 		elif CurrMode == 4 :
 			incomingByte = ord(incomingByte)
-			component_id = incomingByte
+			component_ID = incomingByte
 			print("component_id")
 			if incomingByte >0 and incomingByte <41: 
 				CurrMode = 5 
@@ -173,7 +173,7 @@ def read():
 				print(crcData)
 				readStatus = False
 				#handling packets funct here
-		
+				send();	
 		elif CurrMode == 8:
 			print("Handling Corrupt Packet")
 			CurrMode = 0
@@ -182,14 +182,14 @@ def read():
 def send(): 
 	global packet_seq
 	global packet_type
-	global component_id
+	global component_ID
 	global data
 	ser.write("<")
-	ser.write(packet_type)
-	ser.write(packet_seq)
-	ser.write(component_id)
-	ser.write(data)
-	ser.write(1)
+	ser.write(str(packet_type))
+	ser.write(str(packet_seq))
+	ser.write(str(component_ID))
+	ser.write(str(data))
+	ser.write("1")
 	ser.write(">")
 
 def handling_packets(): 
