@@ -223,6 +223,7 @@ def handling_packets():
 	elif packet_type == 6: #(DATA RECEIVED) send ack back with next pkt_seq
 		#if protected_flag == 0:
 		send(")", component_ID_TX, data_TX)
+		packet_seq_TX = not packet_seq_TX
 		#else:
 		#	queueData = {'p_type': 41, 'com_id' : component_ID_TX , 'p_data' : data_TX}
 		#	q.push(queueData, 1) 
