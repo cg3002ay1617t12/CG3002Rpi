@@ -60,6 +60,11 @@ def convert(number):
 def read(): 
 	global crcData
 	global CurrMode
+	global packet_type
+	global dataIndex
+	global data
+	global packet_seq_RX
+	
 	if ser.inWaiting()>0:
 		readStatus = True
 		incomingByte = ser.read() 
@@ -101,7 +106,7 @@ def read():
 			
 		elif CurrMode == 3 :
 			incomingByte = ord(incomingByte)
-			global packet_seq_RX
+		
 			print("Payload_seq")
 			if packet_seq_RX == 0: 
 				CurrMode = 8
@@ -123,9 +128,7 @@ def read():
 		elif CurrMode == 5 :
 			incomingByte = ord(incomingByte)
 			incomingByte = int(incomingByte)
-			global dataIndex
-			global data
-			global packet_type
+			
 			print("payload")
 			if dataIndex > -1: 
 				data = data + incomingByte
