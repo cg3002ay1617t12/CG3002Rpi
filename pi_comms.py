@@ -125,6 +125,7 @@ def read():
 			incomingByte = int(incomingByte)
 			global dataIndex
 			global data
+			global packet_type
 			print("payload")
 			if dataIndex > -1: 
 				data = data + incomingByte
