@@ -7,7 +7,7 @@ import binascii
 #RECEIVE VARIABLES
 CurrMode = 0
 packet_type = 0 #For packet handling
-packet_seq_RX = 0 
+packet_seq_RX = 48
 data = 0 
 component_ID = 0
 
@@ -67,7 +67,8 @@ def read():
 	
 	if ser.inWaiting()>0:
 		readStatus = True
-		incomingByte = ser.read() 
+		incomingByte = ser.read()
+		print incomingByte 
 		if CurrMode == 0: 
 			incomingByte = ord(incomingByte)
 			if incomingByte == 60:
@@ -108,13 +109,16 @@ def read():
 			incomingByte = ord(incomingByte)
 		
 			print("Payload_seq")
-			if packet_seq_RX == 0: 
+			print("expected: " + str(packet_seq_RX) + " actual: " + str(incomingByte))
+			if packet_seq_RX != incomingByte:
 				CurrMode = 8
 				print("CORRUPT")
 			else: 
 				CurrMode = 4
-				packet_seq_RX = not packet_seq_RX
-		
+				if packet_seq_RX == 48:
+					packet_seq_RX = 49
+				else: 
+					packet_seq_RX = 48
 		elif CurrMode == 4 :
 			incomingByte = ord(incomingByte)
 			component_ID = incomingByte
@@ -134,12 +138,15 @@ def read():
 				data = data + incomingByte
 				dataIndex = dataIndex-1 
 				if dataIndex == 0:
+					data = 0
+					dataIndex = 8
 					CurrMode = 6
 	
 		elif CurrMode == 6 :
 			incomingByte = ord(incomingByte)
 			print("crc")
-			if incomingByte == 1: 
+			print incomingByte
+			if incomingByte == 48: 
 				CurrMode = 7 
 				crcData = incomingByte
 			else:
@@ -195,6 +202,7 @@ def handling_packets():
 	global data_TX
 
 	if packet_type == 1: #(HELLO RECEIVED) send hello back
+		print "hello from the other side"
 		#if protected_flag = 0: 
 		ser.write("<")
 		ser.write("(") 
