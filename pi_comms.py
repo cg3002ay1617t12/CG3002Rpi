@@ -173,12 +173,12 @@ def send(packet_type_S, component_ID_S, data_S):
 	packet_type_TX = packet_type_S
 	component_ID_TX = component_ID_S
 	data_TX = data_S
-
+	print("Sending ACK Packet")
 	ser.write("<")
-	ser.write(chr(packet_type_S))
-	ser.write(chr(packet_seq_TX))
-	ser.write(chr(component_ID_S))
-	ser.write(convert(data_S))
+	ser.write(chr(packet_type_S)) #41
+	ser.write(chr(packet_seq_TX)) #0/1
+	ser.write(chr(component_ID_S)) #12
+	ser.write(convert(data_S)) #277
 	ser.write("1")
 	ser.write(">")
 	#protected_flag = 1 
@@ -222,7 +222,7 @@ def handling_packets():
 
 	elif packet_type == 6: #(DATA RECEIVED) send ack back with next pkt_seq
 		#if protected_flag == 0:
-		send(")", component_ID_TX, data_TX)
+		send(41, component_ID_TX, data_TX)
 		packet_seq_TX = not packet_seq_TX
 		#else:
 		#	queueData = {'p_type': 41, 'com_id' : component_ID_TX , 'p_data' : data_TX}
