@@ -200,7 +200,7 @@ class StepDetector(object):
 				self.plot(self.linez, self.zu)
 				self.fig.canvas.draw()
 
-counter = StepDetector(plot=True)
+counter = StepDetector(plot=False)
 def serial_handler(signum, frame, *args, **kwargs):
 	global counter
 	self = counter
