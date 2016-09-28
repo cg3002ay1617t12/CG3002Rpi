@@ -1,0 +1,4 @@
+*.pyc
+pid
+data_pipe
+event_pipe
