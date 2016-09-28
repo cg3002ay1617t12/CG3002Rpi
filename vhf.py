@@ -233,7 +233,7 @@ class LocalPathFinder(object):
 			choices = len(filter(lambda x: x!=-np.inf, dots)) - 1
 			for c in range(0, choices):
 				self.dfs_branches.append(self.state[0]) # Save location of branching to come back later
-				print("Branches: %d" % len(self.dfs_branches))
+				# print("Branches: %d" % len(self.dfs_branches))
 		return dist_to_dir[max(dots)]
 
 	def detect_cycle(n):
@@ -288,7 +288,7 @@ class LocalPathFinder(object):
 		new_state = self.state[0] + coord
 		if self.obstacle_field[new_state[0], new_state[1]] == 1:
 			self.update_map(new_state, 'obstacle')
-			print("Obstacle encountered! Illegal move!")
+			# print("Obstacle encountered! Illegal move!")
 		else:
 			self.update_map(new_state, 'visited')
 			self.state[0] = new_state
@@ -357,7 +357,7 @@ class LocalPathFinder(object):
 			if self.out_of_options():
 				try:
 					self.curr_dest = self.select_branch(6)
-					print("Backtrack to last branch [%d, %d]" % (self.curr_dest[0], self.curr_dest[1]))
+					# print("Backtrack to last branch [%d, %d]" % (self.curr_dest[0], self.curr_dest[1]))
 					index = 2
 					while True:
 						if (self.state[0][0] == self.curr_dest[0]) and (self.state[0][1] == self.curr_dest[1]):
@@ -369,8 +369,9 @@ class LocalPathFinder(object):
 						if plot: self.plotter(self.ax1)
 						self.count+= 1
 				except (ValueError, IndexError) as e:
-					print("Error! No last branch to backtrack to...There exists no path to the dest.")
-				print("Reached last checkpoint [%d, %d]" % (self.curr_dest[0], self.curr_dest[1]))
+					pass
+					# print("Error! No last branch to backtrack to...There exists no path to the dest.")
+				# print("Reached last checkpoint [%d, %d]" % (self.curr_dest[0], self.curr_dest[1]))
 				# Discard steps taken since checkpoint
 				while index > 2:
 					self.moves_x.pop()
@@ -385,7 +386,8 @@ class LocalPathFinder(object):
 				self.win = True
 			# if count > 100: break
 		if self.win: 
-			print("Won in %d moves" % self.count)
+			# print("Won in %d moves" % self.count)
+			pass
 
 	def run_to_end(self, plot=False):
 		np.random.seed()

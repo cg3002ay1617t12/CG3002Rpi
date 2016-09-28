@@ -9,7 +9,8 @@ import serial, os, sys, signal
 DATA_PIPE          = './data_pipe'
 EVENT_PIPE         = './event_pipe'
 BAUD               = 115200
-SERIAL             = '/dev/ttyAMA0'
+# SERIAL             = '/dev/ttyAMA0'
+SERIAL             = '/dev/cu.usbmodem1411'
 SAMPLES_PER_PACKET = 25
 
 if not os.path.exists(DATA_PIPE):

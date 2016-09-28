@@ -43,25 +43,21 @@ class App(object):
 				break
 			elif self.state is State.READY:
 				# Do something, make sure its interruptible and non-blocking
-				print(self.state)
 				self.StepDetector.run()
 				self.LPF.run(plot=False)
 				pass
 			elif self.state is State.NAVIGATING:
 				# Do something, make sure its interruptible and non-blocking
-				print(self.state)
 				self.StepDetector.run()
 				self.LPF.run(plot=False)
 				pass
 			elif self.state is State.REACHED:
 				# Do something, make sure its interruptible and non-blocking
-				print(self.state)
 				self.StepDetector.run()
 				self.LPF.run(plot=False)
 				pass
 			elif self.state is State.RESET:
 				# Do something, make sure its interruptible and non-blocking
-				print(self.state)
 				self.StepDetector.reset_step()
 				self.StepDetector.run()
 				self.LPF.run(plot=False)
@@ -81,6 +77,7 @@ def transition_handler(signum, frame, *args, **kwargs):
 	print transition
 	try:
 		app.state = State.transitions[app.state][transition]
+		print(app.state)
 	except KeyError as e:
 		pass
 
