@@ -148,7 +148,6 @@ class PiComms(object):
 					self.data = self.data + self.incomingByte
 					self.dataIndex = self.dataIndex-1 
 					if self.dataIndex == 0:
-						self.data = 0
 						self.dataIndex = 8
 						self.CurrMode = 6
 		
@@ -180,6 +179,7 @@ class PiComms(object):
 						self.forward_data()
 					print(self.data)
 					print(self.crcData)
+					self.data = 0
 					self.readStatus = False
 					if self.packet_type ==1 or self.packet_type ==6:
 						self.handling_packets()
