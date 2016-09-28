@@ -5,8 +5,8 @@ import os, signal, sys, subprocess, shlex, time
 from fsm import *
 
 # Global variables
-EVENT_PIPE = '/Users/Jerry/CG3002Rpi/event_pipe'
-DATA_PIPE  = '/Users/Jerry/CG3002Rpi/data_pipe'
+EVENT_PIPE = './event_pipe'
+DATA_PIPE  = './data_pipe'
 
 class App(object):
 	def __init__(self):

@@ -1,8 +1,8 @@
 import os, sys, signal
 from fsm import *
 
-# DATA_PIPE          = '/Users/Jerry/CG3002Rpi/data_pipe'
-EVENT_PIPE         = '/Users/Jerry/CG3002Rpi/event_pipe'
+# DATA_PIPE          = './data_pipe'
+EVENT_PIPE         = './event_pipe'
 
 if not os.path.exists(EVENT_PIPE):
 	os.mkfifo(EVENT_PIPE)

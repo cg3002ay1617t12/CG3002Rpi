@@ -21,8 +21,8 @@ class PiComms(object):
 	#SEND VARIABLES
 	createQueue     = 1 
 	txCrcIndex      = 12
-	DATA_PIPE          = './CG3002Rpi/data_pipe'
-	EVENT_PIPE         = './CG3002Rpi/event_pipe'
+	DATA_PIPE          = './data_pipe'
+	EVENT_PIPE         = './event_pipe'
 	BAUD               = 115200
 	SERIAL             = '/dev/ttyAMA0'
 	SAMPLES_PER_PACKET = 25
