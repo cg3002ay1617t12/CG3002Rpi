@@ -1,9 +1,15 @@
 import serial, os, sys, signal
 
-DATA_PIPE          = '/Users/Jerry/CG3002Rpi/data_pipe'
-EVENT_PIPE         = '/Users/Jerry/CG3002Rpi/event_pipe'
-BAUD               = 115400
-SERIAL             = '/dev/cu.usbmodem1411'
+#DATA_PIPE          = '/Users/Jerry/CG3002Rpi/data_pipe'
+#EVENT_PIPE         = '/Users/Jerry/CG3002Rpi/event_pipe'
+#BAUD               = 115400
+#SERIAL             = '/dev/cu.usbmodem1411'
+#SAMPLES_PER_PACKET = 25
+
+DATA_PIPE          = './CG3002Rpi/data_pipe'
+EVENT_PIPE         = './CG3002Rpi/event_pipe'
+BAUD               = 115200
+SERIAL             = '/dev/ttyAMA0'
 SAMPLES_PER_PACKET = 25
 
 if not os.path.exists(DATA_PIPE):
