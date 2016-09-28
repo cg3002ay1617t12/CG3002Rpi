@@ -175,7 +175,8 @@ class PiComms(object):
 					self.CurrMode = 0
 					print(data)
 					self._buffer.append(str(self.component_ID) + '~' + str(data))
-					if len(self._buffer) % SAMPLES_PER_PACKET == 0:
+					# format of string : component_ID~data
+					if len(self._buffer) % PiComms.SAMPLES_PER_PACKET == 0:
 						self.forward_data()
 					print(self.crcData)
 					self.readStatus = False
