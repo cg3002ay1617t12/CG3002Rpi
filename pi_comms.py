@@ -1,9 +1,8 @@
-import serial, struct, time, heapq, binascii
+import serial, struct, time, heapq, binascii, os, signal
 
 #RECEIVE VARIABLES
 
 class PriorityQueue:
-
 	def __init__(self):
 		self._queue = []
 		self._index = 0
@@ -22,28 +21,42 @@ class PiComms(object):
 	#SEND VARIABLES
 	createQueue     = 1 
 	txCrcIndex      = 12
+	DATA_PIPE          = './CG3002Rpi/data_pipe'
+	EVENT_PIPE         = './CG3002Rpi/event_pipe'
+	BAUD               = 115200
+	SERIAL             = '/dev/ttyAMA0'
+	SAMPLES_PER_PACKET = 25
 
 	#SHARED VARIABLES
 	crcPoly = "100000111"
 	def __init__(self):
-		self.pq = PriorityQueue()
-		self.CurrMode      = 0
-		self.packet_type   = 0 #For packet handling
-		# data          = 0 
-		self.component_ID  = 0
-		self.ser = serial.Serial(port ='/dev/ttyAMA0', baudrate = 115200, timeout = 3)
-		self.data = 0
-		self.packet_seq_RX = 48
-
-		# self.incomingByte    = 0 
+		self.pq              = PriorityQueue()
+		self.CurrMode        = 0
+		self.packet_type     = 0 #For packet handling
+		# data               = 0 
+		self.component_ID    = 0
+		self.ser             = serial.Serial(port =PiComms.SERIAL, baudrate = PiComms.BAUD, timeout = 3)
+		self.data            = 0
+		self.packet_seq_RX   = 48
+		
+		# self.incomingByte  = 0 
 		self.crcData         = 0 
 		self.readStatus      = False
 		self.protected_flag  = 0 #1 means protect it, 0 means can override
-
+		
 		self.packet_seq_TX   = 0 
 		self.packet_type_TX  = 44 #PKT_TYPE IS DATA TO SEND
 		self.component_ID_TX = 12
 		self.data_TX         = 277
+		self._buffer         = []
+
+		if not os.path.exists(PiComms.DATA_PIPE):
+			os.mkfifo(PiComms.DATA_PIPE)
+
+		self.pipe_out = os.open(PiComms.DATA_PIPE, os.O_WRONLY)
+		fpid          = open('./pid', 'r')
+		self.pid      = fpid.read()
+		fpid.close()
 
 	def convert(self, number):
 		count = 8
@@ -61,7 +74,7 @@ class PiComms(object):
 		
 	def read(self): 
 		# global self.crcData, self.CurrMode, self.packet_type, PiComms.dataIndex, data, packet_seq_RX	
-		if ser.inWaiting()>0:
+		if self.ser.inWaiting()>0:
 			self.readStatus = True
 			self.incomingByte = self.ser.read()
 			print self.incomingByte 
@@ -161,6 +174,9 @@ class PiComms(object):
 					print("Successfully")
 					self.CurrMode = 0
 					print(data)
+					self._buffer.append(str(self.component_ID) + '~' + str(data))
+					if len(self._buffer) % SAMPLES_PER_PACKET == 0:
+						self.forward_data()
 					print(self.crcData)
 					self.readStatus = False
 					if self.packet_type ==1 or self.packet_type ==6:
@@ -169,6 +185,12 @@ class PiComms(object):
 				print("Handling Corrupt Packet")
 				self.CurrMode = 0
 				self.readStatus = False
+
+	def forward_data(self):
+		datastream = ','.join(self._buffer)
+		os.write(self.pipe_out, datastream)
+		os.kill(int(self.pid), signal.SIGUSR1) # Raise SIGUSR1 signal
+		self._buffer = []
 
 	def send(self, packet_type_S, component_ID_S, data_S): 
 		# global packet_seq_TX
@@ -185,7 +207,7 @@ class PiComms(object):
 		self.ser.write(chr(packet_type_S)) #41
 		self.ser.write(chr(self.packet_seq_TX)) #0/1
 		self.ser.write(chr(component_ID_S)) #12
-		self.ser.write(convert(data_S)) #277
+		self.ser.write(self.convert(data_S)) #277
 		self.ser.write("1")
 		self.ser.write(">")
 		#protected_flag = 1 
