@@ -61,7 +61,7 @@ class PiComms(object):
 		
 	def read(self): 
 		# global self.crcData, self.CurrMode, self.packet_type, PiComms.dataIndex, data, packet_seq_RX	
-		if ser.inWaiting()>0:
+		if self.ser.inWaiting()>0:
 			self.readStatus = True
 			self.incomingByte = self.ser.read()
 			print self.incomingByte 
@@ -160,7 +160,7 @@ class PiComms(object):
 				else:
 					print("Successfully")
 					self.CurrMode = 0
-					print(data)
+					print(self.data)
 					print(self.crcData)
 					self.readStatus = False
 					if self.packet_type ==1 or self.packet_type ==6:
@@ -185,7 +185,7 @@ class PiComms(object):
 		self.ser.write(chr(packet_type_S)) #41
 		self.ser.write(chr(self.packet_seq_TX)) #0/1
 		self.ser.write(chr(component_ID_S)) #12
-		self.ser.write(convert(data_S)) #277
+		self.ser.write(self.convert(data_S)) #277
 		self.ser.write("1")
 		self.ser.write(">")
 		#protected_flag = 1 
