@@ -15,7 +15,7 @@ class PriorityQueue:
 		return heapq.heappop(self._queue)[-1]
 
 class PiComms(object):
-	dataIndex       = 8 #For payload
+	
 	rxCrcIndex      = 14
 	
 	#SEND VARIABLES
@@ -48,6 +48,7 @@ class PiComms(object):
 		self.packet_type_TX  = 44 #PKT_TYPE IS DATA TO SEND
 		self.component_ID_TX = 12
 		self.data_TX         = 277
+		self.dataIndex       = 8 #For payload
 		self._buffer         = []
 
 		if not os.path.exists(PiComms.DATA_PIPE):
