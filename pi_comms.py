@@ -173,7 +173,7 @@ class PiComms(object):
 				else:
 					print("Successfully")
 					self.CurrMode = 0
-					self._buffer.append(str(self.component_ID) + '~' + str(data))
+					self._buffer.append(str(self.component_ID) + '~' + str(self.data))
 					# format of string : component_ID~data
 					if len(self._buffer) % PiComms.SAMPLES_PER_PACKET == 0:
 						self.forward_data()
@@ -351,6 +351,7 @@ class PiComms(object):
 def main():
 	comms = PiComms()
 	while True:
+
 		#if createQueue: 
 		#	q = PriorityQueue() 
 		#	createQueue = 0 
