@@ -38,7 +38,7 @@ class StepDetector(object):
 		self.a               = deque(np.zeros((StepDetector.NUM_POINTS,)), StepDetector.NUM_POINTS)
 		self.a_l             = deque(np.zeros((StepDetector.NUM_POINTS,)), StepDetector.NUM_POINTS)
 		self.a_h             = deque(np.zeros((StepDetector.NUM_POINTS,)), StepDetector.NUM_POINTS)
-		self.THRES           = 2 # threshold for peaks, to be determined empirically
+		self.THRES           = 3 # threshold for peaks, to be determined empirically
 		self.FPS             = 30
 		self.is_plot         = plot
 		self.new_data        = False # flag to synchronize between interrupts and data processing
