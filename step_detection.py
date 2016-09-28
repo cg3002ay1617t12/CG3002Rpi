@@ -7,7 +7,7 @@ import matplotlib.animation as animation
 class StepDetector(object):
 	NUM_POINTS = 1000
 	SAMPLES_PER_PACKET = 25
-	PIPE = '/Users/Jerry/CG3002Rpi/pipe'
+	PIPE = './pipe'
 	COEFFICIENTS_LOW_0_HZ = {
 	    'alpha': [1, -1.979133761292768, 0.979521463540373],
 	    'beta':  [0.000086384997973502, 0.000172769995947004, 0.000086384997973502]
@@ -121,7 +121,7 @@ class StepDetector(object):
 		fpid.write(str(pid))
 		fpid.close()
 		
-		PIPE = '/Users/Jerry/CG3002Rpi/data_pipe'
+		PIPE = './data_pipe'
 		pipe_desc = os.open(PIPE, os.O_RDONLY)
 		pipe = os.fdopen(pipe_desc)
 		self.data_pipe = pipe
