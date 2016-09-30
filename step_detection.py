@@ -43,6 +43,7 @@ class StepDetector(object):
 		self.is_plot         = plot
 		self.new_data        = False # flag to synchronize between interrupts and data processing
 		self.start           = time.time()
+		self.prev            = 0
 		if data_pipe is None: self.setup_comm()
 		if self.is_plot:
 			self.init_plot()
@@ -127,18 +128,20 @@ class StepDetector(object):
 		self.data_pipe = pipe
 
 	def count_steps(self, z_c_idx, p_t_idx):
+		steps = 0
 		if len(z_c_idx) == 0 or len(p_t_idx) == 0:
-			return
+			return steps
 		j = 0
 		for i in range(0,len(z_c_idx)):
 			v = z_c_idx[i]
 			try:
 				while (p_t_idx[j] < v):
 					j += 1
-				self.step += 1
-				print("Step detected: %d" % self.step)
+				steps += 1
+				# print("Step detected: %d" % self.step)
 			except Exception as e:
 				break
+		return steps
 
 	def process_new_data(self):
 		self.new_data = False
@@ -165,29 +168,52 @@ class StepDetector(object):
 		self.a_h.extend(self.filter_sig([self.a_h[-2], self.a_h[-1]], itertools.islice(self.a_l, window, None), StepDetector.COEFFICIENTS_HIGH_1_HZ))
 
 		self.interrupt_count += 1
+		# print("Interrupted %d" % self.interrupt_count)
 		if self.interrupt_count % 4 == 0:
-			steps_window = StepDetector.NUM_POINTS - 4 * StepDetector.SAMPLES_PER_PACKET
+			steps_window_start = StepDetector.NUM_POINTS - (4 * StepDetector.SAMPLES_PER_PACKET)
+			steps_window_end   = steps_window_start + 4 * StepDetector.SAMPLES_PER_PACKET 
 			# find negative zero crossings
-			combined_window = list(itertools.islice(self.a_h, steps_window, None))
-			f_two_shifted = np.hstack(([1,1], np.sign(combined_window)))
-			f_one_b_one_shifted = np.hstack(([1], np.sign(combined_window), [1]))
-			b_two_shifted = np.hstack((np.sign(combined_window), [1,1]))
-			zero_crossings = np.multiply(b_two_shifted, f_one_b_one_shifted)
-			negative_zero_crossings = np.multiply(np.where(zero_crossings==-1, zero_crossings, np.zeros(len(zero_crossings))), f_two_shifted)
-			z_c_idx = np.where(negative_zero_crossings[2:]==1)[0]
-			# print(z_c_idx)
+			combined_window = list(itertools.islice(self.a_h, steps_window_start, steps_window_end))
+			negative_zero_crossings = np.zeros(len(combined_window))
+			sign = np.sign(combined_window)
+			for x in range(1, sign.shape[0]):
+				if sign[x-1] == 1 and sign[x] == -1:
+					negative_zero_crossings[x] = 1
+			z_c_idx = np.where(negative_zero_crossings==1)[0]
 
 			# Find positive threshold crossings
 			translated = np.sign(combined_window - np.ones(len(combined_window))*self.THRES)
-			f_two_shifted = np.hstack(([1,1], translated))
-			f_one_b_one_shifted = np.hstack(([1], translated,[1]))
-			b_two_shifted = np.hstack((translated,[1,1]))
-			thres_crossings = np.multiply(b_two_shifted, f_one_b_one_shifted)
-			positive_thres_crossings = np.multiply(np.where(thres_crossings==-1, thres_crossings, np.zeros(len(thres_crossings))), f_two_shifted)
-			p_t_idx = np.where(positive_thres_crossings[2:]==-1)[0]
+
+			positive_thres_crossings = np.zeros(translated.shape)
+			for x in range(1, translated.shape[0]):
+				if translated[x-1] == -1 and translated[x] == 1:
+					positive_thres_crossings[x] = -1
+			p_t_idx = np.where(positive_thres_crossings==-1)[0]
 			# print(p_t_idx)
 
-			self.count_steps(z_c_idx, p_t_idx)
+			curr = self.count_steps(p_t_idx, z_c_idx)
+			
+			# steps_window_start = StepDetector.NUM_POINTS - (10 * StepDetector.SAMPLES_PER_PACKET)
+			# steps_window_end   = steps_window_start + 8 * StepDetector.SAMPLES_PER_PACKET 
+			# combined_window = list(itertools.islice(self.a_h, steps_window_start, steps_window_end))
+			# negative_zero_crossings = np.zeros(len(combined_window))
+			# sign = np.sign(combined_window)
+			# for x in range(1, sign.shape[0]):
+			# 	if sign[x-1] == 1 and sign[x] == -1:
+			# 		negative_zero_crossings[x] = 1
+			# z_c_idx = np.where(negative_zero_crossings[2:]==1)[0]
+
+			# # Find positive threshold crossings
+			# translated = np.sign(combined_window - np.ones(len(combined_window))*self.THRES)
+
+			# positive_thres_crossings = np.zeros(translated.shape)
+			# for x in range(1, translated.shape[0]):
+			# 	if translated[x-1] == -1 and translated[x] == 1:
+			# 		positive_thres_crossings[x] = -1
+			# p_t_idx = np.where(positive_thres_crossings[2:]==-1)[0]
+			# prev = self.count_steps(z_c_idx, p_t_idx)
+			self.step = self.step + curr
+			print("Step %d" % self.step)
 
 	def run(self):
 		if self.new_data:

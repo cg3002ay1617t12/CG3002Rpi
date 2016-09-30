@@ -44,23 +44,23 @@ class App(object):
 			elif self.state is State.READY:
 				# Do something, make sure its non-blocking
 				self.StepDetector.run()
-				self.LPF.run(plot=True)
+				self.LPF.run(plot=False)
 				pass
 			elif self.state is State.NAVIGATING:
 				# Do something, make sure its non-blocking
 				self.StepDetector.run()
-				self.LPF.run(plot=True)
+				self.LPF.run(plot=False)
 				pass
 			elif self.state is State.REACHED:
 				# Do something, make sure its non-blocking
 				self.StepDetector.run()
-				self.LPF.run(plot=True)
+				self.LPF.run(plot=False)
 				pass
 			elif self.state is State.RESET:
 				# Do something, make sure its non-blocking
 				self.StepDetector.reset_step()
 				self.StepDetector.run()
-				self.LPF.run(plot=True)
+				self.LPF.run(plot=False)
 				pass
 			else:
 				pass
