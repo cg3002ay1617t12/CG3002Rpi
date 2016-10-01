@@ -169,7 +169,8 @@ class PiComms(object):
 				else:
 					print("Successfully")
 					self.CurrMode = 0
-					self._buffer.append(str(self.component_ID) + '~' + str(self.payload_final))
+					if self.packet_type ==6: 
+						self._buffer.append(str(self.component_ID) + '~' + str(split_data(payload_final)))
 					# format of string : component_ID~data
 					if len(self._buffer) % PiComms.SAMPLES_PER_PACKET == 0:
 						self.forward_data()
@@ -183,8 +184,6 @@ class PiComms(object):
 					self.readStatus = False
 					if self.packet_type ==1 or self.packet_type ==6:
 						self.handling_packets()
-					if self.packet_type == 6: 
-						split_data(payload_final)
 
 			elif self.CurrMode == 8:
 				print("Handling Corrupt Packet")
@@ -209,22 +208,15 @@ class PiComms(object):
 			self.ser.flush()
 
 	def split_data(self, data): 
-		global acc_x
-		global acc_y
-		global acc_z
-
-		data = data.strip()
-		values = []
+		data = "" 
 		values = data.split(',')
-		if len(values) == 3: #ACCELEROMETER
-			acc_x = values[0] 
-			acc_y = values[1]
-			acc_z = values[2]
-			print("ACC VALUES: ")
-			print(acc_x)
-			print(acc_y)
-			print(acc_z)
+		for each value in values: 
+			value = value.strip() 
+			data = data + value 
+			data = data + ','
+		data = data[:-1]
 
+		return data
 
 	def txCRC(self):
 		# global packet_type
