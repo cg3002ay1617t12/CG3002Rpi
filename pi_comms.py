@@ -85,7 +85,6 @@ class PiComms(object):
 		if self.ser.inWaiting()>0:
 			self.readStatus = True
 			self.incomingByte = self.ser.read()
-			print self.incomingByte 
 			if self.CurrMode == 0: 
 				self.incomingByte = ord(self.incomingByte)
 				if self.incomingByte == 60:
@@ -206,7 +205,7 @@ class PiComms(object):
 
 		elif self.packet_type == 6: #(DATA RECEIVED) send ack back with next pkt_seq
 			print("Sending ACK Packet")
-			ser.write("<2>")
+			self.ser.write("<2>")
 			self.ser.flush()
 
 	def split_data(self, data): 
