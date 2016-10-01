@@ -113,7 +113,7 @@ class PiComms(object):
 			elif self.CurrMode == 2 :
 				self.incomingByte = ord(self.incomingByte)
 				self.component_ID = self.incomingByte
-				print("component_ID")
+				print("receiving component_ID")
 				if self.incomingByte >0 and self.incomingByte <42: 
 					self.CurrMode = 3 
 				else:
@@ -123,7 +123,7 @@ class PiComms(object):
 			elif self.CurrMode == 3 :
 				self.incomingByte = ord(self.incomingByte)
 				self.payload_length = self.incomingByte
-				print("payload length")
+				print("receiving payload length")
 				if self.incomingByte >-1 and self.incomingByte <58: 
 					self.CurrMode = 5 
 					self.dataIndex = self.payload_length
@@ -134,7 +134,7 @@ class PiComms(object):
 			elif self.CurrMode == 5 :
 				#self.incomingByte = ord(self.incomingByte)
 				#self.incomingByte = int(self.incomingByte)	
-				print("payload")
+				print("receiving payload")
 				if self.dataIndex > -1: 
 					self.data = self.data + self.incomingByte
 					self.dataIndex = self.dataIndex-1 
@@ -146,7 +146,7 @@ class PiComms(object):
 		
 			elif self.CurrMode == 6 :
 				self.incomingByte = ord(self.incomingByte)
-				print("crc")
+				print("receiving crc")
 				print self.incomingByte
 				if self.crcIndex >-1: 
 					if self.incomingByte == 48: 
@@ -175,10 +175,13 @@ class PiComms(object):
 					# format of string : component_ID~data
 					if len(self._buffer) % PiComms.SAMPLES_PER_PACKET == 0:
 						self.forward_data()
+					print ("STRING SENT TO BUFFER:") 
+					print("component id:")
 					print(self.component_ID)
+					print("payload:")
 					print(self.payload_final)
-					print(self.crc_final)
-					self.data = 0
+					#print(self.crc_final)
+					#self.data = 0
 					self.readStatus = False
 					if self.packet_type ==1 or self.packet_type ==6:
 						self.handling_packets()
@@ -198,9 +201,9 @@ class PiComms(object):
 
 	def handling_packets(self): 
 		if self.packet_type == 1: #(HELLO RECEIVED) send hello back
-			print "Sending HELLO Packet"
+			print ("Sending HELLO Packet")
 			self.ser.write("<")
-			self.ser.write("(") 
+			self.ser.write("0") 
 			self.ser.write(">")
 			ser.flush()
 
@@ -223,6 +226,7 @@ class PiComms(object):
 			acc_x = values[0] 
 			acc_y = values[1]
 			acc_z = values[2]
+			print("ACC VALUES: ")
 			print(acc_x)
 			print(acc_y)
 			print(acc_z)
