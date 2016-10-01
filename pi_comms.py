@@ -7,26 +7,27 @@ import binascii
 #RECEIVE VARIABLES
 CurrMode = 0
 packet_type = 0 #For packet handling
-packet_seq_RX = 48
-data = 0 
+data = "" 
 component_ID = 0
+payload_length = 0 
+acc_x = 0 
+acc_y = 0 
+acc_z = 0 
 
 ser = serial.Serial(port ='/dev/ttyAMA0', baudrate = 115200, timeout = 3)
 
 incomingByte = 0 
-dataIndex = 8 #For payload
+dataIndex = 0 #For payload
+crcIndex = 2 
 crcData = 0 
 rxCrcIndex = 14
 readStatus = False
+payload_final = 0 
+crc_final = 0 
 
 #SEND VARIABLES
 createQueue = 1 
 txCrcIndex = 12
-protected_flag = 0 #1 means protect it, 0 means can override
-packet_type_TX = 44 #PKT_TYPE IS DATA TO SEND
-packet_seq_TX = 0 
-component_ID_TX = 12
-data_TX = 277
 
 #SHARED VARIABLES
 crcPoly = "100000111"
@@ -63,8 +64,11 @@ def read():
 	global packet_type
 	global dataIndex
 	global data
-	global packet_seq_RX
-	
+	global crcIndex
+	global payload_final
+	global payload_length
+	global crc_final
+
 	if ser.inWaiting()>0:
 		readStatus = True
 		incomingByte = ser.read()
@@ -77,78 +81,71 @@ def read():
 
 		elif CurrMode == 1:
 			incomingByte = ord(incomingByte)
-			if incomingByte == 40:
+			if incomingByte == 48:
 				print("Recieved HELLO")
 				packet_type = 1 
 				CurrMode = 7
-			elif incomingByte == 41:
+			elif incomingByte == 49:
 				print("Recieved ACK")
 				packet_type = 2
-				CurrMode = 3
-			elif incomingByte == 42:
-				print("Recieved NACK")
-				packet_type = 3
-				CurrMode = 3
-			elif incomingByte == 43:
-				print("Recieved PROBE")
-				packet_type = 4
-				CurrMode = 3
-			elif incomingByte == 44:
-				print("Recieved REQ")
-				packet_type = 5
-				CurrMode = 3
-			elif incomingByte == 45:
+				CurrMode = 7
+			elif incomingByte == 50:
 				print("Recieved DATA")
 				packet_type = 6
-				CurrMode = 3
+				CurrMode = 2
 			else:
 				CurrMode = 8
 				print("CORRUPT")
-			
-		elif CurrMode == 3 :
-			incomingByte = ord(incomingByte)
-		
-			print("Payload_seq")
-			print("expected: " + str(packet_seq_RX) + " actual: " + str(incomingByte))
-			if packet_seq_RX != incomingByte:
-				CurrMode = 8
-				print("CORRUPT")
-			else: 
-				CurrMode = 4
-				if packet_seq_RX == 48:
-					packet_seq_RX = 49
-				else: 
-					packet_seq_RX = 48
-		elif CurrMode == 4 :
+
+		elif CurrMode == 2 :
 			incomingByte = ord(incomingByte)
 			component_ID = incomingByte
-			print("component_id")
-			if incomingByte >0 and incomingByte <41: 
-				CurrMode = 5 
+			print("Component_ID")
+			if incomingByte >0 and incomingByte <42: 
+				CurrMode = 3 
+			else:
+				CurrMode = 8
+				print("CORRUPT")
+
+		elif CurrMode == 3 :
+			incomingByte = ord(incomingByte)
+			payload_length = incomingByte
+			print("Payload Length")
+			if incomingByte >-1 and incomingByte <58: 
+				CurrMode = 5
+				dataIndex = payload_length 
 			else:
 				CurrMode = 8
 				print("CORRUPT")
 		
 		elif CurrMode == 5 :
-			incomingByte = ord(incomingByte)
-			incomingByte = int(incomingByte)
-			
-			print("payload")
+			#incomingByte = ord(incomingByte)
+			#incomingByte = int(incomingByte)			
+			print("Payload")
 			if dataIndex > -1: 
 				data = data + incomingByte
 				dataIndex = dataIndex-1 
 				if dataIndex == 0:
-					data = 0
-					dataIndex = 8
+					print (data)
+					payload_final = data 
+					data = ""
+					dataIndex = -1
 					CurrMode = 6
 	
 		elif CurrMode == 6 :
 			incomingByte = ord(incomingByte)
 			print("crc")
 			print incomingByte
-			if incomingByte == 48: 
-				CurrMode = 7 
-				crcData = incomingByte
+			if crcIndex > -1: 
+				if incomingByte == 48: 
+					crcData = crcData + incomingByte
+					crcIndex = crcIndex -1
+				 	if crcIndex == 0:
+				 		crc_final = crcData
+				 		crcData = 0 
+				 		crcIndex = 2 
+				 		CurrMode = 7
+			
 			else:
 				CurrMode = 8 
 				print("CORRUPT")
@@ -164,81 +161,50 @@ def read():
 			else:
 				print("Successfully")
 				CurrMode = 0
-				print(data)
-				print(crcData)
+				print(payload_length)
+				print(payload_final)
+				print(crc_final)
 				readStatus = False
 				if packet_type ==1 or packet_type ==6:
 					handling_packets()
+				if packet_type == 6:
+					split_data(payload_final)
+
 		elif CurrMode == 8:
 			print("Handling Corrupt Packet")
 			CurrMode = 0
 			readStatus = False
 
-def send(packet_type_S, component_ID_S, data_S): 
-	global packet_seq_TX
-	global packet_type_TX
-	global component_ID_TX
-	global data_TX
-
-	#Storing previous packet so it will not be overwritten
-	packet_type_TX = packet_type_S
-	component_ID_TX = component_ID_S
-	data_TX = data_S
-	print("Sending ACK Packet")
-	ser.write("<")
-	ser.write(chr(packet_type_S)) #41
-	ser.write(chr(packet_seq_TX)) #0/1
-	ser.write(chr(component_ID_S)) #12
-	ser.write(convert(data_S)) #277
-	ser.write("1")
-	ser.write(">")
-	#protected_flag = 1 
-
 def handling_packets(): 
-	global packet_type
-	global packet_seq_TX
-	global packet_type_TX
-	global component_ID_TX
-	global data_TX
-
-	if packet_type == 1: #(HELLO RECEIVED) send hello back
-		print "hello from the other side"
-		#if protected_flag = 0: 
+	if packet_type == 1: 
+		print ("Sending HELLO Packet")
 		ser.write("<")
 		ser.write("(") 
 		ser.write(">")
-		#protected_flag = 1 
-		#else: 
-		#	queueData = {'p_type': 40, 'com_id' : -1 , 'p_data' : -1} 
-		#	q.push(queueData, 1)
+		ser.flush()
 
-	#elif packet_type == 2: #(ACK RECEIVED) send ack with pkt_seq, set protected flag down, inverse pkt_seq and send next)
-	#	packet_seq_TX = not packet_seq_TX
-	#	protected_flag = 0
-	#	send(")", packet_seq_TX, component_ID_TX, data_TX) #Send ACK
-		#Send next by lowering protected_flag so send can be successful  
+	elif packet_type == 6: 
+		print("Sending ACK Packet")
+		ser.write("<")
+		ser.write("1")
+		ser.write(">")
+		ser.flush()
 
-	#elif packet_type == 3: #(NACK RECEIVED) resent packet
-	#	if protected_flag == 0: 
-	#		send(packet_type_TX, component_ID_TX, data_TX)
-	#	else: 
-	#		queueData = {'p_type': packet_type_TX, 'com_id' : component_ID_TX, 'p_data' : data_TX} 
-	#		q.push(queueData, 1)
+def split_data(data): 
+	global acc_x
+	global acc_y
+	global acc_z
 
-	#elif packet_type == 4: #(PROBE RECEIVED) send back ack followed by pkt_seq
-	#	if protected_flag == 0:
-	#		send(")", component_ID_TX, data_TX)
-	#	else:
-	#		queueData = {'p_type': 41, 'com_id' : component_ID_TX , 'p_data' : data_TX} 
-	#		q.push(queueData, 1)
-
-	elif packet_type == 6: #(DATA RECEIVED) send ack back with next pkt_seq
-		#if protected_flag == 0:
-		send(41, component_ID_TX, data_TX)
-		packet_seq_TX = not packet_seq_TX
-		#else:
-		#	queueData = {'p_type': 41, 'com_id' : component_ID_TX , 'p_data' : data_TX}
-		#	q.push(queueData, 1) 
+	data = data.strip()
+	values = []
+	values = data.split(',')
+	if len(values) == 3: #ACCELEROMETER
+		acc_x = values[0] 
+		acc_y = values[1]
+		acc_z = values[2]
+		print(acc_x)
+		print(acc_y)
+		print(acc_z)
 
 def txCRC():
 	global packet_type
@@ -315,7 +281,6 @@ def mod2div(divident, divisor):
 # data by appending remainder of modular divison
 # at the end of data.
 def encodeData(data, key):
-
 	l_key = len(key)
 
 	# Appends n-1 zeroes at end of data
@@ -330,19 +295,4 @@ def encodeData(data, key):
 	print(codeword)
 
 while 1:
-	#if createQueue: 
-	#	q = PriorityQueue() 
-	#	createQueue = 0 
-	#How to create this queue outside? 
-
 	read()
-
-	#if protected_flag == 0: 
-	#	toSend = q.pop() 
-	#	if toSend.get('p_type') == 40:   #Special case for re-sending HELLO packet 
-	#		ser.write("<")
-	#		ser.write("(") 
-	#		ser.write(">")
-	#		protected_flag = 1 
-	#	else: 
-	#		send(toSend.get('p_type'), toSend.get('com_id'), toSend.get('p_data'))
