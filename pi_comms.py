@@ -148,15 +148,14 @@ class PiComms(object):
 				self.incomingByte = ord(self.incomingByte)
 				print("receiving crc")
 				print self.incomingByte
-				if self.crcIndex >0: 
-					if self.incomingByte == 49: 
-						self.crcData = self.crcData + self.incomingByte
-						self.crcIndex = self.crcIndex - 1 
-						if self.crcIndex == 0:  
-							self.crc_final = self.crcData
-							self.crcData = 0
-							self.crcIndex = 2
-							self.CurrMode = 7
+				if self.crcIndex >0 and self.incomingByte == 49: 
+					self.crcData = self.crcData + self.incomingByte
+					self.crcIndex = self.crcIndex - 1 
+					if self.crcIndex == 0:  
+						self.crc_final = self.crcData
+						self.crcData = 0
+						self.crcIndex = 2
+						self.CurrMode = 7
 				else:
 					self.CurrMode = 8 
 					print("CORRUPT")
