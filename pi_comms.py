@@ -94,15 +94,15 @@ class PiComms(object):
 
 			elif self.CurrMode == 1:
 				self.incomingByte = ord(self.incomingByte)
-				if self.incomingByte == 1:
+				if self.incomingByte == 49:
 					print("Recieved HELLO")
 					self.packet_type = 1 
 					self.CurrMode = 7
-				elif self.incomingByte == 2:
+				elif self.incomingByte == 51:
 					print("Recieved ACK")
 					self.packet_type = 2
 					self.CurrMode = 7
-				elif self.incomingByte == 3:
+				elif self.incomingByte == 50:
 					print("Recieved DATA")
 					self.packet_type = 6
 					self.CurrMode = 2
@@ -202,16 +202,12 @@ class PiComms(object):
 	def handling_packets(self): 
 		if self.packet_type == 1: #(HELLO RECEIVED) send hello back
 			print ("Sending HELLO Packet")
-			self.ser.write("<")
-			self.ser.write("0") 
-			self.ser.write(">")
+			self.ser.write("<0>")
 			self.ser.flush()
 
 		elif self.packet_type == 6: #(DATA RECEIVED) send ack back with next pkt_seq
 			print("Sending ACK Packet")
-			ser.write("<")
-			ser.write("1")
-			ser.write(">")
+			ser.write("<2>")
 			self.ser.flush()
 
 	def split_data(self, data): 
