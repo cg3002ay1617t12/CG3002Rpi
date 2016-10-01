@@ -112,8 +112,8 @@ class PiComms(object):
 		
 			elif self.CurrMode == 2 :
 				self.incomingByte = ord(self.incomingByte)
-				component_ID = self.incomingByte
-				print("component_id")
+				self.component_ID = self.incomingByte
+				print("component_ID")
 				if self.incomingByte >0 and self.incomingByte <42: 
 					self.CurrMode = 3 
 				else:
@@ -171,12 +171,13 @@ class PiComms(object):
 				else:
 					print("Successfully")
 					self.CurrMode = 0
-					self._buffer.append(str(self.component_ID) + '~' + str(self.data))
+					self._buffer.append(str(self.component_ID) + '~' + str(self.payload_final))
 					# format of string : component_ID~data
 					if len(self._buffer) % PiComms.SAMPLES_PER_PACKET == 0:
 						self.forward_data()
-					print(self.data)
-					print(self.crcData)
+					print(self.component_ID)
+					print(self.payload_final)
+					print(self.crc_final)
 					self.data = 0
 					self.readStatus = False
 					if self.packet_type ==1 or self.packet_type ==6:
