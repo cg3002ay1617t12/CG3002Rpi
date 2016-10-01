@@ -45,7 +45,7 @@ class PiComms(object):
 		
 		self.incomingByte    = 0 
 		self.crcData         = 0 
-		self.crcIndex        = 0 
+		self.crcIndex        = 2 
 		self.readStatus      = False
 		self.payload_final   = 0 
 		self.crc_final       = 0 
@@ -148,8 +148,8 @@ class PiComms(object):
 				self.incomingByte = ord(self.incomingByte)
 				print("receiving crc")
 				print self.incomingByte
-				if self.crcIndex >-1: 
-					if self.incomingByte == 48: 
+				if self.crcIndex >0: 
+					if self.incomingByte == 49: 
 						self.crcData = self.crcData + self.incomingByte
 						self.crcIndex = self.crcIndex - 1 
 						if self.crcIndex == 0:  
@@ -202,7 +202,7 @@ class PiComms(object):
 	def handling_packets(self): 
 		if self.packet_type == 1: #(HELLO RECEIVED) send hello back
 			print ("Sending HELLO Packet")
-			self.ser.write("<0>")
+			self.ser.write("<1>")
 			self.ser.flush()
 
 		elif self.packet_type == 6: #(DATA RECEIVED) send ack back with next pkt_seq

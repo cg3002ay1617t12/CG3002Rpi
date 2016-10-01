@@ -20,7 +20,7 @@ def convertAndSend(number, numdigit):
                         number = 0
 
 ser.write("<")
-ser.write(",")
+ser.write("1")
 # packet_seq
 convertAndSend(0,1)
 time.sleep(1)
