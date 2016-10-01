@@ -170,7 +170,7 @@ class PiComms(object):
 					print("Successfully")
 					self.CurrMode = 0
 					if self.packet_type ==6: 
-						self._buffer.append(str(self.component_ID) + '~' + str(split_data(payload_final)))
+						self._buffer.append(str(self.component_ID) + '~' + str(self.split_data(payload_final)))
 					# format of string : component_ID~data
 					if len(self._buffer) % PiComms.SAMPLES_PER_PACKET == 0:
 						self.forward_data()
@@ -210,7 +210,7 @@ class PiComms(object):
 	def split_data(self, data): 
 		data = "" 
 		values = data.split(',')
-		for each value in values: 
+		for value in values: 
 			value = value.strip() 
 			data = data + value 
 			data = data + ','
