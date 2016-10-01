@@ -204,7 +204,7 @@ class PiComms(object):
 
 		elif self.packet_type == 6: #(DATA RECEIVED) send ack back with next pkt_seq
 			print("Sending ACK Packet")
-			self.ser.write("<2>")
+			self.ser.write("<3>")
 			self.ser.flush()
 
 	def split_data(self, data): 
