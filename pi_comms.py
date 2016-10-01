@@ -1,7 +1,5 @@
 import serial, struct, time, heapq, binascii, os, signal
 
-#RECEIVE VARIABLES
-
 class PriorityQueue:
 	def __init__(self):
 		self._queue = []
@@ -15,20 +13,14 @@ class PriorityQueue:
 		return heapq.heappop(self._queue)[-1]
 
 class PiComms(object):
-	
-	rxCrcIndex      = 14
-	
-	#SEND VARIABLES
-	createQueue     = 1 
-	txCrcIndex      = 12
+
 	DATA_PIPE          = './data_pipe'
 	EVENT_PIPE         = './event_pipe'
 	BAUD               = 115200
 	SERIAL             = '/dev/ttyAMA0'
 	SAMPLES_PER_PACKET = 25
+	CRC_POLY		   = "100000111"
 
-	#SHARED VARIABLES
-	crcPoly = "100000111"
 	def __init__(self):
 		self.pq              = PriorityQueue()
 		self.CurrMode        = 0
@@ -218,7 +210,7 @@ class PiComms(object):
 
 		return data
 
-	def txCRC(self):
+	def tx_crc(self):
 		# global packet_type
 		# global packet_seq_TX
 		# global component_id
@@ -310,23 +302,7 @@ class PiComms(object):
 def main():
 	comms = PiComms()
 	while True:
-
-		#if createQueue: 
-		#	q = PriorityQueue() 
-		#	createQueue = 0 
-		#How to create this queue outside? 
-
 		comms.read()
-
-		#if protected_flag == 0: 
-		#	toSend = q.pop() 
-		#	if toSend.get('p_type') == 40:   #Special case for re-sending HELLO packet 
-		#		ser.write("<")
-		#		ser.write("(") 
-		#		ser.write(">")
-		#		protected_flag = 1 
-		#	else: 
-		#		send(toSend.get('p_type'), toSend.get('com_id'), toSend.get('p_data'))
 
 if __name__ == "__main__":
 	main()
