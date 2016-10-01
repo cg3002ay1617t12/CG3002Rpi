@@ -36,19 +36,26 @@ class PiComms(object):
 		# data               = 0 
 		self.component_ID    = 0
 		self.ser             = serial.Serial(port =PiComms.SERIAL, baudrate = PiComms.BAUD, timeout = 3)
-		self.data            = 0
+		self.data            = ""
 		self.packet_seq_RX   = 48
+		self.payload_length  = 0 
+		self.acc_x 			 = 0 
+		self.acc_y 			 = 0 
+		self.acc_z 			 = 0 
 		
-		# self.incomingByte  = 0 
+		self.incomingByte    = 0 
 		self.crcData         = 0 
+		self.crcIndex        = 0 
 		self.readStatus      = False
+		self.payload_final   = 0 
+		self.crc_final       = 0 
 		self.protected_flag  = 0 #1 means protect it, 0 means can override
 		
 		self.packet_seq_TX   = 0 
 		self.packet_type_TX  = 44 #PKT_TYPE IS DATA TO SEND
 		self.component_ID_TX = 12
 		self.data_TX         = 277
-		self.dataIndex       = 8 #For payload
+		self.dataIndex       = -1 #For payload
 		self._buffer         = []
 
 		if not os.path.exists(PiComms.DATA_PIPE):
@@ -87,83 +94,74 @@ class PiComms(object):
 
 			elif self.CurrMode == 1:
 				self.incomingByte = ord(self.incomingByte)
-				if self.incomingByte == 40:
+				if self.incomingByte == 48:
 					print("Recieved HELLO")
 					self.packet_type = 1 
 					self.CurrMode = 7
-				elif self.incomingByte == 41:
+				elif self.incomingByte == 49:
 					print("Recieved ACK")
 					self.packet_type = 2
-					self.CurrMode = 3
-				elif self.incomingByte == 42:
-					print("Recieved NACK")
-					self.packet_type = 3
-					self.CurrMode = 3
-				elif self.incomingByte == 43:
-					print("Recieved PROBE")
-					self.packet_type = 4
-					self.CurrMode = 3
-				elif self.incomingByte == 44:
-					print("Recieved REQ")
-					self.packet_type = 5
-					self.CurrMode = 3
-				elif self.incomingByte == 45:
+					self.CurrMode = 7
+				elif self.incomingByte == 50:
 					print("Recieved DATA")
 					self.packet_type = 6
-					self.CurrMode = 3
+					self.CurrMode = 2
 				else:
 					self.CurrMode = 8
 					print("CORRUPT")
-				
-			elif self.CurrMode == 3 :
-				self.incomingByte = ord(self.incomingByte)
-			
-				print("Payload_seq")
-				print("expected: " + str(self.packet_seq_RX) + " actual: " + str(self.incomingByte))
-				if self.packet_seq_RX != self.incomingByte:
-					self.CurrMode = 8
-					print("CORRUPT")
-				else: 
-					self.CurrMode = 4
-					if self.packet_seq_RX == 48:
-						self.packet_seq_RX = 49
-					else: 
-						self.packet_seq_RX = 48
-			elif self.CurrMode == 4 :
+		
+			elif self.CurrMode == 2 :
 				self.incomingByte = ord(self.incomingByte)
 				component_ID = self.incomingByte
 				print("component_id")
-				if self.incomingByte >0 and self.incomingByte <41: 
+				if self.incomingByte >0 and self.incomingByte <42: 
+					self.CurrMode = 3 
+				else:
+					self.CurrMode = 8
+					print("CORRUPT")
+
+			elif self.CurrMode == 3 :
+				self.incomingByte = ord(self.incomingByte)
+				self.payload_length = self.incomingByte
+				print("payload length")
+				if self.incomingByte >-1 and self.incomingByte <58: 
 					self.CurrMode = 5 
+					self.dataIndex = self.payload_length
 				else:
 					self.CurrMode = 8
 					print("CORRUPT")
 			
 			elif self.CurrMode == 5 :
-				self.incomingByte = ord(self.incomingByte)
-				self.incomingByte = int(self.incomingByte)
-				
+				#self.incomingByte = ord(self.incomingByte)
+				#self.incomingByte = int(self.incomingByte)	
 				print("payload")
 				if self.dataIndex > -1: 
 					self.data = self.data + self.incomingByte
 					self.dataIndex = self.dataIndex-1 
 					if self.dataIndex == 0:
-						self.dataIndex = 8
+						self.payload_final = self.data
+						self.data = ""
+						self.dataIndex = -1
 						self.CurrMode = 6
 		
 			elif self.CurrMode == 6 :
 				self.incomingByte = ord(self.incomingByte)
 				print("crc")
 				print self.incomingByte
-				if self.incomingByte == 48: 
-					self.CurrMode = 7 
-					self.crcData = self.incomingByte
+				if self.crcIndex >-1: 
+					if self.incomingByte == 48: 
+						self.crcData = self.crcData + self.incomingByte
+						self.crcIndex = self.crcIndex - 1 
+						if self.crcIndex == 0:  
+							self.crc_final = self.crcData
+							self.crcData = 0
+							self.crcIndex = 2
+							self.CurrMode = 7
 				else:
 					self.CurrMode = 8 
 					print("CORRUPT")
 
 			elif self.CurrMode == 7:
-				
 				self.incomingByte = ord(self.incomingByte)
 				print("Terminate")
 				if self.incomingByte != 62 :
@@ -183,6 +181,9 @@ class PiComms(object):
 					self.readStatus = False
 					if self.packet_type ==1 or self.packet_type ==6:
 						self.handling_packets()
+					if self.packet_type == 6: 
+						split_data(payload_final)
+
 			elif self.CurrMode == 8:
 				print("Handling Corrupt Packet")
 				self.CurrMode = 0
@@ -194,71 +195,37 @@ class PiComms(object):
 		os.kill(int(self.pid), signal.SIGUSR1) # Raise SIGUSR1 signal
 		self._buffer = []
 
-	def send(self, packet_type_S, component_ID_S, data_S): 
-		# global packet_seq_TX
-		# global packet_type_TX
-		# global component_ID_TX
-		# global data_TX
-
-		#Storing previous packet so it will not be overwritten
-		self.packet_type_TX = packet_type_S
-		self.component_ID_TX = component_ID_S
-		self.data_TX = data_S
-		print("Sending ACK Packet")
-		self.ser.write("<")
-		self.ser.write(chr(packet_type_S)) #41
-		self.ser.write(chr(self.packet_seq_TX)) #0/1
-		self.ser.write(chr(component_ID_S)) #12
-		self.ser.write(self.convert(data_S)) #277
-		self.ser.write("1")
-		self.ser.write(">")
-		#protected_flag = 1 
-
 	def handling_packets(self): 
-		# global packet_type
-		# global packet_seq_TX
-		# global packet_type_TX
-		# global component_ID
-		# global data_TX
-
 		if self.packet_type == 1: #(HELLO RECEIVED) send hello back
-			print "hello from the other side"
-			#if protected_flag = 0: 
+			print "Sending HELLO Packet"
 			self.ser.write("<")
 			self.ser.write("(") 
 			self.ser.write(">")
-			#protected_flag = 1 
-			#else: 
-			#	queueData = {'p_type': 40, 'com_id' : -1 , 'p_data' : -1} 
-			#	q.push(queueData, 1)
-
-		#elif packet_type == 2: #(ACK RECEIVED) send ack with pkt_seq, set protected flag down, inverse pkt_seq and send next)
-		#	packet_seq_TX = not packet_seq_TX
-		#	protected_flag = 0
-		#	send(")", packet_seq_TX, component_ID_TX, data_TX) #Send ACK
-			#Send next by lowering protected_flag so send can be successful  
-
-		#elif packet_type == 3: #(NACK RECEIVED) resent packet
-		#	if protected_flag == 0: 
-		#		send(packet_type_TX, component_ID_TX, data_TX)
-		#	else: 
-		#		queueData = {'p_type': packet_type_TX, 'com_id' : component_ID_TX, 'p_data' : data_TX} 
-		#		q.push(queueData, 1)
-
-		#elif packet_type == 4: #(PROBE RECEIVED) send back ack followed by pkt_seq
-		#	if protected_flag == 0:
-		#		send(")", component_ID_TX, data_TX)
-		#	else:
-		#		queueData = {'p_type': 41, 'com_id' : component_ID_TX , 'p_data' : data_TX} 
-		#		q.push(queueData, 1)
+			ser.flush()
 
 		elif self.packet_type == 6: #(DATA RECEIVED) send ack back with next pkt_seq
-			#if protected_flag == 0:
-			self.send(41, self.component_ID_TX, self.data_TX)
-			self.packet_seq_TX = not self.packet_seq_TX
-			#else:
-			#	queueData = {'p_type': 41, 'com_id' : component_ID_TX , 'p_data' : data_TX}
-			#	q.push(queueData, 1) 
+			print("Sending ACK Packet")
+			ser.write("<")
+			ser.write("1")
+			ser.write(">")
+			ser.flush()
+
+	def split_data(self, data): 
+		global acc_x
+		global acc_y
+		global acc_z
+
+		data = data.strip()
+		values = []
+		values = data.split(',')
+		if len(values) == 3: #ACCELEROMETER
+			acc_x = values[0] 
+			acc_y = values[1]
+			acc_z = values[2]
+			print(acc_x)
+			print(acc_y)
+			print(acc_z)
+
 
 	def txCRC(self):
 		# global packet_type
