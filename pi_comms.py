@@ -23,31 +23,19 @@ class PiComms(object):
 
 	def __init__(self):
 		self.pq              = PriorityQueue()
-		self.CurrMode        = 0
-		self.packet_type     = 0 #For packet handling
-		# data               = 0 
-		self.component_ID    = 0
+		self.curr_mode       = 0
+		self.packet_type     = 0 #ACK or HELLO or DATA 
+		self.component_id   = 0
 		self.ser             = serial.Serial(port =PiComms.SERIAL, baudrate = PiComms.BAUD, timeout = 3)
-		self.data            = ""
-		self.packet_seq_RX   = 48
+		self.data            = "" #Stores the payload for DATA packet 
+		self.data_index      = -1 
 		self.payload_length  = 0 
-		self.acc_x 			 = 0 
-		self.acc_y 			 = 0 
-		self.acc_z 			 = 0 
-		
-		self.incomingByte    = 0 
-		self.crcData         = 0 
-		self.crcIndex        = 2 
-		self.readStatus      = False
+		self.incoming_byte   = 0 
+		self.crc_data        = 0 
+		self.crc_index       = 2 
+		self.read_status     = False
 		self.payload_final   = 0 
 		self.crc_final       = 0 
-		self.protected_flag  = 0 #1 means protect it, 0 means can override
-		
-		self.packet_seq_TX   = 0 
-		self.packet_type_TX  = 44 #PKT_TYPE IS DATA TO SEND
-		self.component_ID_TX = 12
-		self.data_TX         = 277
-		self.dataIndex       = -1 #For payload
 		self._buffer         = []
 
 		if not os.path.exists(PiComms.DATA_PIPE):
@@ -60,127 +48,121 @@ class PiComms(object):
 
 	def convert(self, number):
 		count = 8
-		toSend = [] 
+		to_send = [] 
 		while (count > 0):
 			count = count - 1
 			if number>=255:
 				number = number - 255
-				toSend.append(struct.pack('!B', 255))
+				to_send.append(struct.pack('!B', 255))
 			else: 
-				toSend.append(struct.pack('!B', number))
+				to_send.append(struct.pack('!B', number))
 				number = 0
-		data_string = ''.join(toSend)
+		data_string = ''.join(to_send)
 		return data_string
 		
 	def read(self): 
-		# global self.crcData, self.CurrMode, self.packet_type, PiComms.dataIndex, data, packet_seq_RX	
 		if self.ser.inWaiting()>0:
-			self.readStatus = True
-			self.incomingByte = self.ser.read()
-			if self.CurrMode == 0: 
-				self.incomingByte = ord(self.incomingByte)
-				if self.incomingByte == 60:
-					self.CurrMode = 1
+			self.read_status = True
+			self.incoming_byte = self.ser.read()
+			if self.curr_mode == 0: 
+				self.incoming_byte = ord(self.incoming_byte)
+				if self.incoming_byte == 60:
+					self.curr_mode = 1
 					print("Recieved Start")
 
-			elif self.CurrMode == 1:
-				self.incomingByte = ord(self.incomingByte)
-				if self.incomingByte == 49:
+			elif self.curr_mode == 1:
+				self.incoming_byte = ord(self.incoming_byte)
+				if self.incoming_byte == 49:
 					print("Recieved HELLO")
 					self.packet_type = 1 
-					self.CurrMode = 7
-				elif self.incomingByte == 51:
+					self.curr_mode = 7
+				elif self.incoming_byte == 51:
 					print("Recieved ACK")
 					self.packet_type = 2
-					self.CurrMode = 7
-				elif self.incomingByte == 50:
+					self.curr_mode = 7
+				elif self.incoming_byte == 50:
 					print("Recieved DATA")
 					self.packet_type = 6
-					self.CurrMode = 2
+					self.curr_mode = 2
 				else:
-					self.CurrMode = 8
+					self.curr_mode = 8
 					print("CORRUPT")
 		
-			elif self.CurrMode == 2 :
-				self.incomingByte = ord(self.incomingByte)
-				self.component_ID = self.incomingByte
-				print("receiving component_ID")
-				if self.incomingByte >0 and self.incomingByte <42: 
-					self.CurrMode = 3 
+			elif self.curr_mode == 2 :
+				self.incoming_byte = ord(self.incoming_byte)
+				self.component_id = self.incoming_byte
+				print("receiving component_id")
+				if self.incoming_byte >0 and self.incoming_byte <42: 
+					self.curr_mode = 3 
 				else:
-					self.CurrMode = 8
+					self.curr_mode = 8
 					print("CORRUPT")
 
-			elif self.CurrMode == 3 :
-				self.incomingByte = ord(self.incomingByte)
-				self.payload_length = self.incomingByte
+			elif self.curr_mode == 3 :
+				self.incoming_byte = ord(self.incoming_byte)
+				self.payload_length = self.incoming_byte
 				print("receiving payload length")
-				if self.incomingByte >-1 and self.incomingByte <58: 
-					self.CurrMode = 5 
-					self.dataIndex = self.payload_length
+				if self.incoming_byte >-1 and self.incoming_byte <58: 
+					self.curr_mode = 5 
+					self.data_index = self.payload_length
 				else:
-					self.CurrMode = 8
+					self.curr_mode = 8
 					print("CORRUPT")
 			
-			elif self.CurrMode == 5 :
-				#self.incomingByte = ord(self.incomingByte)
-				#self.incomingByte = int(self.incomingByte)	
+			elif self.curr_mode == 5 :
 				print("receiving payload")
-				if self.dataIndex > -1: 
-					self.data = self.data + self.incomingByte
-					self.dataIndex = self.dataIndex-1 
-					if self.dataIndex == 0:
+				if self.data_index > -1: 
+					self.data = self.data + self.incoming_byte
+					self.data_index = self.data_index-1 
+					if self.data_index == 0:
 						self.payload_final = self.data
 						self.data = ""
-						self.dataIndex = -1
-						self.CurrMode = 6
+						self.data_index = -1
+						self.curr_mode = 6
 		
-			elif self.CurrMode == 6 :
-				self.incomingByte = ord(self.incomingByte)
+			elif self.curr_mode == 6 :
+				self.incoming_byte = ord(self.incoming_byte)
 				print("receiving crc")
-				print self.incomingByte
-				if self.crcIndex >0 and self.incomingByte == 49: 
-					self.crcData = self.crcData + self.incomingByte
-					self.crcIndex = self.crcIndex - 1 
-					if self.crcIndex == 0:  
-						self.crc_final = self.crcData
-						self.crcData = 0
-						self.crcIndex = 2
-						self.CurrMode = 7
+				print self.incoming_byte
+				if self.crc_index >0 and self.incoming_byte == 49: 
+					self.crc_data = self.crc_data + self.incoming_byte
+					self.crc_index = self.crc_index - 1 
+					if self.crc_index == 0:  
+						self.crc_final = self.crc_data
+						self.crc_data = 0
+						self.crc_index = 2
+						self.curr_mode = 7
 				else:
-					self.CurrMode = 8 
+					self.curr_mode = 8 
 					print("CORRUPT")
 
-			elif self.CurrMode == 7:
-				self.incomingByte = ord(self.incomingByte)
+			elif self.curr_mode == 7:
+				self.incoming_byte = ord(self.incoming_byte)
 				print("Terminate")
-				if self.incomingByte != 62 :
-					self.CurrMode = 8
+				if self.incoming_byte != 62 :
+					self.curr_mode = 8
 					print("CORRUPT")
-					self.readStatus = False
+					self.read_status = False
 				else:
 					print("Successfully")
-					self.CurrMode = 0
+					self.curr_mode = 0
 					if self.packet_type ==6: 
-						self._buffer.append(str(self.component_ID) + '~' + str(self.split_data(self.payload_final)))
-					# format of string : component_ID~data
+						self._buffer.append(str(self.component_id) + '~' + str(self.split_data(self.payload_final)))
+					# Format of string : component_id~data
 					if len(self._buffer) % PiComms.SAMPLES_PER_PACKET == 0:
 						self.forward_data()
-					print ("STRING SENT TO BUFFER:") 
-					print("component id:")
-					print(self.component_ID)
-					print("payload:")
+					print ("String sent to buffer:") 
+					print(self.component_id)
+					print("~")
 					print(self.payload_final)
-					#print(self.crc_final)
-					#self.data = 0
-					self.readStatus = False
 					if self.packet_type ==1 or self.packet_type ==6:
 						self.handling_packets()
+					self.read_status = False
 
-			elif self.CurrMode == 8:
+			elif self.curr_mode == 8:
 				print("Handling Corrupt Packet")
-				self.CurrMode = 0
-				self.readStatus = False
+				self.curr_mode = 0
+				self.read_status = False
 
 	def forward_data(self):
 		datastream = ','.join(self._buffer)
@@ -207,23 +189,17 @@ class PiComms(object):
 			data = data + value 
 			data = data + ','
 		data = data[:-1]
-
 		return data
 
 	def tx_crc(self):
-		# global packet_type
-		# global packet_seq_TX
-		# global component_id
-		# global data
-		toBeDivided = []
-		toBeDivided.append(format(60, "08b")) #START
-		toBeDivided.append(format(11, "08b")) #PACKET_TYPE
-		toBeDivided.append(format(22, "08b")) #PACKET_SEQ
-		toBeDivided.append(format(44, "08b")) #COMPONENT_ID
-		toBeDivided.append(format(65, "064b")) #DATA
-		toBeDivided.append(format(0, "08b")) #PAD 8 ZEROS
-		divided_string = ''.join(toBeDivided)
-		#print divided_string
+		to_be_divided = []
+		to_be_divided.append(format(60, "08b")) #START
+		to_be_divided.append(format(11, "08b")) #PACKET_TYPE
+		to_be_divided.append(format(22, "08b")) #PACKET_SEQ
+		to_be_divided.append(format(44, "08b")) #COMPONENT_ID
+		to_be_divided.append(format(65, "064b")) #DATA
+		to_be_divided.append(format(0, "08b")) #PAD 8 ZEROS
+		divided_string = ''.join(to_be_divided)
 		return divided_string
 
 	# Returns XOR of 'a' and 'b'
@@ -231,7 +207,6 @@ class PiComms(object):
 	def xor(self, a, b):
 		# initialize result
 		result = []
-
 		# Traverse all bits, if bits are
 		# same, then XOR is 0, else 1
 		for i in range(1, len(b)):
@@ -243,7 +218,7 @@ class PiComms(object):
 		return ''.join(result)
 
 	# Performs Modulo-2 division
-	def mod2div(self, divident, divisor):
+	def mod2_div(self, divident, divisor):
 
 		# Number of bits to be XORed at a time.
 		pick = len(divisor)
@@ -278,26 +253,26 @@ class PiComms(object):
 		else:
 			tmp = xor('0'*pick, tmp)
 
-		checkword = tmp
-		return checkword
+		check_word = tmp
+		return check_word
 
 	# Function used at the sender side to encode
 	# data by appending remainder of modular divison
 	# at the end of data.
-	def encodeData(self, data, key):
+	def encode_data(self, data, key):
 
 		l_key = len(key)
 
 		# Appends n-1 zeroes at end of data
 		appended_data = data + '0'*(l_key-1)
-		remainder = self.mod2div(appended_data, key)
+		remainder = self.mod2_div(appended_data, key)
 
 		# Append remainder in the original data
-		codeword = data + remainder
+		code_word = data + remainder
 		print("Remainder:")
 		print(remainder)
 		print("Encoded Data (Data + Remainder Appended):")
-		print(codeword)
+		print(code_word)
 
 def main():
 	comms = PiComms()
