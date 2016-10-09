@@ -5,9 +5,11 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 
 class StepDetector(object):
-	NUM_POINTS = 1000
-	SAMPLES_PER_PACKET = 25
-	PIPE = './pipe'
+	NUM_POINTS            = 1000
+	SAMPLES_PER_PACKET    = 10
+	SAMPLES_PER_WINDOW    = 100
+	INTERRUPTS_PER_WINDOW = SAMPLES_PER_WINDOW / SAMPLES_PER_PACKET
+	PIPE                  = './data_pipe'
 	COEFFICIENTS_LOW_0_HZ = {
 	    'alpha': [1, -1.979133761292768, 0.979521463540373],
 	    'beta':  [0.000086384997973502, 0.000172769995947004, 0.000086384997973502]
@@ -20,7 +22,7 @@ class StepDetector(object):
 		'alpha': [1, -1.905384612118461, 0.910092542787947],
 		'beta':  [0.953986986993339, -1.907503180919730, 0.953986986993339]
 	}
-	def __init__(self, data_pipe=None, plot=False):
+	def __init__(self, thres=None, data_pipe=None, plot=False):
 		random.seed()
 		self.step            = 0
 		self.interrupt_count = 0
@@ -38,7 +40,7 @@ class StepDetector(object):
 		self.a               = deque(np.zeros((StepDetector.NUM_POINTS,)), StepDetector.NUM_POINTS)
 		self.a_l             = deque(np.zeros((StepDetector.NUM_POINTS,)), StepDetector.NUM_POINTS)
 		self.a_h             = deque(np.zeros((StepDetector.NUM_POINTS,)), StepDetector.NUM_POINTS)
-		self.THRES           = 3 # threshold for peaks, to be determined empirically
+		self.THRES           = 3 if thres is None else thres # threshold for peaks, to be determined empirically
 		self.FPS             = 30
 		self.is_plot         = plot
 		self.new_data        = False # flag to synchronize between interrupts and data processing
@@ -122,8 +124,7 @@ class StepDetector(object):
 		fpid.write(str(pid))
 		fpid.close()
 		
-		PIPE = './data_pipe'
-		pipe_desc = os.open(PIPE, os.O_RDONLY)
+		pipe_desc = os.open(StepDetector.PIPE, os.O_RDONLY)
 		pipe = os.fdopen(pipe_desc)
 		self.data_pipe = pipe
 
@@ -169,9 +170,9 @@ class StepDetector(object):
 
 		self.interrupt_count += 1
 		# print("Interrupted %d" % self.interrupt_count)
-		if self.interrupt_count % 4 == 0:
-			steps_window_start = StepDetector.NUM_POINTS - (4 * StepDetector.SAMPLES_PER_PACKET)
-			steps_window_end   = steps_window_start + 4 * StepDetector.SAMPLES_PER_PACKET 
+		if self.interrupt_count % StepDetector.INTERRUPTS_PER_WINDOW == 0:
+			steps_window_start = StepDetector.NUM_POINTS - (StepDetector.INTERRUPTS_PER_WINDOW * StepDetector.SAMPLES_PER_PACKET)
+			steps_window_end   = steps_window_start + StepDetector.INTERRUPTS_PER_WINDOW * StepDetector.SAMPLES_PER_PACKET 
 			# find negative zero crossings
 			combined_window = list(itertools.islice(self.a_h, steps_window_start, steps_window_end))
 			negative_zero_crossings = np.zeros(len(combined_window))
@@ -190,28 +191,8 @@ class StepDetector(object):
 					positive_thres_crossings[x] = -1
 			p_t_idx = np.where(positive_thres_crossings==-1)[0]
 			# print(p_t_idx)
-
+			print(StepDetector.INTERRUPTS_PER_WINDOW)
 			curr = self.count_steps(p_t_idx, z_c_idx)
-			
-			# steps_window_start = StepDetector.NUM_POINTS - (10 * StepDetector.SAMPLES_PER_PACKET)
-			# steps_window_end   = steps_window_start + 8 * StepDetector.SAMPLES_PER_PACKET 
-			# combined_window = list(itertools.islice(self.a_h, steps_window_start, steps_window_end))
-			# negative_zero_crossings = np.zeros(len(combined_window))
-			# sign = np.sign(combined_window)
-			# for x in range(1, sign.shape[0]):
-			# 	if sign[x-1] == 1 and sign[x] == -1:
-			# 		negative_zero_crossings[x] = 1
-			# z_c_idx = np.where(negative_zero_crossings[2:]==1)[0]
-
-			# # Find positive threshold crossings
-			# translated = np.sign(combined_window - np.ones(len(combined_window))*self.THRES)
-
-			# positive_thres_crossings = np.zeros(translated.shape)
-			# for x in range(1, translated.shape[0]):
-			# 	if translated[x-1] == -1 and translated[x] == 1:
-			# 		positive_thres_crossings[x] = -1
-			# p_t_idx = np.where(positive_thres_crossings[2:]==-1)[0]
-			# prev = self.count_steps(z_c_idx, p_t_idx)
 			self.step = self.step + curr
 			print("Step %d" % self.step)
 

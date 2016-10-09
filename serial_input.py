@@ -1,25 +1,19 @@
-import serial, os, sys, signal
+import serial, os, sys, signal, json
 
-#DATA_PIPE          = '/Users/Jerry/CG3002Rpi/data_pipe'
-#EVENT_PIPE         = '/Users/Jerry/CG3002Rpi/event_pipe'
-#BAUD               = 115400
-#SERIAL             = '/dev/cu.usbmodem1411'
-#SAMPLES_PER_PACKET = 25
-
-DATA_PIPE          = './data_pipe'
-EVENT_PIPE         = './event_pipe'
-BAUD               = 115200
-# SERIAL             = '/dev/ttyAMA0'
-SERIAL             = '/dev/cu.usbmodem1411'
-SAMPLES_PER_PACKET = 25
+ENV                = json.loads(open(os.path.join(os.path.dirname(__file__), 'env.json')).read())
+DATA_PIPE          = ENV["DATA_PIPE"]
+EVENT_PIPE         = ENV["EVENT_PIPE"]
+BAUD               = ENV["SERIAL_BAUD_RATE"]
+# SERIAL             = ENV["SERIAL_ADDRESS_RPI"]
+SERIAL             = ENV["SERIAL_ADDRESS_MAC"]
+PID                = ENV["PID_FILE"]
+SAMPLES_PER_PACKET = ENV["STEP_SAMPLES_PER_PACKET"]
 
 if not os.path.exists(DATA_PIPE):
 	os.mkfifo(DATA_PIPE)
-# if not os.path.exists(EVENT_PIPE):
-# 	os.mkfifo(EVENT_PIPE)
 
 pipe_out = os.open(DATA_PIPE, os.O_WRONLY)
-fpid     = open('./pid', 'r')
+fpid     = open(PID, 'r')
 pid      = fpid.read()
 ser      = serial.Serial(SERIAL, BAUD, timeout=1)
 count    = 0

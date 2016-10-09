@@ -1,14 +1,15 @@
-import os, sys, signal
+import os, sys, signal, json
 from fsm import *
 
-# DATA_PIPE          = './data_pipe'
-EVENT_PIPE         = './event_pipe'
+ENV                = json.loads(open(os.path.join(os.path.dirname(__file__), 'env.json')).read())
+EVENT_PIPE         = ENV["EVENT_PIPE"]
+PID                = ENV["PID_FILE"]
 
 if not os.path.exists(EVENT_PIPE):
 	os.mkfifo(EVENT_PIPE)
 
 pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
-fpid     = open('./pid', 'r')
+fpid     = open(PID, 'r')
 pid      = fpid.read()
 while True:
 	user_input = raw_input()
