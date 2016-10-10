@@ -205,29 +205,8 @@ class StepDetector(object):
 				self.plot(self.linez, self.zu)
 				self.fig.canvas.draw()
 
-counter = StepDetector(plot=True)
-def serial_handler(signum, frame, *args, **kwargs):
-	global counter
-	self = counter
-	def process(datum):
-		try:
-			(x,y,z) = map(lambda x: x.strip('\r\n'), datum.split(','))
-			self.ax.append(float(x))
-			self.ay.append(float(y))
-			self.az.append(float(z))
-		except ValueError as e:
-			print e
-	line_count = StepDetector.SAMPLES_PER_PACKET
-	buffer_ = []
-	while line_count > 0:
-		data = self.data_pipe.readline()
-		buffer_.append(data)
-		line_count -= 1
-	map(process, buffer_)
-	self.new_data = True
-
 def main():
-	global counter
+	counter = StepDetector(plot=True)
 	counter.run()
 
 	# (x, ax) = generate_data(amp=3, period=0.5, noise=0.01) # x(t)

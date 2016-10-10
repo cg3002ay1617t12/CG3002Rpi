@@ -1,6 +1,6 @@
 from path_finder import PathFinder
 from vhf import LocalPathFinder
-from step_detection import StepDetector, counter, serial_handler
+from step_detection import StepDetector
 import os, signal, sys, subprocess, shlex, time, json
 from fsm import *
 from localization import *
@@ -16,8 +16,9 @@ class App(object):
 		fpid.close()
 		
 		# Init submodules
-		self.PathFinder = PathFinder()
-		self.StepDetector = counter
+		# self.PathFinder   = PathFinder()
+		self.StepDetector = StepDetector(plot=False)
+		self.Localization = Localization(plot=True)
 		# self.LPF = LocalPathFinder(mode='demo')
 
 		# Init environment and user-defined variables
@@ -27,6 +28,7 @@ class App(object):
 			StepDetector.SAMPLES_PER_WINDOW    = self.ENV["STEP_SAMPLES_PER_WINDOW"]
 			StepDetector.INTERRUPTS_PER_WINDOW = StepDetector.SAMPLES_PER_WINDOW / StepDetector.SAMPLES_PER_PACKET
 			self.StepDetector.THRES            = self.ENV["STEP_THRES"]
+			self.Localization.stride           = self.ENV["STRIDE_LENGTH"]
 			App.DATA_PIPE                      = self.ENV['DATA_PIPE']
 			App.EVENT_PIPE                     = self.ENV['EVENT_PIPE']
 			# print(self.env)
@@ -68,26 +70,33 @@ class App(object):
 	def run(self):
 		""" Run forever while in this state"""
 		while True:
-			if self.state is State.END:
-				break
-			elif self.state is State.READY:
-				# Do something, make sure its non-blocking
-				self.StepDetector.run()
-				pass
-			elif self.state is State.NAVIGATING:
-				# Do something, make sure its non-blocking
-				self.StepDetector.run()
-				pass
-			elif self.state is State.REACHED:
-				# Do something, make sure its non-blocking
-				self.StepDetector.run()
-				pass
-			elif self.state is State.RESET:
-				# Do something, make sure its non-blocking
-				self.StepDetector.run()
-				pass
-			else:
-				pass
+			try:
+				if self.state is State.END:
+					break
+				elif self.state is State.READY:
+					# Do something, make sure its non-blocking
+					self.StepDetector.run()
+					self.Localization.run()
+					pass
+				elif self.state is State.NAVIGATING:
+					# Do something, make sure its non-blocking
+					self.StepDetector.run()
+					self.Localization.run()
+					pass
+				elif self.state is State.REACHED:
+					# Do something, make sure its non-blocking
+					self.StepDetector.run()
+					self.Localization.run()
+					pass
+				elif self.state is State.RESET:
+					# Do something, make sure its non-blocking
+					self.StepDetector.run()
+					self.Localization.run()
+					pass
+				else:
+					pass
+			except Exception as e:
+				print(e)
 		# Clean up system resources, close files and pipes, delete temp files
 		sys.exit(0)
 
@@ -104,6 +113,32 @@ def transition_handler(signum, frame, *args, **kwargs):
 		print(app.state)
 	except KeyError as e:
 		pass
+
+def serial_handler(signum, frame, *args, **kwargs):
+	""" Handles all incoming sensor data and distribute to the relevant submodules"""
+	global app
+	def process(datum):
+		try:
+			(x,y,z,a,b,c,d) = map(lambda x: x.strip('\r\n'), datum.split(','))
+			app.StepDetector.ax.append(float(x))
+			app.StepDetector.ay.append(float(y))
+			app.StepDetector.az.append(float(z))
+			app.Localization.heading.append(float(d))
+			app.Localization.rotate_x.append(float(a))
+			app.Localization.rotate_y.append(float(b))
+			app.Localization.rotate_z.append(float(c))
+			print(d)
+		except ValueError as e:
+			print e
+	line_count = StepDetector.SAMPLES_PER_PACKET
+	buffer_ = []
+	while line_count > 0:
+		data = app.StepDetector.data_pipe.readline()
+		buffer_.append(data)
+		line_count -= 1
+	map(process, buffer_)
+	app.StepDetector.new_data = True
+	app.Localization.new_data = True
 
 def main():
 	""" Main program of the Finite State Machine"""
