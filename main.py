@@ -3,7 +3,7 @@ from vhf import LocalPathFinder
 from step_detection import StepDetector, counter, serial_handler
 import os, signal, sys, subprocess, shlex, time, json
 from fsm import *
-
+from localization import *
 
 class App(object):
 	EVENT_PIPE = './event_pipe'
