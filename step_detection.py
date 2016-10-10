@@ -123,7 +123,6 @@ class StepDetector(object):
 		fpid = open('./pid', 'w')
 		fpid.write(str(pid))
 		fpid.close()
-		
 		pipe_desc = os.open(StepDetector.PIPE, os.O_RDONLY)
 		pipe = os.fdopen(pipe_desc)
 		self.data_pipe = pipe
@@ -171,7 +170,7 @@ class StepDetector(object):
 		self.interrupt_count += 1
 		# print("Interrupted %d" % self.interrupt_count)
 		if self.interrupt_count % StepDetector.INTERRUPTS_PER_WINDOW == 0:
-			steps_window_start = StepDetector.NUM_POINTS - (StepDetector.INTERRUPTS_PER_WINDOW * StepDetector.SAMPLES_PER_PACKET)
+			steps_window_start = StepDetector.NUM_POINTS - (StepDetector.SAMPLES_PER_WINDOW)
 			steps_window_end   = steps_window_start + StepDetector.INTERRUPTS_PER_WINDOW * StepDetector.SAMPLES_PER_PACKET 
 			# find negative zero crossings
 			combined_window = list(itertools.islice(self.a_h, steps_window_start, steps_window_end))
@@ -191,7 +190,6 @@ class StepDetector(object):
 					positive_thres_crossings[x] = -1
 			p_t_idx = np.where(positive_thres_crossings==-1)[0]
 			# print(p_t_idx)
-			print(StepDetector.INTERRUPTS_PER_WINDOW)
 			curr = self.count_steps(p_t_idx, z_c_idx)
 			self.step = self.step + curr
 			print("Step %d" % self.step)
