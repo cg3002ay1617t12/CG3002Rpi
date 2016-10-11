@@ -1,7 +1,7 @@
 from path_finder import PathFinder
 from vhf import LocalPathFinder
 from step_detection import StepDetector
-import os, signal, sys, subprocess, shlex, time, json
+import os, signal, sys, subprocess, shlex, time, json, threading
 from fsm import *
 from localization import *
 
@@ -35,7 +35,9 @@ class App(object):
 		except Exception as e:
 			print("Environment file not found, using defaults instead")
 		
+	def setup_pipes(self):
 		# Setting up IPC
+		# self.connect_picomms()
 		self.master = True
 		self.state = State.START
 		pipe_desc = os.open(App.DATA_PIPE, os.O_RDONLY)
@@ -50,6 +52,13 @@ class App(object):
 	def register_handler(self):
 		signal.signal(signal.SIGUSR2, transition_handler)
 		signal.signal(signal.SIGUSR1, serial_handler)
+
+	def connect_picomms(self):
+		print("Reconnecting with PiComms...")
+		cmd                     = "python serial_input.py"
+		args                    = shlex.split(cmd)
+		self.subprocess_picomms = subprocess.Popen(args)
+		print("Connection established!")
 
 	def run_once_on_transition(self):
 		""" Run once upon transition to this state"""
@@ -101,6 +110,19 @@ class App(object):
 		sys.exit(0)
 
 app = App()
+def timeout_handler():
+	global app
+	# Get pid of serial_input
+	fpid = open('./serial_pid', 'r')
+	app.serial_pid = fpid.read()
+	fpid.close()
+	try:
+		os.kill(int(app.serial_pid), signal.SIGUSR1)
+		print("triggered! %s" % app.serial_pid)
+	except Exception as e:
+		pass # Process may have terminated already
+	connect_picomms()
+
 def transition_handler(signum, frame, *args, **kwargs):
 	""" Asynchronous event handler to trigger state transitions"""
 	global app
@@ -129,24 +151,55 @@ def serial_handler(signum, frame, *args, **kwargs):
 			app.Localization.rotate_z.append(float(c))
 		except ValueError as e:
 			print e
+	 # terminate process in timeout seconds
+	timeout    = 2 # seconds
+	timer      = threading.Timer(timeout, timeout_handler)
+	timer.start()
 	line_count = StepDetector.SAMPLES_PER_PACKET
-	buffer_ = []
+	buffer_    = []
 	while line_count > 0:
-		data = app.StepDetector.data_pipe.readline()
+		data = app.data_pipe.readline()
 		buffer_.append(data)
 		line_count -= 1
+	timer.cancel()
 	map(process, buffer_)
 	app.StepDetector.new_data = True
 	app.Localization.new_data = True
 
+def connect_keypad():
+	print("Connecting with Keypad...")
+	cmd     = "python keyboard_sim.py"
+	args    = shlex.split(cmd)
+	process = subprocess.Popen(args)
+	print("Connection established!")
+	return process
+
+def connect_picomms():
+	print("Connecting with PiComms...")
+	cmd     = "python serial_input.py"
+	args    = shlex.split(cmd)
+	process = subprocess.Popen(args)
+	print("Connection established!")
+	return process
+
 def main():
 	""" Main program of the Finite State Machine"""
 	global app
-	app.register_handler()
-	# Transit to READY state
-	app.event_pipe.write("SW_READY\r\n")
-	os.kill(app.pid, signal.SIGUSR2)
-	app.run()
+	if os.fork() == 0:
+		# Child processes
+		signal.signal(signal.SIGALRM, timeout_handler)
+		p1 = connect_picomms()
+		p2 = connect_keypad()
+		while True: # Child does not exit before parent
+			pass
+	else:
+		# Parent process
+		app.register_handler()
+		app.setup_pipes()
+		# Transit to READY state
+		app.event_pipe.write("SW_READY\r\n")
+		os.kill(app.pid, signal.SIGUSR2)
+		app.run()
 
 if __name__ == "__main__":
 	main()

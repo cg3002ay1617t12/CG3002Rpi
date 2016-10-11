@@ -46,7 +46,7 @@ class StepDetector(object):
 		self.new_data        = False # flag to synchronize between interrupts and data processing
 		self.start           = time.time()
 		self.prev            = 0
-		if data_pipe is None: self.setup_comm()
+		# if data_pipe is None: self.setup_comm()
 		if self.is_plot:
 			self.init_plot()
 

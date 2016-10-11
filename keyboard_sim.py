@@ -12,6 +12,9 @@ pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
 fpid     = open(PID, 'r')
 pid      = fpid.read()
 while True:
-	user_input = raw_input()
-	os.write(pipe_out, user_input + "\r\n")
-	os.kill(int(pid), signal.SIGUSR2) # Raise SIGUSR2 signal
+	try:
+		user_input = raw_input()
+		os.write(pipe_out, user_input + "\r\n")
+		os.kill(int(pid), signal.SIGUSR2) # Raise SIGUSR2 signal
+	except Exception as e:
+		sys.exit(1)
