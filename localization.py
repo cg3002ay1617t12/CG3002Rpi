@@ -12,6 +12,7 @@ class Localization(object):
 	SAMPLES_PER_WINDOW    = 100
 	SAMPLES_PER_PACKET    = 25
 	SAMPLES_PER_SECOND    = 50
+	VARIANCE_THRES        = 50
 
 	def __init__(self, x=None, y=None, bearing=None, plot=False):
 		self.t        = np.array([x for x in range(0, Localization.NUM_POINTS)])
@@ -19,7 +20,7 @@ class Localization(object):
 		self.rotate_x = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
 		self.rotate_y = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
 		self.rotate_z = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
-		self.bearing  = bearing # Initial bearing, also the final value output of this module
+		self.bearing  = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS) # Kalman filtered compass headings
 		self.x        = x if x is not None else 0
 		self.y        = y if y is not None else 0
 		self.stride   = Localization.STRIDE_LENGTH
@@ -34,8 +35,8 @@ class Localization(object):
 		self.prev_est     = np.array([[0],[0]]) # bearing, angular velocity
 		self.A            = np.array([[1, self.delta_t], [0, 1]])
 		self.C            = np.eye(2) # Measurement matrix
-		self.Q            = np.zeros((2,2)) # Process noise covariance matrix, assume no noise
-		self.R            = np.array([[400, 0],[0, 25]]) # Measurement covariance matrix
+		self.Q            = np.array([[10, 0], [0, 10]]) # Process noise covariance matrix, assume no noise
+		self.prev_R       = np.array([[400, 0],[0, 25]]) # Measurement covariance matrix
 		self.H            = np.eye(2) # Matrix to allow calculation of Kalman gain
 		self.prev_cov_p   = np.array([[400, 0], [0, 25]]) # Previous predicted process covariance matrix
 		self.prev_mea     = np.array([[0],[0]])
@@ -45,41 +46,41 @@ class Localization(object):
 		# Kalman filter
 		# Equation of motion : X_t = AX_t-1 + Bu_t + w_t, assume no angular acceleration, so = 0
 		# Equation of motion : X = X_o + omega * t
-		skip  = 5
+		skip  = 1
 		start = Localization.NUM_POINTS - Localization.SAMPLES_PER_PACKET
 		heading_window  = itertools.islice(self.heading, start, None, skip)
-		velocity_window = list(itertools.islice(self.rotate_z, start, None, skip))
+		velocity_window = list(itertools.islice(self.rotate_x, start, None, skip))
 		for (i, mea) in enumerate(heading_window):
-			# print("A: ")
-			# print(self.A)
-			# print("Heading: %.2f" % mea)
-			self.predicted_state = np.dot(self.A, self.prev_est)
-			# print("Predicted state:")
-			# print(self.predicted_state)
-			self.predicted_cov_p = np.dot(np.dot(self.A, self.prev_cov_p), self.A.T) + self.Q
-			self.predicted_cov_p[0][1] = 0
-			self.predicted_cov_p[1][0] = 0
-			# print("Predicted covariance process matrix:")
-			# print(self.predicted_cov_p)
-			self.mea             = np.dot(self.C, np.array([[mea], [velocity_window[i]]]))
-			print("Measurement:")
-			print(self.mea)
-			self.K               = np.nan_to_num(np.true_divide(np.dot(self.predicted_cov_p, self.H), np.dot(np.dot(self.H, self.predicted_cov_p), self.H.T) + self.R))
-			# print(self.K[self.K == np.nan])
-			print("Kalman Gain:")
-			print(self.K)
-			# print("Kalman numerator")
-			# print(np.dot(self.predicted_cov_p, self.H))
-			# print("Kalman denominator")
-			# print(np.dot(np.dot(self.H, self.predicted_cov_p), self.H.T) + self.R)
-			self.est             = self.predicted_state + np.dot(self.K, (self.mea - np.dot(self.H, self.predicted_state)))
-			self.cov_p           = np.dot((np.eye(2) - np.dot(self.K, self.H)), self.predicted_cov_p)
-			self.prev_cov_p      = self.cov_p
-			# kalman_gain        = (self.prev_err_est) / (self.prev_err_est + self.err_mea)
-			print("Estimate:")
-			print(self.est)
-			self.prev_est        = self.est
-			self.prev_mea        = self.mea
+			self.predicted_state       = np.dot(self.A, self.prev_est)
+			self.predicted_cov_p       = np.dot(np.dot(self.A, self.prev_cov_p), self.A.T) + self.Q
+			self.predicted_cov_p[0][1] = 0 # Zero out cross terms for numerical stability
+			self.predicted_cov_p[1][0] = 0 # Zero out cross terms for numerical stability
+			self.mea                   = np.dot(self.C, np.array([[mea], [velocity_window[i]]]))
+			self.K                     = np.nan_to_num(np.true_divide(np.dot(self.predicted_cov_p, self.H), np.dot(np.dot(self.H, self.predicted_cov_p), self.H.T) + self.prev_R))
+			self.est                   = self.predicted_state + np.dot(self.K, (self.mea - np.dot(self.H, self.predicted_state)))
+			self.cov_p                 = np.dot((np.eye(2) - np.dot(self.K, self.H)), self.predicted_cov_p)
+			self.prev_cov_p            = self.cov_p
+			# print("Final estimate: %.2f" % self.est[0][0])
+			# print(self.est)
+			self.prev_est              = self.est
+			self.prev_mea              = self.mea
+			self.bearing.append(self.est[0][0])
+
+	def get_stabilized_bearing(self):
+		""" Convert values above 350 to x - 360 and calculate variance, only return readings when variance is low enough"""
+		start = Localization.NUM_POINTS - Localization.SAMPLES_PER_PACKET
+		window = list(itertools.islice(self.bearing, start, None))
+		window = map(lambda x: 360 - x if x > 350 else x, window)
+		var = np.var(window)
+		if var < Localization.VARIANCE_THRES:
+			return convert_to_positive(np.average(window))
+		else:
+			# special value to indicate unstable readings
+			return -1.0
+
+	def convert_to_positive(self, deg):
+		""" Deg must be negative"""
+		return (deg + 360) if deg < 0 else deg
 
 	def run(self):
 		if self.new_data:
