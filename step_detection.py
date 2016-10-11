@@ -24,7 +24,8 @@ class StepDetector(object):
 	}
 	def __init__(self, thres=None, data_pipe=None, plot=False):
 		random.seed()
-		self.step            = 0
+		self.total_steps     = 0
+		self.curr_steps      = 0
 		self.interrupt_count = 0
 		self.data_pipe       = data_pipe
 		self.t               = np.array([x for x in range(0, StepDetector.NUM_POINTS)])
@@ -189,10 +190,10 @@ class StepDetector(object):
 				if translated[x-1] == -1 and translated[x] == 1:
 					positive_thres_crossings[x] = -1
 			p_t_idx = np.where(positive_thres_crossings==-1)[0]
-			# print(p_t_idx)
-			curr = self.count_steps(p_t_idx, z_c_idx)
-			self.step = self.step + curr
-			print("Step %d" % self.step)
+			self.curr_steps  = self.count_steps(p_t_idx, z_c_idx)
+			self.total_steps = self.total_steps + self.curr_steps
+			if self.curr_steps > 0:
+				print("Step %d" % self.curr_steps)
 
 	def run(self):
 		if self.new_data:

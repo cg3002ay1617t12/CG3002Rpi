@@ -14,8 +14,9 @@ class Localization(object):
 	SAMPLES_PER_SECOND    = 50
 	VARIANCE_THRES        = 50
 
-	def __init__(self, x=None, y=None, bearing=None, plot=False):
-		self.t        = np.array([x for x in range(0, Localization.NUM_POINTS)])
+	def __init__(self, x=None, y=None, bearing=None, north=0, plot=False):
+		""" north is measured with respect to the positive x axis, increasing in the anti-clockwise direction"""
+		self.t        = np.array([x_ for x_ in range(0, Localization.NUM_POINTS)])
 		self.heading  = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
 		self.rotate_x = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
 		self.rotate_y = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
@@ -23,6 +24,8 @@ class Localization(object):
 		self.bearing  = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS) # Kalman filtered compass headings
 		self.x        = x if x is not None else 0
 		self.y        = y if y is not None else 0
+		print("Initial position: (%d, %d)" % (self.x, self.y))
+		self.north    = north
 		self.stride   = Localization.STRIDE_LENGTH
 		self.is_plot  = plot
 		self.FPS      = 30
@@ -40,6 +43,10 @@ class Localization(object):
 		self.H            = np.eye(2) # Matrix to allow calculation of Kalman gain
 		self.prev_cov_p   = np.array([[400, 0], [0, 25]]) # Previous predicted process covariance matrix
 		self.prev_mea     = np.array([[0],[0]])
+
+	def reset(self, x=None, y=None):
+		self.x = x if x is not None else 0
+		self.y = y if y is not None else 0
 
 	def process_new_data(self):
 		self.new_data = False
@@ -73,7 +80,7 @@ class Localization(object):
 		window = map(lambda x: 360 - x if x > 350 else x, window)
 		var = np.var(window)
 		if var < Localization.VARIANCE_THRES:
-			return convert_to_positive(np.average(window))
+			return self.convert_to_positive(np.average(window))
 		else:
 			# special value to indicate unstable readings
 			return -1.0
@@ -82,9 +89,17 @@ class Localization(object):
 		""" Deg must be negative"""
 		return (deg + 360) if deg < 0 else deg
 
-	def run(self):
+	def run(self, steps_taken):
 		if self.new_data:
 			self.process_new_data()
+		if steps_taken > 0:
+			direction = self.get_stabilized_bearing()
+			print("%d steps taken in %.2f" % (steps_taken, direction))
+			theta = (direction - self.north) % 360
+			hypo  = Localization.STRIDE_LENGTH * steps_taken
+			self.x = self.x + math.floor(hypo * math.cos(math.pi * theta / 180))
+			self.y = self.y + math.floor(hypo * math.sin(math.pi * theta / 180))
+			print("New position: (%d, %d) Bearing: %.2f" %(int(self.x), int(self.y), direction))
 		if self.is_plot:
 			if (time.time() - self.start) > 1/self.FPS:
 				start = time.time()

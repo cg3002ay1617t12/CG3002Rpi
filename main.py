@@ -18,7 +18,7 @@ class App(object):
 		# Init submodules
 		# self.PathFinder   = PathFinder()
 		self.StepDetector = StepDetector(plot=False)
-		self.Localization = Localization(plot=True)
+		self.Localization = Localization(x=0, y=0, north=0, plot=True)
 		# self.LPF = LocalPathFinder(mode='demo')
 
 		# Init environment and user-defined variables
@@ -37,7 +37,6 @@ class App(object):
 		
 	def setup_pipes(self):
 		# Setting up IPC
-		# self.connect_picomms()
 		self.master = True
 		self.state = State.START
 		pipe_desc = os.open(App.DATA_PIPE, os.O_RDONLY)
@@ -48,17 +47,16 @@ class App(object):
 		print("Starting event pipe...listening for keystrokes...")
 		self.event_pipe = os.fdopen(pipe_desc, 'w+')
 		print("Keypad connected!")
+		fpid = open('./serial_pid', 'r')
+		app.serial_pid = fpid.read()
+		fpid.close()
+		fpid = open('./keypad_pid', 'r')
+		app.keypad_pid = fpid.read()
+		fpid.close()
 
 	def register_handler(self):
 		signal.signal(signal.SIGUSR2, transition_handler)
 		signal.signal(signal.SIGUSR1, serial_handler)
-
-	def connect_picomms(self):
-		print("Reconnecting with PiComms...")
-		cmd                     = "python serial_input.py"
-		args                    = shlex.split(cmd)
-		self.subprocess_picomms = subprocess.Popen(args)
-		print("Connection established!")
 
 	def run_once_on_transition(self):
 		""" Run once upon transition to this state"""
@@ -72,6 +70,7 @@ class App(object):
 			pass
 		elif self.state is State.RESET:
 			self.StepDetector.reset_step()
+			self.Localization.reset()
 			pass
 		else:
 			pass
@@ -85,37 +84,39 @@ class App(object):
 				elif self.state is State.READY:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
-					self.Localization.run()
+					self.Localization.run(self.StepDetector.curr_steps)
+					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.NAVIGATING:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
-					self.Localization.run()
+					self.Localization.run(self.StepDetector.curr_steps)
+					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.REACHED:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
-					self.Localization.run()
+					self.Localization.run(self.StepDetector.curr_steps)
+					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.RESET:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
-					self.Localization.run()
+					self.Localization.run(self.StepDetector.curr_steps)
+					self.StepDetector.curr_steps = 0
 					pass
 				else:
 					pass
 			except Exception as e:
 				print(e)
 		# Clean up system resources, close files and pipes, delete temp files
+		os.kill(int(self.serial_pid), signal.SIGTERM)
+		os.kill(int(self.keypad_pid), signal.SIGTERM)
 		sys.exit(0)
 
 app = App()
 def timeout_handler():
 	global app
-	# Get pid of serial_input
-	fpid = open('./serial_pid', 'r')
-	app.serial_pid = fpid.read()
-	fpid.close()
 	try:
 		os.kill(int(app.serial_pid), signal.SIGUSR1)
 		print("triggered! %s" % app.serial_pid)
@@ -151,7 +152,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 			app.Localization.rotate_z.append(float(c))
 		except ValueError as e:
 			print e
-	 # terminate process in timeout seconds
+	# terminate process in timeout seconds
 	timeout    = 2 # seconds
 	timer      = threading.Timer(timeout, timeout_handler)
 	timer.start()
@@ -190,8 +191,10 @@ def main():
 		signal.signal(signal.SIGALRM, timeout_handler)
 		p1 = connect_picomms()
 		p2 = connect_keypad()
-		while True: # Child does not exit before parent
-			pass
+		fpid = open('./keypad_pid', 'w')
+		fpid.write(str(p2.pid))
+		fpid.close()
+		os._exit(0)
 	else:
 		# Parent process
 		app.register_handler()
