@@ -127,7 +127,6 @@ def serial_handler(signum, frame, *args, **kwargs):
 			app.Localization.rotate_x.append(float(a))
 			app.Localization.rotate_y.append(float(b))
 			app.Localization.rotate_z.append(float(c))
-			print(d)
 		except ValueError as e:
 			print e
 	line_count = StepDetector.SAMPLES_PER_PACKET
