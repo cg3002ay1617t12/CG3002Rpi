@@ -90,12 +90,9 @@ class LocalPathFinder(object):
 				return x
 		return len(moves_x)
 
-	def select_branch(self, n):
+	def select_branch(self, n, retry=None):
 		""" For all branches, check whether valid paths still exist and calculate a score based on how close those paths are to the dest"""
 		choices = []
-		if n / len(self.dfs_branches) > 10:
-			print("Infinite recursion detected...exiting")
-			sys.exit()
 		n = min(len(self.dfs_branches), n)
 		for i,b in enumerate(self.dfs_branches[-n:]):
 			score = 0
@@ -114,16 +111,21 @@ class LocalPathFinder(object):
 			if self.within_map(right[0], right[1]) and (self.agent_map[right[0], right[1]] == 2):
 				score += 1 + np.dot(np.array([1,0]), direction) / distance - self.calc_steps(b)
 			if score == 0:
+				pass
 				# Prune branches with no more unvisited and free paths
-				print("Pruned (%d, %d)" % (self.dfs_branches[len(self.dfs_branches) - n + i][0], self.dfs_branches[len(self.dfs_branches) - n + i][1]))
+				# print("Pruned (%d, %d)" % (self.dfs_branches[len(self.dfs_branches) - n + i][0], self.dfs_branches[len(self.dfs_branches) - n + i][1]))
 			else:
-				print(self.dfs_branches[len(self.dfs_branches) - n + i], score)
+				# print(self.dfs_branches[len(self.dfs_branches) - n + i], score)
 				choices.append([i, score])
 		try:
 			choice = max(choices, key=lambda x: x[1])[0]
 		except ValueError as e:
 			# Increase search size, TODO - risk of inifinite recursion here
-			return self.select_branch(n+5)
+			retry = 10 if retry is None else retry - 1
+			if retry == 0:
+				return np.array([-np.inf, -np.inf])
+			else:
+				return self.select_branch(n+5, retry=retry)
 		result = self.dfs_branches[choice - n]
 		while (n > choice + 1):
 			self.dfs_branches.pop()
@@ -233,7 +235,7 @@ class LocalPathFinder(object):
 			choices = len(filter(lambda x: x!=-np.inf, dots)) - 1
 			for c in range(0, choices):
 				self.dfs_branches.append(self.state[0]) # Save location of branching to come back later
-				print("Branches: %d" % len(self.dfs_branches))
+				# print("Branches: %d" % len(self.dfs_branches))
 		return dist_to_dir[max(dots)]
 
 	def detect_cycle(n):
@@ -284,11 +286,11 @@ class LocalPathFinder(object):
 	def move(self, coord, backtrack=False):
 		"""Agent must turn to face the right bearing before moving forward by 1 step, coord is vector of movement"""
 		global state
-		print("Move [%d, %d]" % (coord[0], coord[1]))
+		# print("Move [%d, %d]" % (coord[0], coord[1]))
 		new_state = self.state[0] + coord
 		if self.obstacle_field[new_state[0], new_state[1]] == 1:
 			self.update_map(new_state, 'obstacle')
-			print("Obstacle encountered! Illegal move!")
+			# print("Obstacle encountered! Illegal move!")
 		else:
 			self.update_map(new_state, 'visited')
 			self.state[0] = new_state
@@ -357,7 +359,9 @@ class LocalPathFinder(object):
 			if self.out_of_options():
 				try:
 					self.curr_dest = self.select_branch(6)
-					print("Backtrack to last branch [%d, %d]" % (self.curr_dest[0], self.curr_dest[1]))
+					if self.curr_dest[0] == -np.inf and self.curr_dest[1] == -np.inf:
+						self.win = True # Exit loop because no path exists to the dest
+					# print("Backtrack to last branch [%d, %d]" % (self.curr_dest[0], self.curr_dest[1]))
 					index = 2
 					while True:
 						if (self.state[0][0] == self.curr_dest[0]) and (self.state[0][1] == self.curr_dest[1]):
@@ -369,8 +373,9 @@ class LocalPathFinder(object):
 						if plot: self.plotter(self.ax1)
 						self.count+= 1
 				except (ValueError, IndexError) as e:
-					print("Error! No last branch to backtrack to...There exists no path to the dest.")
-				print("Reached last checkpoint [%d, %d]" % (self.curr_dest[0], self.curr_dest[1]))
+					pass
+					# print("Error! No last branch to backtrack to...There exists no path to the dest.")
+				# print("Reached last checkpoint [%d, %d]" % (self.curr_dest[0], self.curr_dest[1]))
 				# Discard steps taken since checkpoint
 				while index > 2:
 					self.moves_x.pop()
@@ -385,7 +390,8 @@ class LocalPathFinder(object):
 				self.win = True
 			# if count > 100: break
 		if self.win: 
-			print("Won in %d moves" % self.count)
+			# print("Won in %d moves" % self.count)
+			pass
 
 	def run_to_end(self, plot=False):
 		np.random.seed()
@@ -408,6 +414,8 @@ class LocalPathFinder(object):
 			if self.out_of_options():
 				try:
 					self.curr_dest = self.select_branch(6)
+					if self.curr_dest[0] == -np.inf and self.curr_dest[1] == -np.inf:
+						break # Exit loop because no path to dest exists
 					print("Backtrack to last branch [%d, %d]" % (self.curr_dest[0], self.curr_dest[1]))
 					index = 2
 					while True:
