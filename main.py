@@ -4,6 +4,7 @@ from step_detection import StepDetector
 import os, signal, sys, subprocess, shlex, time, json, threading
 from fsm import *
 from localization import *
+from audio import tts
 
 class App(object):
 	EVENT_PIPE = './event_pipe'
@@ -170,6 +171,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 def connect_keypad():
 	print("Connecting with Keypad...")
 	cmd     = "python keyboard_sim.py"
+	cmd     = "python keypadupdated.py"
 	args    = shlex.split(cmd)
 	process = subprocess.Popen(args)
 	print("Connection established!")
