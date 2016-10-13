@@ -15,7 +15,6 @@ class PriorityQueue:
 class PiComms(object):
 
 	DATA_PIPE          = './data_pipe'
-	EVENT_PIPE         = './event_pipe'
 	BAUD               = 115200
 	SERIAL             = '/dev/ttyAMA0'
 	SAMPLES_PER_PACKET = 25
@@ -25,7 +24,7 @@ class PiComms(object):
 		self.pq              = PriorityQueue()
 		self.curr_mode       = 0
 		self.packet_type     = 0 #ACK or HELLO or DATA 
-		self.component_id   = 0
+		self.component_id    = 0
 		self.ser             = serial.Serial(port =PiComms.SERIAL, baudrate = PiComms.BAUD, timeout = 3)
 		self.data            = "" #Stores the payload for DATA packet 
 		self.data_index      = -1 
@@ -41,6 +40,12 @@ class PiComms(object):
 		if not os.path.exists(PiComms.DATA_PIPE):
 			os.mkfifo(PiComms.DATA_PIPE)
 
+		# Write my pid
+		fpid = open('./serial_pid', 'w')
+		fpid.write(str(os.getpid()))
+		fpid.close()
+
+		# Open data pipe
 		self.pipe_out = os.open(PiComms.DATA_PIPE, os.O_WRONLY)
 		fpid          = open('./pid', 'r')
 		self.pid      = fpid.read()
@@ -63,7 +68,21 @@ class PiComms(object):
 	def read(self): 
 		if self.ser.inWaiting()>0:
 			self.read_status = True
-			self.incoming_byte = self.ser.read()
+			try:
+				self.incoming_byte = self.ser.read()
+			except serial.SerialException as e:
+				print e
+				print("Reopening serial port...")
+				while True:
+					try:
+						self.ser = serial.Serial(port =PiComms.SERIAL, baudrate = PiComms.BAUD, timeout = 10)
+						break
+					except Exception as e:
+						time.sleep(5)
+						pass
+			except Exception as e:
+				print("Terminated serial connection")
+				sys.exit(1)
 			if self.curr_mode == 0: 
 				self.incoming_byte = ord(self.incoming_byte)
 				if self.incoming_byte == 60:
@@ -274,7 +293,13 @@ class PiComms(object):
 		print("Encoded Data (Data + Remainder Appended):")
 		print(code_word)
 
+	@classmethod
+	def signal_handler(cls, signum, frame):
+		print("Terminated connection to main")
+		sys.exit(1)
+
 def main():
+	signal.signal(signal.SIGUSR1, PiComms.signal_handler)
 	comms = PiComms()
 	while True:
 		comms.read()
