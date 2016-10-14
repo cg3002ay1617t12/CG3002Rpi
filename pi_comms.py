@@ -191,12 +191,12 @@ class PiComms(object):
 
 	def handling_packets(self): 
 		if self.packet_type == 1: #(HELLO RECEIVED) send hello back
-			print ("Sending HELLO Packet")
+			# print ("Sending HELLO Packet")
 			self.ser.write("<1>")
 			self.ser.flush()
 
 		elif self.packet_type == 6: #(DATA RECEIVED) send ack back with next pkt_seq
-			print("Sending ACK Packet")
+			# print("Sending ACK Packet")
 			self.ser.write("<3>")
 			self.ser.flush()
 
