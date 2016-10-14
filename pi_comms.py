@@ -92,15 +92,15 @@ class PiComms(object):
 			elif self.curr_mode == 1:
 				self.incoming_byte = ord(self.incoming_byte)
 				if self.incoming_byte == 49:
-					print("Received HELLO")
+					# print("Received HELLO")
 					self.packet_type = 1 
 					self.curr_mode = 7
 				elif self.incoming_byte == 51:
-					print("Received ACK")
+					# print("Received ACK")
 					self.packet_type = 2
 					self.curr_mode = 7
 				elif self.incoming_byte == 50:
-					print("Received DATA")
+					# print("Received DATA")
 					self.packet_type = 6
 					self.curr_mode = 2
 				else:
@@ -157,22 +157,22 @@ class PiComms(object):
 
 			elif self.curr_mode == 7:
 				self.incoming_byte = ord(self.incoming_byte)
-				print("Terminate")
+				# print("Terminate")
 				if self.incoming_byte != 62 :
 					self.curr_mode = 8
 					print("CORRUPT")
 					self.read_status = False
 				else:
-					print("Successfully")
+					# print("Successfully")
 					self.curr_mode = 0
 					if self.packet_type ==6: 
 						self._buffer.append(str(self.component_id) + '~' + str(self.split_data(self.payload_final)) + "\r\n")
 					# Format of string : component_id~data
 					if len(self._buffer) % PiComms.SAMPLES_PER_PACKET == 0:
 						self.forward_data()
-					print ("String sent to buffer:") 
+					# print ("String sent to buffer:") 
 					print(self.component_id)
-					print("~")
+					# print("~")
 					print(self.payload_final)
 					if self.packet_type ==1 or self.packet_type ==6:
 						self.handling_packets()
