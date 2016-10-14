@@ -19,7 +19,7 @@ class App(object):
 		# Init submodules
 		# self.PathFinder   = PathFinder()
 		self.StepDetector = StepDetector(plot=False)
-		self.Localization = Localization(x=0, y=0, north=0, plot=True)
+		self.Localization = Localization(x=0, y=0, north=0, plot=False)
 		# self.LPF = LocalPathFinder(mode='demo')
 
 		# Init environment and user-defined variables
@@ -171,7 +171,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 def connect_keypad():
 	print("Connecting with Keypad...")
 	cmd     = "python keyboard_sim.py"
-	cmd     = "python keypadupdated.py"
+	# cmd     = "python keypadupdated.py"
 	args    = shlex.split(cmd)
 	process = subprocess.Popen(args)
 	print("Connection established!")
@@ -179,7 +179,8 @@ def connect_keypad():
 
 def connect_picomms():
 	print("Connecting with PiComms...")
-	cmd     = "python serial_input.py"
+	# cmd     = "python serial_input.py"
+	cmd     = "python pi_comms.py"
 	args    = shlex.split(cmd)
 	process = subprocess.Popen(args)
 	print("Connection established!")
