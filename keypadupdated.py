@@ -16,11 +16,11 @@ class State(Enum):
 	FFA     = 6
 
 class Transitions(Enum):
-	KEY_DIGIT : 0
-	KEY_HASH  : 1
-	KEY_STAR  : 2
-	KEY_INCR  : 3
-	KEY_DECR  : 4
+	KEY_DIGIT = 0
+	KEY_HASH  = 1
+	KEY_STAR  = 2
+	KEY_INCR  = 3
+	KEY_DECR  = 4
 
 class KEY(object):
 	"""Contains GPIO -> value mapping"""
