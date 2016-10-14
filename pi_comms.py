@@ -173,7 +173,7 @@ class PiComms(object):
 					# print ("String sent to buffer:") 
 					# print(self.component_id)
 					# print("~")
-					# print(self.payload_final)
+					print(str(self.split_data(self.payload_final)))
 					if self.packet_type ==1 or self.packet_type ==6:
 						self.handling_packets()
 					self.read_status = False
