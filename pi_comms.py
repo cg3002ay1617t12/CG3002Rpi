@@ -1,4 +1,4 @@
-import serial, struct, time, heapq, binascii, os, signal
+import serial, struct, time, heapq, binascii, os, signal, sys
 
 class PriorityQueue:
 	def __init__(self):
@@ -87,20 +87,20 @@ class PiComms(object):
 				self.incoming_byte = ord(self.incoming_byte)
 				if self.incoming_byte == 60:
 					self.curr_mode = 1
-					print("Recieved Start")
+					print("Received Start")
 
 			elif self.curr_mode == 1:
 				self.incoming_byte = ord(self.incoming_byte)
 				if self.incoming_byte == 49:
-					print("Recieved HELLO")
+					print("Received HELLO")
 					self.packet_type = 1 
 					self.curr_mode = 7
 				elif self.incoming_byte == 51:
-					print("Recieved ACK")
+					print("Received ACK")
 					self.packet_type = 2
 					self.curr_mode = 7
 				elif self.incoming_byte == 50:
-					print("Recieved DATA")
+					print("Received DATA")
 					self.packet_type = 6
 					self.curr_mode = 2
 				else:
@@ -110,7 +110,7 @@ class PiComms(object):
 			elif self.curr_mode == 2 :
 				self.incoming_byte = ord(self.incoming_byte)
 				self.component_id = self.incoming_byte
-				print("receiving component_id")
+				# print("receiving component_id")
 				if self.incoming_byte >0 and self.incoming_byte <42: 
 					self.curr_mode = 3 
 				else:
@@ -120,7 +120,7 @@ class PiComms(object):
 			elif self.curr_mode == 3 :
 				self.incoming_byte = ord(self.incoming_byte)
 				self.payload_length = self.incoming_byte
-				print("receiving payload length")
+				# print("receiving payload length")
 				if self.incoming_byte >-1 and self.incoming_byte <58: 
 					self.curr_mode = 5 
 					self.data_index = self.payload_length
@@ -129,7 +129,7 @@ class PiComms(object):
 					print("CORRUPT")
 			
 			elif self.curr_mode == 5 :
-				print("receiving payload")
+				# print("receiving payload")
 				if self.data_index > -1: 
 					self.data = self.data + self.incoming_byte
 					self.data_index = self.data_index-1 
@@ -141,7 +141,7 @@ class PiComms(object):
 		
 			elif self.curr_mode == 6 :
 				self.incoming_byte = ord(self.incoming_byte)
-				print("receiving crc")
+				# print("receiving crc")
 				print self.incoming_byte
 				if self.crc_index >0 and self.incoming_byte == 49: 
 					self.crc_data = self.crc_data + self.incoming_byte
@@ -166,7 +166,7 @@ class PiComms(object):
 					print("Successfully")
 					self.curr_mode = 0
 					if self.packet_type ==6: 
-						self._buffer.append(str(self.component_id) + '~' + str(self.split_data(self.payload_final)))
+						self._buffer.append(str(self.component_id) + '~' + str(self.split_data(self.payload_final)) + "\r\n")
 					# Format of string : component_id~data
 					if len(self._buffer) % PiComms.SAMPLES_PER_PACKET == 0:
 						self.forward_data()
@@ -184,7 +184,7 @@ class PiComms(object):
 				self.read_status = False
 
 	def forward_data(self):
-		datastream = ','.join(self._buffer)
+		datastream = ''.join(self._buffer)
 		os.write(self.pipe_out, datastream)
 		os.kill(int(self.pid), signal.SIGUSR1) # Raise SIGUSR1 signal
 		self._buffer = []

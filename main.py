@@ -1,7 +1,7 @@
 from path_finder import PathFinder
 from vhf import LocalPathFinder
 from step_detection import StepDetector
-import os, signal, sys, subprocess, shlex, time, json, threading
+import os, signal, sys, subprocess, shlex, time, json, threading, platform
 from fsm import *
 from localization import *
 from audio import tts
@@ -11,6 +11,7 @@ class App(object):
 	DATA_PIPE  = './data_pipe'
 	
 	def __init__(self):
+		self.platform_ = platform.platform()
 		self.pid = os.getpid()
 		fpid = open('./pid', 'w')
 		fpid.write(str(self.pid))
@@ -19,7 +20,7 @@ class App(object):
 		# Init submodules
 		# self.PathFinder   = PathFinder()
 		self.StepDetector = StepDetector(plot=False)
-		self.Localization = Localization(x=0, y=0, north=0, plot=False)
+		self.Localization = Localization(x=0, y=0, north=0, plot=True)
 		# self.LPF = LocalPathFinder(mode='demo')
 
 		# Init environment and user-defined variables
@@ -141,9 +142,30 @@ def transition_handler(signum, frame, *args, **kwargs):
 def serial_handler(signum, frame, *args, **kwargs):
 	""" Handles all incoming sensor data and distribute to the relevant submodules"""
 	global app
-	def process(datum):
+	def process_rpi(datum):
+		""" Run this if using the pi_comms protocol"""
+		(component_id, readings) = datum.split('~')
 		try:
-			(x,y,z,a,b,c,d) = map(lambda x: x.strip('\r\n'), datum.split(','))
+			if component_id == 1:
+				(a_x, a_y, a_z) = map(lambda x: x.strip('\r\n'), readings.split(','))
+				app.StepDetector.ax.append(float(a_x))
+				app.StepDetector.ay.append(float(a_y))
+				app.StepDetector.az.append(float(a_z))
+			if component_id == 2:
+				heading = readings.strip('\r\n')
+				app.Localization.heading.append(float(heading))
+			if component_id == 3:
+				(g_x, g_y, g_z) = map(lambda x: x.strip('\r\n'), readings.split(','))
+				app.Localization.rotate_x.append(float(g_x))
+				app.Localization.rotate_x.append(float(g_y))
+				app.Localization.rotate_x.append(float(g_z))
+		except ValueError as e:
+			print e
+	
+	def process_laptop(datum):
+		""" Run this if not using the pi_comms protocol"""
+		try:
+			(x,y,z,a,b,c,d) = map(lambda x: x.strip('\r\n'), readings.split(','))
 			app.StepDetector.ax.append(float(x))
 			app.StepDetector.ay.append(float(y))
 			app.StepDetector.az.append(float(z))
@@ -164,23 +186,34 @@ def serial_handler(signum, frame, *args, **kwargs):
 		buffer_.append(data)
 		line_count -= 1
 	timer.cancel()
-	map(process, buffer_)
+	if app.platform_ == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
+		map(process_rpi, buffer_)
+	else:
+		map(process_laptop, buffer_)
 	app.StepDetector.new_data = True
 	app.Localization.new_data = True
 
-def connect_keypad():
+def connect_keypad(platform=None):
 	print("Connecting with Keypad...")
-	cmd     = "python keyboard_sim.py"
-	# cmd     = "python keypadupdated.py"
+	if platform == "Linux-4.4.13-v7+-armv7l-with-debian-8.0": # Raspberry Pi
+		cmd     = "python keypadupdated.py"
+	elif platform == "Darwin-15.2.0-x86_64-i386-64bit" or platform == "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty":
+		cmd     = "python keyboard_sim.py" # Mac, Windows, Ubuntu with connected keyboard
+	else:
+		cmd     = "python keyboard_sim.py" # Mac, Windows, Ubuntu with connected keyboard
 	args    = shlex.split(cmd)
 	process = subprocess.Popen(args)
 	print("Connection established!")
 	return process
 
-def connect_picomms():
+def connect_picomms(platform=None):
 	print("Connecting with PiComms...")
-	# cmd     = "python serial_input.py"
-	cmd     = "python pi_comms.py"
+	if platform == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
+		cmd     = "python pi_comms.py"
+	elif platform == "Darwin-15.2.0-x86_64-i386-64bit" or platform == "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty":
+		cmd     = "python serial_input.py"
+	else:
+		cmd     = "python serial_input.py"
 	args    = shlex.split(cmd)
 	process = subprocess.Popen(args)
 	print("Connection established!")
@@ -189,11 +222,12 @@ def connect_picomms():
 def main():
 	""" Main program of the Finite State Machine"""
 	global app
+	platform_ = platform.platform()
 	if os.fork() == 0:
 		# Child processes
 		signal.signal(signal.SIGALRM, timeout_handler)
-		p1 = connect_picomms()
-		p2 = connect_keypad()
+		p1 = connect_picomms(platform_)
+		p2 = connect_keypad(platform_)
 		fpid = open('./keypad_pid', 'w')
 		fpid.write(str(p2.pid))
 		fpid.close()
