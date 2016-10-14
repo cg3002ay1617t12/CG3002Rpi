@@ -171,9 +171,9 @@ class PiComms(object):
 					if len(self._buffer) % PiComms.SAMPLES_PER_PACKET == 0:
 						self.forward_data()
 					# print ("String sent to buffer:") 
-					print(self.component_id)
+					# print(self.component_id)
 					# print("~")
-					print(self.payload_final)
+					# print(self.payload_final)
 					if self.packet_type ==1 or self.packet_type ==6:
 						self.handling_packets()
 					self.read_status = False
