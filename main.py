@@ -148,9 +148,9 @@ def serial_handler(signum, frame, *args, **kwargs):
 	global app
 	def process_rpi(datum):
 		""" Run this if using the pi_comms protocol"""
+		print(datum)
 		(component_id, readings) = datum.split('~')
 		component_id = int(component_id)
-		print(readings)
 		try:
 			if component_id == 1:
 				(a_x, a_y, a_z) = map(lambda x: x.strip('\r\n'), readings.split(','))
