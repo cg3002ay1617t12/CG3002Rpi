@@ -87,7 +87,7 @@ class PiComms(object):
 				self.incoming_byte = ord(self.incoming_byte)
 				if self.incoming_byte == 60:
 					self.curr_mode = 1
-					print("Received Start")
+					# print("Received Start")
 
 			elif self.curr_mode == 1:
 				self.incoming_byte = ord(self.incoming_byte)
@@ -142,7 +142,7 @@ class PiComms(object):
 			elif self.curr_mode == 6 :
 				self.incoming_byte = ord(self.incoming_byte)
 				# print("receiving crc")
-				print self.incoming_byte
+				# print self.incoming_byte
 				if self.crc_index >0 and self.incoming_byte == 49: 
 					self.crc_data = self.crc_data + self.incoming_byte
 					self.crc_index = self.crc_index - 1 
@@ -288,10 +288,10 @@ class PiComms(object):
 
 		# Append remainder in the original data
 		code_word = data + remainder
-		print("Remainder:")
-		print(remainder)
-		print("Encoded Data (Data + Remainder Appended):")
-		print(code_word)
+		# print("Remainder:")
+		# print(remainder)
+		# print("Encoded Data (Data + Remainder Appended):")
+		# print(code_word)
 
 	@classmethod
 	def signal_handler(cls, signum, frame):
