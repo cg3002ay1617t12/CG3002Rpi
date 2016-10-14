@@ -19,8 +19,12 @@ class App(object):
 		
 		# Init submodules
 		# self.PathFinder   = PathFinder()
-		self.StepDetector = StepDetector(plot=False)
-		self.Localization = Localization(x=0, y=0, north=0, plot=True)
+		if self.platform_ == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
+			plot = False
+		else:
+			plot = True
+		self.StepDetector = StepDetector(plot=plot)
+		self.Localization = Localization(x=0, y=0, north=0, plot=plot)
 		# self.LPF = LocalPathFinder(mode='demo')
 
 		# Init environment and user-defined variables
