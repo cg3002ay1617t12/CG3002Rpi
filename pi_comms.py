@@ -166,7 +166,11 @@ class PiComms(object):
 					# print("Successfully")
 					self.curr_mode = 0
 					if self.packet_type ==6: 
-						self._buffer.append(str(self.component_id) + '~' + str(self.split_data(self.payload_final)) + "\r\n")
+						tempPayloadString = ""
+						tempPayloadArray = self.payload_final.split('\0')
+						for tempDataItem in tempPayloadArray:
+							tempPayloadString = tempPayloadString + tempDataItem
+						self._buffer.append(str(self.component_id) + '~' + str(self.split_data(tempPayloadString)) + "\r\n")
 					# Format of string : component_id~data
 					if len(self._buffer) % PiComms.SAMPLES_PER_PACKET == 0:
 						self.forward_data()
