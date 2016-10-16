@@ -9,6 +9,7 @@ from audio import tts
 class App(object):
 	EVENT_PIPE = './event_pipe'
 	DATA_PIPE  = './data_pipe'
+	INSTRUCTION_INTERVAL = 5
 	
 	def __init__(self):
 		self.platform_ = platform.platform()
@@ -17,14 +18,19 @@ class App(object):
 		fpid.write(str(self.pid))
 		fpid.close()
 		
+		self.curr_start_node = -1
+		self.curr_end_node   = -1
+		self.transit         = False
+		self.userinput       = ''
+		self.start           = time.time()
 		# Init submodules
-		# self.PathFinder   = PathFinder()
 		if self.platform_ == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
 			plot = False
 		else:
-			plot = True
+			plot = False
+		self.PathFinder   = PathFinder()
 		self.StepDetector = StepDetector(plot=plot)
-		self.Localization = Localization(x=0, y=0, north=0, plot=plot)
+		self.Localization = Localization(x=0, y=0, north=self.PathFinder.angle_of_north, plot=plot)
 		# self.LPF = LocalPathFinder(mode='demo')
 
 		# Init environment and user-defined variables
@@ -64,51 +70,104 @@ class App(object):
 		signal.signal(signal.SIGUSR2, transition_handler)
 		signal.signal(signal.SIGUSR1, serial_handler)
 
-	def run_once_on_transition(self):
-		""" Run once upon transition to this state"""
+	def issue_instruction(self, instr, placeholders=()):
+		if (time.time() - self.start) > App.INSTRUCTION_INTERVAL:
+			tts(instr, placeholders)
+			self.start = time.time()
+
+	def wait_for_stable_heading(self):
+		""" Wait for a stable heading from compass to init PathFinder"""
+		while True:
+			reading = self.Localization.get_stabilized_bearing()
+			if reading > 0:
+				return reading
+
+	def run_once_on_transition(self, userinput):
+		""" Run once upon transition to new state"""
 		if self.state is State.END:
+			tts("Shutting down now")
 			pass
-		elif self.state is State.READY:
+		elif self.state is State.ACCEPT_START:
+			tts("Please enter start node")
+			pass
+		elif self.state is State.ACCEPT_END:
+			tts("Please enter end destination")
+			self.curr_start_node = int(userinput)
+			(x, y)  = self.PathFinder.coordinates_from_node(self.curr_start_node)
+			bearing = self.Localization.stabilized_bearing
+			self.PathFinder.update_coordinate(x, y, bearing)
 			pass
 		elif self.state is State.NAVIGATING:
+			tts("Entering navigation state")
+			self.curr_end_node = int(userinput)
+			self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
+			print(self.PathFinder.x_coordinate, self.PathFinder.y_coordinate, self.PathFinder.angle)
 			pass
 		elif self.state is State.REACHED:
+			tts("You have arrived!")
+			tts(self.PathFinder.get_audio_reached(self.curr_end_node))
 			pass
 		elif self.state is State.RESET:
+			tts("Resetting step counter and localization module")
 			self.StepDetector.reset_step()
 			self.Localization.reset()
 			pass
 		else:
 			pass
+		self.transit = False
 
 	def run(self):
-		""" Run forever while in this state"""
+		""" Run forever and multiplex between the states """
 		while True:
+			if self.transit:
+				self.run_once_on_transition(self.userinput)
 			try:
 				if self.state is State.END:
 					break
-				elif self.state is State.READY:
+				elif self.state is State.ACCEPT_START:
 					# Do something, make sure its non-blocking
-					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
-					self.StepDetector.curr_steps = 0
+					# Cannot do anything because we do not know where the user is
+					pass
+				elif self.state is State.ACCEPT_END:
+					# Do something, make sure its non-blocking
+					self.Localization.run(self.StepDetector.curr_steps)
+					# Wait for user to key in destination
 					pass
 				elif self.state is State.NAVIGATING:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
+					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+					if reached:
+						self.issue_instruction(self.PathFinder.get_audio_reached(node))
+						# Transit to REACHED state
+						self.event_pipe.write("CHECKPOINT_REACHED\r\n")
+						os.kill(self.pid, signal.SIGUSR2)
+					else:
+						self.issue_instruction(self.PathFinder.get_audio_next_instruction(self.PathFinder.instruction))
 					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.REACHED:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
+					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+					if reached:
+						self.issue_instruction(self.PathFinder.get_audio_reached(node))
+					else:
+						self.issue_instruction(self.PathFinder.get_audio_next_instruction(self.PathFinder.instruction))
 					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.RESET:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
+					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+					if reached:
+						self.issue_instruction(self.PathFinder.get_audio_reached(node))
+					else:
+						self.issue_instruction(self.PathFinder.get_audio_next_instruction(self.PathFinder.instruction))
 					self.StepDetector.curr_steps = 0
 					pass
 				else:
@@ -134,11 +193,12 @@ def transition_handler(signum, frame, *args, **kwargs):
 	""" Asynchronous event handler to trigger state transitions"""
 	global app
 	event = app.event_pipe.readline()
-	transition = Transitions.recognize_input(event)
+	(transition, userinput) = Transitions.recognize_input(event)
 	print transition
 	try:
-		app.state = State.transitions[app.state][transition]
-		app.run_once_on_transition()
+		app.state     = State.transitions[app.state][transition]
+		app.transit   = True
+		app.userinput = userinput
 		print(app.state)
 	except KeyError as e:
 		pass

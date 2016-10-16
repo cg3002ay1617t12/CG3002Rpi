@@ -15,22 +15,26 @@ class Localization(object):
 	VARIANCE_THRES        = 50
 
 	def __init__(self, x=None, y=None, bearing=None, north=0, plot=False):
-		""" north is measured with respect to the positive x axis, increasing in the anti-clockwise direction"""
-		self.t        = np.array([x_ for x_ in range(0, Localization.NUM_POINTS)])
-		self.heading  = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
-		self.rotate_x = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
-		self.rotate_y = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
-		self.rotate_z = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
-		self.bearing  = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS) # Kalman filtered compass headings
-		self.x        = x if x is not None else 0
-		self.y        = y if y is not None else 0
+		""" 
+			North is measured clockwise from the +ve y-axis as given by the json map 
+			Bearing is measured clockwise from North
+		"""
+		self.t                  = np.array([x_ for x_ in range(0, Localization.NUM_POINTS)])
+		self.heading            = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
+		self.rotate_x           = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
+		self.rotate_y           = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
+		self.rotate_z           = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS)
+		self.bearing            = deque(np.zeros((Localization.NUM_POINTS,)), Localization.NUM_POINTS) # Kalman filtered compass headings
+		self.stabilized_bearing = -1 # Last updated stabilized bearing reading
+		self.x                  = x if x is not None else 0
+		self.y                  = y if y is not None else 0
 		print("Initial position: (%d, %d)" % (self.x, self.y))
-		self.north    = north
-		self.stride   = Localization.STRIDE_LENGTH
-		self.is_plot  = plot
-		self.FPS      = 30
-		self.start    = time.time()
-		self.new_data = False
+		self.north              = north
+		self.stride             = Localization.STRIDE_LENGTH
+		self.is_plot            = plot
+		self.FPS                = 30
+		self.start              = time.time()
+		self.new_data           = False
 		if self.is_plot:
 			self.init_plot()
 		# Variables for kalman filter
@@ -90,17 +94,30 @@ class Localization(object):
 		return (deg + 360) if deg < 0 else deg
 
 	def run(self, steps_taken):
+		direction = self.get_stabilized_bearing()
+		if direction > 0:
+			# Update stabilized bearing
+			self.stabilized_bearing = direction
 		if self.new_data:
+			# Update incoming data
 			self.process_new_data()
-		if steps_taken > 0:
-			direction = self.get_stabilized_bearing()
+		if steps_taken > 0 and direction > 0:
+			# Update x, y
 			print("%d steps taken in %.2f" % (steps_taken, direction))
-			theta = (direction - self.north) % 360
+			# Update x, y
+			theta = (90 - self.north - direction)
+			if theta >= 180:
+				theta = theta - 360
+			elif theta <= -180:
+				theta = 360 + theta
+			else:
+				print("Error calculating theta!")
 			hypo  = Localization.STRIDE_LENGTH * steps_taken
 			self.x = self.x + math.floor(hypo * math.cos(math.pi * theta / 180))
 			self.y = self.y + math.floor(hypo * math.sin(math.pi * theta / 180))
 			print("New position: (%d, %d) Bearing: %.2f" %(int(self.x), int(self.y), direction))
 		if self.is_plot:
+			# Update plot
 			if (time.time() - self.start) > 1/self.FPS:
 				start = time.time()
 				self.plot(self.linex, self.rotate_x)
