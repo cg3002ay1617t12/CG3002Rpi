@@ -128,7 +128,7 @@ def timeout_handler():
 		print("triggered! %s" % app.serial_pid)
 	except Exception as e:
 		pass # Process may have terminated already
-	connect_picomms()
+	connect_picomms(platform=app.platform_)
 
 def transition_handler(signum, frame, *args, **kwargs):
 	""" Asynchronous event handler to trigger state transitions"""
@@ -148,23 +148,22 @@ def serial_handler(signum, frame, *args, **kwargs):
 	global app
 	def process_rpi(datum):
 		""" Run this if using the pi_comms protocol"""
-		print(datum)
 		(component_id, readings) = datum.split('~')
 		component_id = int(component_id)
 		try:
 			if component_id == 1:
-				(a_x, a_y, a_z) = map(lambda x: x.strip('\r\n'), readings.split(','))
+				(a_x, a_y, a_z) = map(lambda x: x.strip('\0\r\n\t'), readings.split(','))
 				app.StepDetector.ax.append(float(a_x))
 				app.StepDetector.ay.append(float(a_y))
 				app.StepDetector.az.append(float(a_z))
 			if component_id == 2:
-				heading = readings.strip('\r\n')
+				heading = readings.strip('\r\n').strip('\0\n\r\t')
 				app.Localization.heading.append(float(heading))
 			if component_id == 3:
-				(g_x, g_y, g_z) = map(lambda x: x.strip('\r\n'), readings.split(','))
+				(g_x, g_y, g_z) = map(lambda x: x.strip(' \0\r\n\t'), readings.split(','))
 				app.Localization.rotate_x.append(float(g_x))
-				app.Localization.rotate_x.append(float(g_y))
-				app.Localization.rotate_x.append(float(g_z))
+				app.Localization.rotate_y.append(float(g_y))
+				app.Localization.rotate_z.append(float(g_z))
 		except ValueError as e:
 			print e
 	
@@ -195,7 +194,8 @@ def serial_handler(signum, frame, *args, **kwargs):
 	if app.platform_ == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
 		map(process_rpi, buffer_)
 	else:
-		map(process_laptop, buffer_)
+		map(process_rpi, buffer_)
+		# map(process_laptop, buffer_)
 	app.StepDetector.new_data = True
 	app.Localization.new_data = True
 
@@ -213,11 +213,13 @@ def connect_keypad(platform=None):
 	return process
 
 def connect_picomms(platform=None):
-	print("Connecting with PiComms...")
+	print("Connecting with Arduino...")
 	if platform == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
 		cmd     = "python pi_comms.py"
+		# cmd     = "python serial_input.py"
 	elif platform == "Darwin-15.2.0-x86_64-i386-64bit" or platform == "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty":
-		cmd     = "python serial_input.py"
+		# cmd     = "python serial_input.py"
+		cmd     = "python pi_comms.py"
 	else:
 		cmd     = "python serial_input.py"
 	args    = shlex.split(cmd)

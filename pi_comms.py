@@ -1,4 +1,4 @@
-import serial, struct, time, heapq, binascii, os, signal, sys
+import serial, struct, time, heapq, binascii, os, signal, sys, platform, json
 
 class PriorityQueue:
 	def __init__(self):
@@ -16,26 +16,36 @@ class PiComms(object):
 
 	DATA_PIPE          = './data_pipe'
 	BAUD               = 115200
-	SERIAL             = '/dev/ttyAMA0'
+	SERIAL_ADDRESS_MAC = '/dev/cu.usbmodem1411'
+	SERIAL_ADDRESS_RPI = '/dev/ttyAMA0'
 	SAMPLES_PER_PACKET = 25
-	CRC_POLY		   = "100000111"
+	CRC_POLY           = "100000111"
 
 	def __init__(self):
-		self.pq              = PriorityQueue()
-		self.curr_mode       = 0
-		self.packet_type     = 0 #ACK or HELLO or DATA 
-		self.component_id    = 0
-		self.ser             = serial.Serial(port =PiComms.SERIAL, baudrate = PiComms.BAUD, timeout = 3)
-		self.data            = "" #Stores the payload for DATA packet 
-		self.data_index      = -1 
-		self.payload_length  = 0 
-		self.incoming_byte   = 0 
-		self.crc_data        = 0 
-		self.crc_index       = 2 
-		self.read_status     = False
-		self.payload_final   = 0 
-		self.crc_final       = 0 
-		self._buffer         = []
+		self.platform_               = platform.platform()
+		self.ENV                     = json.loads(open(os.path.join(os.path.dirname(__file__), 'env.json')).read())
+		self.pq                      = PriorityQueue()
+		self.curr_mode               = 0
+		self.packet_type             = 0 #ACK or HELLO or DATA 
+		self.component_id            = 0
+		if self.platform_            == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
+			self.ser                     = serial.Serial(port =PiComms.SERIAL_ADDRESS_RPI, baudrate = PiComms.BAUD, timeout = 3)
+		else:
+			self.ser                     = serial.Serial(port =PiComms.SERIAL_ADDRESS_MAC, baudrate = PiComms.BAUD, timeout = 3)
+		self.data                    = "" #Stores the payload for DATA packet 
+		self.data_index              = -1 
+		self.payload_length          = 0 
+		self.incoming_byte           = 0 
+		self.crc_data                = 0 
+		self.crc_index               = 2 
+		self.read_status             = False
+		self.payload_final           = 0 
+		self.crc_final               = 0 
+		self._buffer = {
+			1: [],
+			2: [],
+			3: []
+		}
 
 		if not os.path.exists(PiComms.DATA_PIPE):
 			os.mkfifo(PiComms.DATA_PIPE)
@@ -65,24 +75,32 @@ class PiComms(object):
 		data_string = ''.join(to_send)
 		return data_string
 		
-	def read(self): 
-		if self.ser.inWaiting()>0:
-			self.read_status = True
-			try:
-				self.incoming_byte = self.ser.read()
-			except serial.SerialException as e:
-				print e
-				print("Reopening serial port...")
-				while True:
-					try:
-						self.ser = serial.Serial(port =PiComms.SERIAL, baudrate = PiComms.BAUD, timeout = 10)
-						break
-					except Exception as e:
-						time.sleep(5)
-						pass
-			except Exception as e:
-				print("Terminated serial connection")
-				sys.exit(1)
+	def read(self):
+		# if self.ser.inWaiting()>0:
+		self.read_status = True
+		try:
+			self.incoming_byte = self.ser.read()
+			# print(ord(self.incoming_byte))
+		except serial.SerialException as e:
+			print e
+			print("Reopening serial port...")
+			while True:
+				try:
+					if self.platform_ == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
+						self.ser.close()
+						self.ser = serial.Serial(port =PiComms.SERIAL_ADDRESS_RPI, baudrate = PiComms.BAUD, timeout = 3)
+					else:
+						self.ser.close()
+						self.ser = serial.Serial(port =PiComms.SERIAL_ADDRESS_MAC, baudrate = PiComms.BAUD, timeout = 3)
+					break
+				except Exception as e:
+					time.sleep(5)
+					pass
+		except Exception as e:
+			print("Terminated serial connection")
+			sys.exit(1)
+		try:
+			# print("MODE: %d" % self.curr_mode)
 			if self.curr_mode == 0: 
 				self.incoming_byte = ord(self.incoming_byte)
 				if self.incoming_byte == 60:
@@ -111,6 +129,7 @@ class PiComms(object):
 				self.incoming_byte = ord(self.incoming_byte)
 				self.component_id = self.incoming_byte
 				# print("receiving component_id")
+				# print(self.component_id)
 				if self.incoming_byte >0 and self.incoming_byte <42: 
 					self.curr_mode = 3 
 				else:
@@ -121,6 +140,7 @@ class PiComms(object):
 				self.incoming_byte = ord(self.incoming_byte)
 				self.payload_length = self.incoming_byte
 				# print("receiving payload length")
+				# print(self.payload_length)
 				if self.incoming_byte >-1 and self.incoming_byte <58: 
 					self.curr_mode = 5 
 					self.data_index = self.payload_length
@@ -166,14 +186,12 @@ class PiComms(object):
 					# print("Successfully")
 					self.curr_mode = 0
 					if self.packet_type ==6: 
-						self._buffer.append(str(self.component_id) + '~' + str(self.split_data(self.payload_final)) + "\r\n")
+						self.distribute_data()
 					# Format of string : component_id~data
-					if len(self._buffer) % PiComms.SAMPLES_PER_PACKET == 0:
-						self.forward_data()
 					# print ("String sent to buffer:") 
 					# print(self.component_id)
 					# print("~")
-					print(str(self.split_data(self.payload_final)))
+					# print(str(self.payload_final)),
 					if self.packet_type ==1 or self.packet_type ==6:
 						self.handling_packets()
 					self.read_status = False
@@ -182,12 +200,19 @@ class PiComms(object):
 				print("Handling Corrupt Packet")
 				self.curr_mode = 0
 				self.read_status = False
+		except Exception as e:
+			print e
+
+	def distribute_data(self):
+		self._buffer[self.component_id].append(str(self.component_id) + '~' + str(self.clean_data(self.payload_final)) + '\r\n')
+		self.forward_data()
 
 	def forward_data(self):
-		datastream = ''.join(self._buffer)
-		os.write(self.pipe_out, datastream)
-		os.kill(int(self.pid), signal.SIGUSR1) # Raise SIGUSR1 signal
-		self._buffer = []
+		if len(self._buffer[self.component_id]) > 0 and len(self._buffer[self.component_id]) % PiComms.SAMPLES_PER_PACKET == 0:
+			datastream = ''.join(self._buffer[self.component_id])
+			os.write(self.pipe_out, datastream)
+			os.kill(int(self.pid), signal.SIGUSR1) # Raise SIGUSR1 signal
+			self._buffer[self.component_id] = []
 
 	def handling_packets(self): 
 		if self.packet_type == 1: #(HELLO RECEIVED) send hello back
@@ -200,15 +225,9 @@ class PiComms(object):
 			self.ser.write("<3>")
 			self.ser.flush()
 
-	def split_data(self, data): 
-		data = "" 
-		values = data.split(',')
-		for value in values: 
-			value = value.strip() 
-			data = data + value 
-			data = data + ','
-		data = data[:-1]
-		return data
+	def clean_data(self, data): 
+		values = data.strip('\0').strip('\r\n').strip() # Remove the insidious NULL character that dstrtof inserts sneakily
+		return values
 
 	def tx_crc(self):
 		to_be_divided = []
@@ -295,7 +314,7 @@ class PiComms(object):
 
 	@classmethod
 	def signal_handler(cls, signum, frame):
-		print("Terminated connection to main")
+		print("PiComms terminated connection to main")
 		sys.exit(1)
 
 def main():

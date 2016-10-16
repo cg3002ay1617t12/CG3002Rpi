@@ -25,7 +25,7 @@ data     = []
 os.write(pipe_out, '\r\n')
 
 def signal_handler(signum, frame):
-	print("Terminated old connection")
+	print("Serial input terminated old connection")
 	sys.exit(1)
 
 signal.signal(signal.SIGUSR1, signal_handler)
