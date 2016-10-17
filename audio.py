@@ -1,7 +1,8 @@
-import os
+import os, subprocess, shlex
 
 def tts(instruction, placeholders=(), verbose=True):
 	if verbose:
 		print("[INSTRUCTION] : "),
 		print(instruction % placeholders)
-	os.system('flite -t ' + ("\"" + instruction % placeholders + "\""))
+	args = shlex.split('flite -t ' + ("\"" + instruction % placeholders + "\""))
+	process = subprocess.Popen(args)

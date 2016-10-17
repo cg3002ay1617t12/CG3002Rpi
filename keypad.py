@@ -173,7 +173,8 @@ def action_on_transit(val, action):
 		# os.kill(int(pid), signal.SIGUSR2)
 		print(send)
 	elif action is Action.PLAY_MUSIC:
-		os.system("omxplayer --vol -4000 good_life_remix.mp3")
+		args = shlex.split("omxplayer --vol -4000 good_life_remix.mp3")
+		process = subprocess.Popen(args)
 		print(send)
 	elif action is Action.QUIT:
 		# os.write(pipe_out, "q" + "\r\n")
