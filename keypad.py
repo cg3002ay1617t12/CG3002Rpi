@@ -1,7 +1,7 @@
 from enum import Enum
 from audio import tts
 import RPi.GPIO as GPIO
-import time, RPIO, os, signal
+import time, os, signal
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -68,6 +68,8 @@ class Action(Enum):
 	CONFIRM_END   = 4
 	NULL          = 5
 	QUIT          = 6
+	INCR          = 7
+	DECR          = 8
 
 State.transitions = {
 	State.START : {
