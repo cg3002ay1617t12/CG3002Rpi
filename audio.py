@@ -14,6 +14,7 @@ def run():
 	while True:
 		if len(INSTR_QUEUE) > 0:
 			process = subprocess.Popen(INSTR_QUEUE.popleft())
+			print("Process opened")
 			process.wait()
 
 if __name__ == "__main__":
