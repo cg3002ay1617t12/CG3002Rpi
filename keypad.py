@@ -97,11 +97,11 @@ State.transitions = {
 }
 
 PROMPTS = {
-	Transitions.KEY_HASH : "to re-enter, press hash",
-	Transitions.KEY_STAR : "to confirm, press star",
-	Transitions.KEY_INCR : "",
-	Transitions.KEY_DECR : "",
-	Transitions.KEY_DIGIT : "please enter a digit",
+	Transitions.KEY_DIGIT : "Please enter a digit",
+	Transitions.KEY_HASH  : "To re-enter, press hash",
+	Transitions.KEY_STAR  : "To confirm, press star",
+	Transitions.KEY_INCR  : "Press 2 to increment step",
+	Transitions.KEY_DECR  : "Press 8 to decrement step",
 }
 
 AFFIRMS = {
@@ -124,9 +124,6 @@ PID                = ENV["PID_FILE"]
 # fpid     = open(PID, 'r')
 # pid      = fpid.read()
 
-node = ''
-start = ''
-end = ''
 state = State.START
 send = ''
 # MATRIX = [
@@ -151,15 +148,25 @@ def action_on_transit(val, action):
 		send += str(val)
 	elif action is Action.CLEAR:
 		tts(AFFIRMS[action])
-		send = ''
+		clear_send()
 	elif action is Action.CONFIRM_START:
 		tts(AFFIRMS[action], (send,))
+		clear_send()
 		# os.write(pipe_out, send + "\r\n")
 		# os.kill(int(pid), signal.SIGUSR2)
 		print(send)
 	elif action is Action.CONFIRM_END:
 		tts(AFFIRMS[action], (send,))
+		clear_send()
 		# os.write(pipe_out, send + "\r\n")
+		# os.kill(int(pid), signal.SIGUSR2)
+		print(send)
+	elif action is Action.INCR:
+		# os.write(pipe_out, "++\r\n" + "\r\n")
+		# os.kill(int(pid), signal.SIGUSR2)
+		print(send)
+	elif action is Action.DECR:
+		# os.write(pipe_out, "--\r\n" + "\r\n")
 		# os.kill(int(pid), signal.SIGUSR2)
 		print(send)
 	elif action is Action.QUIT:
@@ -170,6 +177,10 @@ def action_on_transit(val, action):
 		pass
 	else:
 		raise Exception("Unrecognized action!")
+
+def clear_send():
+	global send
+	send = ''
 
 def handler(key):
 	# Construct key object

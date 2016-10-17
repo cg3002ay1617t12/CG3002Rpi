@@ -7,9 +7,11 @@ class Transitions(Enum):
 	KEY_RESET        = 1
 	KEY_WHERE_AM_I   = 2
 	KEY_RESTART      = 3
-	SW_REACHED_NODE  = 4
-	SW_READY         = 5
-	KEY_SHUTDOWN     = 6
+	KEY_INCR         = 4
+	KEY_DECR         = 5
+	SW_REACHED_NODE  = 6
+	SW_READY         = 7
+	KEY_SHUTDOWN     = 8
 
 	@classmethod
 	def reverse_mapping(cls, value):
@@ -34,6 +36,10 @@ class Transitions(Enum):
 			return (Transitions.KEY_SHUTDOWN, string)
 		elif string == '*':
 			return (Transitions.KEY_RESTART, string)
+		elif string == '++':
+			return (Transitions.KEY_INCR, string)
+		elif string == '--':
+			return (Transitions.KEY_DECR, string)
 		elif string == 'CHECKPOINT_REACHED':
 			return (Transitions.SW_REACHED_NODE, string)
 		elif string == 'SW_READY':
@@ -64,23 +70,31 @@ State.transitions = {
 	State.ACCEPT_START: {
 		Transitions.KEY_SHUTDOWN : State.END,
 		Transitions.KEY_NODE : State.ACCEPT_END,
-		Transitions.KEY_RESET : State.RESET
+		Transitions.KEY_RESET : State.RESET,
+		Transitions.KEY_INCR : State.ACCEPT_START,
+		Transitions.KEY_DECR : State.ACCEPT_START
 	},
 	State.ACCEPT_END : {
 		Transitions.KEY_NODE : State.NAVIGATING,
 		Transitions.KEY_SHUTDOWN : State.END,
-		Transitions.KEY_RESET : State.RESET
+		Transitions.KEY_RESET : State.RESET,
+		Transitions.KEY_INCR : State.ACCEPT_END,
+		Transitions.KEY_DECR : State.ACCEPT_END
 	},
 	State.NAVIGATING: {
 		Transitions.SW_REACHED_NODE : State.REACHED,
 		Transitions.KEY_RESTART : State.ACCEPT_START,
 		Transitions.KEY_RESET : State.RESET,
-		Transitions.KEY_SHUTDOWN : State.END
+		Transitions.KEY_SHUTDOWN : State.END,
+		Transitions.KEY_INCR : State.NAVIGATING,
+		Transitions.KEY_DECR : State.NAVIGATING
 	},
 	State.REACHED: {
 		Transitions.KEY_SHUTDOWN : State.END,
 		Transitions.KEY_RESTART : State.ACCEPT_START,
-		Transitions.KEY_RESET : State.RESET
+		Transitions.KEY_RESET : State.RESET,
+		Transitions.KEY_INCR : State.REACHED,
+		Transitions.KEY_DECR : State.REACHED
 	},
 	State.RESET: {
 		Transitions.KEY_SHUTDOWN : State.END,

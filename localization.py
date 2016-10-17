@@ -28,13 +28,13 @@ class Localization(object):
 		self.stabilized_bearing = -1 # Last updated stabilized bearing reading
 		self.x                  = x if x is not None else 0
 		self.y                  = y if y is not None else 0
-		print("Initial position: (%d, %d)" % (self.x, self.y))
 		self.north              = north
 		self.stride             = Localization.STRIDE_LENGTH
 		self.is_plot            = plot
 		self.FPS                = 30
 		self.start              = time.time()
 		self.new_data           = False
+		self.prev_step          = -1 # Bearing of last step taken
 		if self.is_plot:
 			self.init_plot()
 		# Variables for kalman filter
@@ -93,6 +93,32 @@ class Localization(object):
 		""" Deg must be negative"""
 		return (deg + 360) if deg < 0 else deg
 
+	def incr_step(self):
+		self.calculate_new_position(1, incr=True)
+
+	def decr_step(self):
+		self.calculate_new_position(1, incr=False)
+
+	def calculate_new_position(self, steps_taken, direction=None, incr=False):
+		if direction is None:
+			update_prev = False
+			direction = self.prev_step if incr else (self.prev_step + 180) % 360
+		else:
+			update_prev = True
+		theta = (90 - self.north - direction)
+		if theta >= 180:
+			theta = theta - 360
+		elif theta <= -180:
+			theta = 360 + theta
+		else:
+			print("Error calculating theta!")
+		hypo  = Localization.STRIDE_LENGTH * steps_taken
+		self.x = self.x + math.floor(hypo * math.cos(math.pi * theta / 180))
+		self.y = self.y + math.floor(hypo * math.sin(math.pi * theta / 180))
+		print("New position: (%d, %d) Bearing: %.2f" %(int(self.x), int(self.y), direction))
+		if update_prev:
+			self.prev_step = direction
+
 	def run(self, steps_taken):
 		direction = self.get_stabilized_bearing()
 		if direction > 0:
@@ -102,20 +128,9 @@ class Localization(object):
 			# Update incoming data
 			self.process_new_data()
 		if steps_taken > 0 and direction > 0:
-			# Update x, y
 			print("%d steps taken in %.2f" % (steps_taken, direction))
 			# Update x, y
-			theta = (90 - self.north - direction)
-			if theta >= 180:
-				theta = theta - 360
-			elif theta <= -180:
-				theta = 360 + theta
-			else:
-				print("Error calculating theta!")
-			hypo  = Localization.STRIDE_LENGTH * steps_taken
-			self.x = self.x + math.floor(hypo * math.cos(math.pi * theta / 180))
-			self.y = self.y + math.floor(hypo * math.sin(math.pi * theta / 180))
-			print("New position: (%d, %d) Bearing: %.2f" %(int(self.x), int(self.y), direction))
+			self.calculate_new_position(steps_taken, direction)
 		if self.is_plot:
 			# Update plot
 			if (time.time() - self.start) > 1/self.FPS:

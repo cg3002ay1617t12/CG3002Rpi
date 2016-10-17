@@ -22,6 +22,7 @@ class App(object):
 		self.curr_end_node   = -1
 		self.transit         = False
 		self.userinput       = ''
+		self.transition      = None
 		self.start           = time.time()
 		# Init submodules
 		if self.platform_ == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
@@ -82,6 +83,16 @@ class App(object):
 			if reading > 0:
 				return reading
 
+	def update_steps(self):
+		if self.transition is Transitions.KEY_INCR:
+			self.StepDetector.incr_step()
+			self.Localization.incr_step()
+		elif self.transition is Transitions.KEY_DECR:
+			self.StepDetector.decr_step()
+			self.StepDetector.decr_step()
+		else:
+			pass
+
 	def run_once_on_transition(self, userinput):
 		""" Run once upon transition to new state"""
 		if self.state is State.END:
@@ -96,16 +107,19 @@ class App(object):
 			(x, y)  = self.PathFinder.coordinates_from_node(self.curr_start_node)
 			bearing = self.Localization.stabilized_bearing
 			self.PathFinder.update_coordinate(x, y, bearing)
+			self.update_steps(userinput)
 			pass
 		elif self.state is State.NAVIGATING:
 			tts("Entering navigation state")
 			self.curr_end_node = int(userinput)
 			self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
 			print(self.PathFinder.x_coordinate, self.PathFinder.y_coordinate, self.PathFinder.angle)
+			self.update_steps(userinput)
 			pass
 		elif self.state is State.REACHED:
 			tts("You have arrived!")
 			tts(self.PathFinder.get_audio_reached(self.curr_end_node))
+			self.update_steps(userinput)
 			pass
 		elif self.state is State.RESET:
 			tts("Resetting step counter and localization module")
@@ -196,9 +210,10 @@ def transition_handler(signum, frame, *args, **kwargs):
 	(transition, userinput) = Transitions.recognize_input(event)
 	print transition
 	try:
-		app.state     = State.transitions[app.state][transition]
-		app.transit   = True
-		app.userinput = userinput
+		app.state      = State.transitions[app.state][transition]
+		app.transit    = True
+		app.userinput  = userinput
+		app.transition = transition
 		print(app.state)
 	except KeyError as e:
 		pass

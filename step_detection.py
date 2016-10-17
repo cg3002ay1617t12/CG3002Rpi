@@ -46,7 +46,7 @@ class StepDetector(object):
 		self.is_plot         = plot
 		self.new_data        = False # flag to synchronize between interrupts and data processing
 		self.start           = time.time()
-		self.prev            = 0
+		self.prev            = (-1, -1, -1) # (x, y, bearing) of last step taken
 		# if data_pipe is None: self.setup_comm()
 		if self.is_plot:
 			self.init_plot()
@@ -111,13 +111,16 @@ class StepDetector(object):
 		plt.show()
 
 	def decr_step(self):
-		self.step += 1
+		""" Need to work backwards to update new x,y coordinates"""
+		self.total_steps -= 1
 
 	def reset_step(self):
-		self.step = 0
+		self.total_steps = 0
+		self.curr_steps  = 0
 
 	def incr_step(self):
-		self.step += 1
+		""" Need to take another step forward in the last recorded bearing"""
+		self.total_steps += 1
 
 	def setup_comm(self):
 		pid = os.getpid()
