@@ -200,7 +200,7 @@ def main():
 					while (GPIO.input(i) == 0):
 						pass
 					time.sleep(0.1)
-					Key = KEY((i, j))
+					key = KEY((i, j))
 					handler(key)
 				GPIO.output(j, 1)
 	except KeyboardInterrupt as e:
