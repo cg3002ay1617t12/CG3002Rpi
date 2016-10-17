@@ -5,4 +5,4 @@ def tts(instruction, placeholders=(), verbose=True):
 		print("[INSTRUCTION] : "),
 		print(instruction % placeholders)
 	print instruction
-	os.system('flite -t ' + ("\"" + instruction + "\"" % placeholders))
+	os.system('flite -t ' + ("\"" + instruction % placeholders + "\""))
