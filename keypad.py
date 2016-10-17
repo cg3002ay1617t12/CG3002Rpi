@@ -221,8 +221,8 @@ def setup():
 def run():
 	pass
 
-def start_audio_queue(q):
-	return AudioQueue(q)
+def start_audio_queue():
+	return AudioQueue()
 
 def main():
 	MATRIX = {
