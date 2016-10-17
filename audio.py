@@ -3,6 +3,7 @@ from collections import deque
 
 INSTR_QUEUE = deque(maxlen=10)
 def tts(instruction, placeholders=(), verbose=True):
+	global INSTR_QUEUE
 	""" Queue instruction, do not execute yet"""
 	if verbose:
 		print("[INSTRUCTION] : "),
@@ -11,6 +12,7 @@ def tts(instruction, placeholders=(), verbose=True):
 	INSTR_QUEUE.append(args)
 
 def run():
+	global INSTR_QUEUE
 	while True:
 		if len(INSTR_QUEUE) > 0:
 			process = subprocess.Popen(INSTR_QUEUE.popleft())
