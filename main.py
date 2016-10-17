@@ -114,19 +114,19 @@ class App(object):
 			(x, y)  = self.PathFinder.coordinates_from_node(self.curr_start_node)
 			bearing = self.Localization.stabilized_bearing
 			self.PathFinder.update_coordinate(x, y, bearing)
-			self.update_steps(userinput)
+			self.update_steps()
 			pass
 		elif self.state is State.NAVIGATING:
 			self.aq.tts("Entering navigation state")
 			self.curr_end_node = int(userinput)
 			self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
 			print(self.PathFinder.x_coordinate, self.PathFinder.y_coordinate, self.PathFinder.angle)
-			self.update_steps(userinput)
+			self.update_steps()
 			pass
 		elif self.state is State.REACHED:
 			self.aq.tts("You have arrived!")
 			self.aq.tts(self.PathFinder.get_audio_reached(self.curr_end_node))
-			self.update_steps(userinput)
+			self.update_steps()
 			pass
 		elif self.state is State.RESET:
 			self.aq.tts("Resetting step counter and localization module")
@@ -283,9 +283,9 @@ def serial_handler(signum, frame, *args, **kwargs):
 
 def connect_keypad(platform=None):
 	print("Connecting with Keypad...")
-	if platform == "Linux-4.4.13-v7+-armv7l-with-debian-8.0": # Raspberry Pi
+	if platform in ["Linux-4.4.13-v7+-armv7l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"] : # Raspberry Pi
 		cmd     = "python keypad.py"
-	elif platform == "Darwin-15.2.0-x86_64-i386-64bit" or platform == "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty":
+	elif platform in ["Darwin-15.2.0-x86_64-i386-64bit", "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty"]:
 		cmd     = "python keyboard_sim.py" # Mac, Windows, Ubuntu with connected keyboard
 	else:
 		cmd     = "python keyboard_sim.py" # Mac, Windows, Ubuntu with connected keyboard
@@ -296,7 +296,7 @@ def connect_keypad(platform=None):
 
 def connect_picomms(platform=None):
 	print("Connecting with Arduino...")
-	if platform == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
+	if platform in ["Linux-4.4.13-v7+-armv7l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"] :
 		cmd     = "python pi_comms.py"
 		# cmd     = "python serial_input.py"
 	elif platform == "Darwin-15.2.0-x86_64-i386-64bit" or platform == "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty":
