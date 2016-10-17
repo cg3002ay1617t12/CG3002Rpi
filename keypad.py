@@ -1,7 +1,7 @@
 from enum import Enum
 from audio import tts
 import RPi.GPIO as GPIO
-import time, os, signal, json
+import time, os, signal, json, shlex, threading
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -129,7 +129,7 @@ PID                = ENV["PID_FILE"]
 # pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
 # fpid     = open(PID, 'r')
 # pid      = fpid.read()
-
+lock  = threading.lock()
 state = State.START
 send = ''
 # MATRIX = [
@@ -173,7 +173,7 @@ def action_on_transit(val, action):
 		# os.kill(int(pid), signal.SIGUSR2)
 		print(send)
 	elif action is Action.PLAY_MUSIC:
-		args = shlex.split("omxplayer --vol -4000 good_life_remix.mp3")
+		args = shlex.split("omxplayer --vol -2000 good_life_remix.mp3")
 		process = subprocess.Popen(args)
 		print(send)
 	elif action is Action.QUIT:
@@ -199,8 +199,11 @@ def handler(key):
 	global state
 	for transition in key.types:
 		try:
+			# Ensure that only one interrupt is processed at a time
+			lock.acquire()
 			(state, action) = State.transitions[state][transition]
 			action_on_transit(key.value, action)
+			lock.release()
 		except KeyError as e:
 			pass
 

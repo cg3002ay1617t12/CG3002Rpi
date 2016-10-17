@@ -4,8 +4,8 @@ CG3002 Raspberry Pi code
 1. pip install -U pip
 2. pip install virtualenv
 3. pip install virtualenvwrapper
-4. export WORKON_HOME=~/Envs
-5. source /usr/local/bin/virtualenvwrapper.sh
+4. Add this line to your .bash_profile: export WORKON_HOME=~/.virtualenvs
+5. Add this line to your .bash_profile: source /usr/local/bin/virtualenvwrapper.sh
 6. Create virtualenv: mkvirtualenv reborn
 7. Install dependencies: pip install -r requirements.txt
 8. To enter virtualenv: workon name-of-virtualenv
@@ -15,7 +15,7 @@ CG3002 Raspberry Pi code
 Reference: http://matplotlib.org/faq/virtualenv_faq.html
 
 1.  Copy the following to a file called fpython in the site-packages directory of your virtualenv
-(Normally its /Users/YOU/.virtualenvs/name-of-virtualenv/lib/python2.7/site-packages/)
+(Normally its /Users/YOU/.virtualenvs/name-of-virtualenv/lib/python2.7/site-packages/bin)
 
 ```bash
 #!/bin/bash

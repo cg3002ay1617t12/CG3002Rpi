@@ -24,6 +24,7 @@ class App(object):
 		self.userinput       = ''
 		self.transition      = None
 		self.start           = time.time()
+		self.processes       = []
 		# Init submodules
 		if self.platform_ == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
 			plot = False
@@ -47,6 +48,9 @@ class App(object):
 			# print(self.env)
 		except Exception as e:
 			print("Environment file not found, using defaults instead")
+
+		# Init sub processes
+		self.processes.append(start_audio_queue())
 		
 	def setup_pipes(self):
 		# Setting up IPC
@@ -191,6 +195,8 @@ class App(object):
 		# Clean up system resources, close files and pipes, delete temp files
 		os.kill(int(self.serial_pid), signal.SIGTERM)
 		os.kill(int(self.keypad_pid), signal.SIGTERM)
+		for p in self.processes:
+			p.terminate()
 		sys.exit(0)
 
 app = App()
@@ -300,6 +306,14 @@ def connect_picomms(platform=None):
 	args    = shlex.split(cmd)
 	process = subprocess.Popen(args)
 	print("Connection established!")
+	return process
+
+def start_audio_queue(platform=None):
+	print("Starting audio queue...")
+	cmd = "python audio.py"
+	args = shlex.split(cmd)
+	process = subprocess.Popen(args)
+	print("Audio started!")
 	return process
 
 def main():
