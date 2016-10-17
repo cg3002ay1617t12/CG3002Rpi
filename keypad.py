@@ -52,14 +52,6 @@ class KEY(object):
 			self.types.append(Transitions.KEY_STAR)
 		if self.value == '#':
 			self.types.append(Transitions.KEY_HASH)
-# MATRIX = [
-# 	[1,2,3],    (25,22), (25,17), (25,4)
-# 	[4,5,6],    (24,22), (24,17), (24,4)
-# 	[7,8,9],    (23,22), (23,17), (23,4)
-# 	["*",0,"#"] (18,22), (18,17), (18,4)
-# 	]
-ROW = [18,23,24,25] # G, H, J, K
-COL = [4,17,22] # D, E, F
 
 class Action(Enum):
 	APPEND        = 1
@@ -137,8 +129,14 @@ start = ''
 end = ''
 state = State.START
 send = ''
-
-
+# MATRIX = [
+# 	[1,2,3],    (25,22), (25,17), (25,4)
+# 	[4,5,6],    (24,22), (24,17), (24,4)
+# 	[7,8,9],    (23,22), (23,17), (23,4)
+# 	["*",0,"#"] (18,22), (18,17), (18,4)
+# 	]
+ROW = [18,23,24,25] # G, H, J, K
+COL = [4,17,22] # D, E, F
 def action_on_transit(val, action):
 	""" Do something upon transition to next state ONCE"""
 	global send
@@ -193,6 +191,29 @@ def setup():
 		GPIO.setup(i, GPIO.IN, pull_up_down=GPIO.PUD_UP)
 
 def main():
+	MATRIX = {
+		18 : {
+			4 : False,
+			17 : False,
+			22 : False
+		},
+		23 : {
+			4 : False,
+			17: False,
+			22: False
+		},
+		24 : {
+			4 : False,
+			17: False,
+			22: False
+		},
+		25 : {
+			4 : False,
+			17: False,
+			22: False
+		}
+	}
+	key_down = False
 	setup()
 	try:
 		while(True):
@@ -200,10 +221,16 @@ def main():
 				GPIO.output(j, 0)
 				for i in ROW:
 					if (GPIO.input(i) == 0):
-						time.sleep(0.1)
-						key = KEY((i, j))
-						handler(key)
+						if not MATRIX[i][j]:
+							key_down = True
+							time.sleep(0.1)
+							key = KEY((i, j))
+							handler(key)
+						else:
+							# Key is already pressed
+							pass
 					else:
+						MATRIX[i][j] = False
 						pass
 				GPIO.output(j, 1)
 	except KeyboardInterrupt as e:
