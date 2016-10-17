@@ -49,6 +49,8 @@ class KEY(object):
 			self.types.append(Transitions.KEY_DECR)
 		if self.value == 2:
 			self.types.append(Transitions.KEY_INCR)
+		if self.value == 5:
+			self.types.append(Transitions.KEY_MUSIC)
 		if self.value == '*':
 			self.types.append(Transitions.KEY_STAR)
 		if self.value == '#':
@@ -88,7 +90,7 @@ State.transitions = {
 	},
 	State.END_2 : {
 		Transitions.KEY_HASH : (State.END, Action.CLEAR),
-		Transitions.KEY_HASH : (State.FFA, Action.CONFIRM_END)
+		Transitions.KEY_STAR : (State.FFA, Action.CONFIRM_END)
 	},
 	State.FFA : {
 		Transitions.KEY_INCR : (State.FFA, Action.INCR),
