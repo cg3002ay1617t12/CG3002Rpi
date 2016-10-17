@@ -49,9 +49,9 @@ class KEY(object):
 		if self.value == 2:
 			self.types.append(Transitions.KEY_INCR)
 		if self.value == '*':
-			self.types.append(Transitions.STAR)
+			self.types.append(Transitions.KEY_STAR)
 		if self.value == '#':
-			self.types.append(Transitions.HASH)
+			self.types.append(Transitions.KEY_HASH)
 # MATRIX = [
 # 	[1,2,3],    (25,22), (25,17), (25,4)
 # 	[4,5,6],    (24,22), (24,17), (24,4)
