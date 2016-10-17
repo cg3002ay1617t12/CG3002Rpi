@@ -7,6 +7,7 @@ from threading import Thread
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
+NUM_WORKERS = 1
 
 class State(Enum):
 	START   = 0
