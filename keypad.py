@@ -220,8 +220,7 @@ def run():
 	pass
 
 def start_audio_queue():
-	aq = AudioQueue()
-	return aq
+	return AudioQueue()
 
 def main():
 	MATRIX = {
