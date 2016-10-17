@@ -1,6 +1,5 @@
 from enum import Enum
 from audio import AudioQueue
-from Queue import Queue
 import RPi.GPIO as GPIO
 import time, os, signal, json, shlex, subprocess, threading
 from threading import Thread
@@ -223,7 +222,12 @@ def run():
 	pass
 
 def start_audio_queue():
-	return AudioQueue()
+	aq = AudioQueue()
+	for i in range(NUM_WORKERS):
+		t = Thread(target=aq.run)
+		t.daemon = True
+		t.start()
+	return aq
 
 def main():
 	MATRIX = {
@@ -250,11 +254,6 @@ def main():
 	}
 	setup()
 	aq = start_audio_queue()
-	for i in range(NUM_WORKERS):
-		t = Thread(target=aq.run)
-		t.daemon = True
-		t.start()
-
 	try:
 		while(True):
 			for j in COL:

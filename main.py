@@ -4,7 +4,8 @@ from step_detection import StepDetector
 import os, signal, sys, subprocess, shlex, time, json, threading, platform
 from fsm import *
 from localization import *
-from audio import tts
+from audio import AudioQueue
+from threading import Thread
 
 class App(object):
 	EVENT_PIPE = './event_pipe'
@@ -24,7 +25,6 @@ class App(object):
 		self.userinput       = ''
 		self.transition      = None
 		self.start           = time.time()
-		self.processes       = []
 		# Init submodules
 		if self.platform_ == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
 			plot = False
@@ -33,6 +33,12 @@ class App(object):
 		self.PathFinder   = PathFinder()
 		self.StepDetector = StepDetector(plot=plot)
 		self.Localization = Localization(x=0, y=0, north=self.PathFinder.angle_of_north, plot=plot)
+		self.aq           = AudioQueue()
+		# Start audio queue workers
+		for i in range(1):
+			t = Thread(target=self.aq.run)
+			t.daemon = True
+			t.start()
 		# self.LPF = LocalPathFinder(mode='demo')
 
 		# Init environment and user-defined variables
@@ -48,9 +54,6 @@ class App(object):
 			# print(self.env)
 		except Exception as e:
 			print("Environment file not found, using defaults instead")
-
-		# Init sub processes
-		self.processes.append(start_audio_queue())
 		
 	def setup_pipes(self):
 		# Setting up IPC
@@ -77,7 +80,7 @@ class App(object):
 
 	def issue_instruction(self, instr, placeholders=()):
 		if (time.time() - self.start) > App.INSTRUCTION_INTERVAL:
-			tts(instr, placeholders)
+			self.aq.tts(instr, placeholders)
 			self.start = time.time()
 
 	def wait_for_stable_heading(self):
@@ -100,13 +103,13 @@ class App(object):
 	def run_once_on_transition(self, userinput):
 		""" Run once upon transition to new state"""
 		if self.state is State.END:
-			tts("Shutting down now")
+			self.aq.tts("Shutting down now")
 			pass
 		elif self.state is State.ACCEPT_START:
-			tts("Please enter start node")
+			self.aq.tts("Please enter start node")
 			pass
 		elif self.state is State.ACCEPT_END:
-			tts("Please enter end destination")
+			self.aq.tts("Please enter end destination")
 			self.curr_start_node = int(userinput)
 			(x, y)  = self.PathFinder.coordinates_from_node(self.curr_start_node)
 			bearing = self.Localization.stabilized_bearing
@@ -114,19 +117,19 @@ class App(object):
 			self.update_steps(userinput)
 			pass
 		elif self.state is State.NAVIGATING:
-			tts("Entering navigation state")
+			self.aq.tts("Entering navigation state")
 			self.curr_end_node = int(userinput)
 			self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
 			print(self.PathFinder.x_coordinate, self.PathFinder.y_coordinate, self.PathFinder.angle)
 			self.update_steps(userinput)
 			pass
 		elif self.state is State.REACHED:
-			tts("You have arrived!")
-			tts(self.PathFinder.get_audio_reached(self.curr_end_node))
+			self.aq.tts("You have arrived!")
+			self.aq.tts(self.PathFinder.get_audio_reached(self.curr_end_node))
 			self.update_steps(userinput)
 			pass
 		elif self.state is State.RESET:
-			tts("Resetting step counter and localization module")
+			self.aq.tts("Resetting step counter and localization module")
 			self.StepDetector.reset_step()
 			self.Localization.reset()
 			pass
@@ -195,8 +198,6 @@ class App(object):
 		# Clean up system resources, close files and pipes, delete temp files
 		os.kill(int(self.serial_pid), signal.SIGTERM)
 		os.kill(int(self.keypad_pid), signal.SIGTERM)
-		for p in self.processes:
-			p.terminate()
 		sys.exit(0)
 
 app = App()
@@ -283,7 +284,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 def connect_keypad(platform=None):
 	print("Connecting with Keypad...")
 	if platform == "Linux-4.4.13-v7+-armv7l-with-debian-8.0": # Raspberry Pi
-		cmd     = "python keypadupdated.py"
+		cmd     = "python keypad.py"
 	elif platform == "Darwin-15.2.0-x86_64-i386-64bit" or platform == "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty":
 		cmd     = "python keyboard_sim.py" # Mac, Windows, Ubuntu with connected keyboard
 	else:
@@ -306,14 +307,6 @@ def connect_picomms(platform=None):
 	args    = shlex.split(cmd)
 	process = subprocess.Popen(args)
 	print("Connection established!")
-	return process
-
-def start_audio_queue(platform=None):
-	print("Starting audio queue...")
-	cmd = "python audio.py"
-	args = shlex.split(cmd)
-	process = subprocess.Popen(args)
-	print("Audio started!")
 	return process
 
 def main():

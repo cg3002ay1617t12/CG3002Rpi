@@ -1,5 +1,4 @@
 import os, subprocess, shlex
-from collections import deque
 from Queue import Queue
 
 class AudioQueue(object):
@@ -16,16 +15,11 @@ class AudioQueue(object):
 			print(instruction % placeholders)
 		args = shlex.split('flite -t ' + ("\"" + instruction % placeholders + "\""))
 		self.q.put(args)
-		print("tts : "),
-		print(self.q.qsize())
 
 	def run(self):
 		""" Target function for threaded worker"""
 		while True:
-			print("run : "),
-			print(self.q.qsize())
 			process = subprocess.Popen(self.q.get())
-			print("Process opened")
 			process.wait()
 			self.q.task_done()
 
