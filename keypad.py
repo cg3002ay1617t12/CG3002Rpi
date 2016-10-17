@@ -21,6 +21,7 @@ class Transitions(Enum):
 	KEY_STAR  = 2
 	KEY_INCR  = 3
 	KEY_DECR  = 4
+	KEY_MUSIC = 5
 
 class KEY(object):
 	"""Contains GPIO -> value mapping"""
@@ -34,9 +35,9 @@ class KEY(object):
 		(23,22) : 7,
 		(23,17) : 8,
 		(23,4)  : 9,
-		(18,22) : '*',
+		(18,22) : '#',
 		(18,17) : 0,
-		(18,4)  : '#'
+		(18,4)  : '*'
 	}
 	def __init__(self, ports):
 		"""Takes a GPIO port_id and returns a KEY object with transition types and value"""
@@ -62,6 +63,7 @@ class Action(Enum):
 	QUIT          = 6
 	INCR          = 7
 	DECR          = 8
+	PLAY_MUSIC    = 9
 
 State.transitions = {
 	State.START : {
@@ -91,8 +93,9 @@ State.transitions = {
 	State.FFA : {
 		Transitions.KEY_INCR : (State.FFA, Action.INCR),
 		Transitions.KEY_DECR : (State.FFA, Action.DECR),
-		Transitions.KEY_STAR : (State.START, Action.NULL),
-		Transitions.KEY_STAR : (State.FFA, Action.QUIT)
+		Transitions.KEY_HASH : (State.START, Action.NULL),
+		Transitions.KEY_STAR : (State.FFA, Action.QUIT),
+		Transitions.KEY_MUSIC : (State.FFA, Action.PLAY_MUSIC)
 	}
 }
 
@@ -102,6 +105,7 @@ PROMPTS = {
 	Transitions.KEY_STAR  : "To confirm, press star",
 	Transitions.KEY_INCR  : "Press 2 to increment step",
 	Transitions.KEY_DECR  : "Press 8 to decrement step",
+	Transitions.KEY_MUSIC : "If you are bored of my voice, press 5 to play a song"
 }
 
 AFFIRMS = {
@@ -130,7 +134,7 @@ send = ''
 # 	[1,2,3],    (25,22), (25,17), (25,4)
 # 	[4,5,6],    (24,22), (24,17), (24,4)
 # 	[7,8,9],    (23,22), (23,17), (23,4)
-# 	["*",0,"#"] (18,22), (18,17), (18,4)
+# 	["#",0,"*"] (18,22), (18,17), (18,4)
 # 	]
 ROW = [18,23,24,25] # G, H, J, K
 COL = [4,17,22] # D, E, F
@@ -139,9 +143,6 @@ def action_on_transit(val, action):
 	global send
 	print("Action : "),
 	print(action)
-	# Issue prompts for all the transitions in current state
-	for transition in State.transitions[state]:
-		tts(PROMPTS[transition])
 	
 	if action is Action.APPEND:
 		tts(AFFIRMS[action], (val,))
@@ -169,6 +170,9 @@ def action_on_transit(val, action):
 		# os.write(pipe_out, "--\r\n" + "\r\n")
 		# os.kill(int(pid), signal.SIGUSR2)
 		print(send)
+	elif action is Action.PLAY_MUSIC:
+		os.system("omxplayer --vol -4000 good_life_remix.mp3")
+		print(send)
 	elif action is Action.QUIT:
 		# os.write(pipe_out, "q" + "\r\n")
 		# os.kill(int(pid), signal.SIGUSR2)
@@ -177,6 +181,10 @@ def action_on_transit(val, action):
 		pass
 	else:
 		raise Exception("Unrecognized action!")
+	
+	# Issue prompts for all the transitions in current state
+	for transition in State.transitions[state]:
+		tts(PROMPTS[transition])
 
 def clear_send():
 	global send
