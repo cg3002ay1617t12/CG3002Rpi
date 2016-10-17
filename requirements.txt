@@ -1,4 +1,7 @@
 matplotlib
-numpy
 pyserial
 requests==2.11.1
+numpy==1.10.4
+enum34
+talkey
+Rpi.GPIO
