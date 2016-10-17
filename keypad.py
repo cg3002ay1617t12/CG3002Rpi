@@ -1,5 +1,5 @@
 from enum import Enum
-from audio import tts
+from audio import AudioQueue
 import RPi.GPIO as GPIO
 import time, os, signal, json, shlex, threading, subprocess
 
@@ -140,26 +140,26 @@ send = ''
 # 	]
 ROW = [18,23,24,25] # G, H, J, K
 COL = [4,17,22] # D, E, F
-def action_on_transit(val, action):
+def action_on_transit(aq, val, action):
 	""" Do something upon transition to next state ONCE"""
 	global send
 	print("Action : "),
 	print(action)
 	
 	if action is Action.APPEND:
-		tts(AFFIRMS[action], (val,))
+		aq.tts(AFFIRMS[action], (val,))
 		send += str(val)
 	elif action is Action.CLEAR:
-		tts(AFFIRMS[action])
+		aq.tts(AFFIRMS[action])
 		clear_send()
 	elif action is Action.CONFIRM_START:
-		tts(AFFIRMS[action], (send,))
+		aq.tts(AFFIRMS[action], (send,))
 		clear_send()
 		# os.write(pipe_out, send + "\r\n")
 		# os.kill(int(pid), signal.SIGUSR2)
 		print(send)
 	elif action is Action.CONFIRM_END:
-		tts(AFFIRMS[action], (send,))
+		aq.tts(AFFIRMS[action], (send,))
 		clear_send()
 		# os.write(pipe_out, send + "\r\n")
 		# os.kill(int(pid), signal.SIGUSR2)
@@ -187,13 +187,13 @@ def action_on_transit(val, action):
 	
 	# Issue prompts for all the transitions in current state
 	for transition in State.transitions[state]:
-		tts(PROMPTS[transition])
+		aq.tts(PROMPTS[transition])
 
 def clear_send():
 	global send
 	send = ''
 
-def handler(key):
+def handler(aq, key):
 	# Construct key object
 	print("Key triggered : %s" % str(key.value))
 	global state
@@ -202,7 +202,7 @@ def handler(key):
 			# Ensure that only one interrupt is processed at a time
 			lock.acquire()
 			(state, action) = State.transitions[state][transition]
-			action_on_transit(key.value, action)
+			action_on_transit(aq, key.value, action)
 		except KeyError as e:
 			pass
 		finally:
@@ -220,10 +220,8 @@ def run():
 	pass
 
 def start_audio_queue():
-	cmd = "python audio.py"
-	args = shlex.split(cmd)
-	process = subprocess.Popen(args)
-	return process
+	aq = AudioQueue()
+	return aq
 
 def main():
 	MATRIX = {
@@ -249,28 +247,33 @@ def main():
 		}
 	}
 	setup()
-	p = start_audio_queue()
-	try:
-		while(True):
-			for j in COL:
-				GPIO.output(j, 0)
-				for i in ROW:
-					if (GPIO.input(i) == 0):
-						if not MATRIX[i][j]:
-							MATRIX[i][j] = True
-							time.sleep(0.1)
-							key = KEY((i, j))
-							handler(key)
+	aq = start_audio_queue()
+	if os.fork():
+		# Parent services keypad
+		try:
+			while(True):
+				for j in COL:
+					GPIO.output(j, 0)
+					for i in ROW:
+						if (GPIO.input(i) == 0):
+							if not MATRIX[i][j]:
+								MATRIX[i][j] = True
+								time.sleep(0.1)
+								key = KEY((i, j))
+								handler(aq, key)
+							else:
+								# Key is already pressed
+								pass
 						else:
-							# Key is already pressed
+							MATRIX[i][j] = False
 							pass
-					else:
-						MATRIX[i][j] = False
-						pass
-				GPIO.output(j, 1)
-	except KeyboardInterrupt as e:
-		GPIO.cleanup()
-		p.terminate()
+					GPIO.output(j, 1)
+		except KeyboardInterrupt as e:
+			GPIO.cleanup()
+	else:
+		# Child services audio queue
+		aq.run()
+		os._exit(0)
 
 if __name__ == "__main__":
 	main()
