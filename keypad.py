@@ -197,11 +197,11 @@ def main():
 			for j in COL:
 				GPIO.output(j, 0)
 				for i in ROW:
-					print((i,j))
 					while (GPIO.input(i) == 0):
 						pass
 					time.sleep(0.1)
 					Key = KEY((i, j))
+					handler(key)
 				GPIO.output(j, 1)
 	except KeyboardInterrupt as e:
 		GPIO.cleanup()
