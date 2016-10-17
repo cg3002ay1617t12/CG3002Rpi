@@ -15,15 +15,15 @@ class AudioQueue(object):
 			print("[INSTRUCTION] : "),
 			print(instruction % placeholders)
 		args = shlex.split('flite -t ' + ("\"" + instruction % placeholders + "\""))
-		self.q.append(args)
+		self.q.put(args)
 		print("tts : "),
-		print(len(self.q))
+		print(self.q.qsize())
 
 	def run(self):
 		""" Target function for threaded worker"""
 		while True:
 			print("run : "),
-			print(len(self.q))
+			print(self.q.qsize())
 			process = subprocess.Popen(self.q.get())
 			print("Process opened")
 			process.wait()
