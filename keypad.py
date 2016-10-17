@@ -1,7 +1,8 @@
 from enum import Enum
 from audio import AudioQueue
+from queue import Queue
 import RPi.GPIO as GPIO
-import time, os, signal, json, shlex, threading, subprocess
+import time, os, signal, json, shlex, threading.Thread, subprocess
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -219,8 +220,8 @@ def setup():
 def run():
 	pass
 
-def start_audio_queue():
-	return AudioQueue()
+def start_audio_queue(q):
+	return AudioQueue(q)
 
 def main():
 	MATRIX = {
@@ -247,32 +248,31 @@ def main():
 	}
 	setup()
 	aq = start_audio_queue()
-	if os.fork():
-		# Parent services keypad
-		try:
-			while(True):
-				for j in COL:
-					GPIO.output(j, 0)
-					for i in ROW:
-						if (GPIO.input(i) == 0):
-							if not MATRIX[i][j]:
-								MATRIX[i][j] = True
-								time.sleep(0.1)
-								key = KEY((i, j))
-								handler(aq, key)
-							else:
-								# Key is already pressed
-								pass
+	for i in range(NUM_WORKERS):
+		t = Thread(target=aq.run)
+		t.daemon = True
+		t.start()
+
+	try:
+		while(True):
+			for j in COL:
+				GPIO.output(j, 0)
+				for i in ROW:
+					if (GPIO.input(i) == 0):
+						if not MATRIX[i][j]:
+							MATRIX[i][j] = True
+							time.sleep(0.1)
+							key = KEY((i, j))
+							handler(aq, key)
 						else:
-							MATRIX[i][j] = False
+							# Key is already pressed
 							pass
-					GPIO.output(j, 1)
-		except KeyboardInterrupt as e:
-			GPIO.cleanup()
-	else:
-		# Child services audio queue
-		aq.run()
-		os._exit(0)
+					else:
+						MATRIX[i][j] = False
+						pass
+				GPIO.output(j, 1)
+	except KeyboardInterrupt as e:
+		GPIO.cleanup()
 
 if __name__ == "__main__":
 	main()

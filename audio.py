@@ -1,9 +1,13 @@
 import os, subprocess, shlex
 from collections import deque
+from Queue import Queue
 
 class AudioQueue(object):
-	def __init__(self):
-		self.q = deque(maxlen=10)
+	def __init__(self, q=None):
+		if q is None:
+			self.q = Queue(maxsize=10)
+		else:
+			self.q = q
 
 	def tts(self, instruction, placeholders=(), verbose=True):
 		""" Queue instruction, do not execute yet"""
@@ -16,13 +20,14 @@ class AudioQueue(object):
 		print(len(self.q))
 
 	def run(self):
+		""" Target function for threaded worker"""
 		while True:
 			print("run : "),
 			print(len(self.q))
-			if len(self.q) > 0:
-				process = subprocess.Popen(self.q.popleft())
-				print("Process opened")
-				process.wait()
+			process = subprocess.Popen(self.q.get())
+			print("Process opened")
+			process.wait()
+			self.q.task_done()
 
 if __name__ == "__main__":
 	q = AudioQueue()
