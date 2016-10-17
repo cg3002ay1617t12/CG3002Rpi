@@ -2,7 +2,8 @@ from enum import Enum
 from audio import AudioQueue
 from Queue import Queue
 import RPi.GPIO as GPIO
-import time, os, signal, json, shlex, threading.Thread, subprocess
+import time, os, signal, json, shlex, subprocess, threading
+from threading import Thread
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
