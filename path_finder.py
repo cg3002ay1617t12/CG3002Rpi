@@ -337,7 +337,6 @@ if __name__ == "__main__":
 
 	if pf.is_ready():
 		pf.update_source_and_target(src, dst) # update_source_and_target should only be used if ready
-
 	reached, node_reached = pf.update_coordinate(x, y, a)
 	if reached:
 		print pf.get_audio_reached(node_reached)

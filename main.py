@@ -96,7 +96,7 @@ class App(object):
 			self.Localization.incr_step()
 		elif self.transition is Transitions.KEY_DECR:
 			self.StepDetector.decr_step()
-			self.StepDetector.decr_step()
+			self.Localization.decr_step()
 		else:
 			pass
 
@@ -126,7 +126,8 @@ class App(object):
 			except Exception as e:
 				pass
 			self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
-			print(self.PathFinder.x_coordinate, self.PathFinder.y_coordinate, self.PathFinder.angle)
+			print("Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
+			print("Current location: %.2f, %.2f, %.2f" % (self.PathFinder.x_coordinate, self.PathFinder.y_coordinate, self.Localization.stabilized_bearing))
 			self.update_steps()
 			pass
 		elif self.state is State.REACHED:
