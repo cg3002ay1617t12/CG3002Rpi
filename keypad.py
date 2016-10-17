@@ -1,6 +1,5 @@
 from enum import Enum
 from audio import tts
-from main import start_audio_queue
 import RPi.GPIO as GPIO
 import time, os, signal, json, shlex, threading
 
@@ -219,6 +218,12 @@ def setup():
 
 def run():
 	pass
+
+def start_audio_queue():
+	cmd = "python audio.py"
+	args = shlex.split(cmd)
+	process = subprocess.Popen(args)
+	return process
 
 def main():
 	MATRIX = {
