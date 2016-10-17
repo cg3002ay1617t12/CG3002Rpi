@@ -1,7 +1,7 @@
 from enum import Enum
 from audio import tts
 import RPi.GPIO as GPIO
-import time, os, signal, json, shlex, threading
+import time, os, signal, json, shlex, threading, subprocess
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
