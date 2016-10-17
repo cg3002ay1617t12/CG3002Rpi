@@ -110,7 +110,10 @@ class App(object):
 			pass
 		elif self.state is State.ACCEPT_END:
 			self.aq.tts("Please enter end destination")
-			self.curr_start_node = int(userinput)
+			try:
+				self.curr_start_node = int(userinput)
+			except Exception as e:
+				pass
 			(x, y)  = self.PathFinder.coordinates_from_node(self.curr_start_node)
 			bearing = self.Localization.stabilized_bearing
 			self.PathFinder.update_coordinate(x, y, bearing)
@@ -118,7 +121,10 @@ class App(object):
 			pass
 		elif self.state is State.NAVIGATING:
 			self.aq.tts("Entering navigation state")
-			self.curr_end_node = int(userinput)
+			try:
+				self.curr_end_node = int(userinput)
+			except Exception as e:
+				pass
 			self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
 			print(self.PathFinder.x_coordinate, self.PathFinder.y_coordinate, self.PathFinder.angle)
 			self.update_steps()
