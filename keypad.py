@@ -1,7 +1,7 @@
 from enum import Enum
 from audio import tts
 import RPi.GPIO as GPIO
-import time, os, signal
+import time, os, signal, json
 
 GPIO.setmode(GPIO.BCM)
 GPIO.setwarnings(False)
@@ -125,12 +125,12 @@ ENV                = json.loads(open(os.path.join(os.path.dirname(__file__), 'en
 EVENT_PIPE         = ENV["EVENT_PIPE"]
 PID                = ENV["PID_FILE"]
 
-if not os.path.exists(EVENT_PIPE):
-	os.mkfifo(EVENT_PIPE)
+# if not os.path.exists(EVENT_PIPE):
+	# os.mkfifo(EVENT_PIPE)
 
-pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
-fpid     = open(PID, 'r')
-pid      = fpid.read()
+# pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
+# fpid     = open(PID, 'r')
+# pid      = fpid.read()
 
 node = ''
 start = ''
@@ -154,15 +154,18 @@ def action_on_transit(val, action):
 		send = ''
 	elif action is Action.CONFIRM_START:
 		tts(AFFIRMS[action], (send,))
-		os.write(pipe_out, send + "\r\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, send + "\r\n")
+		# os.kill(int(pid), signal.SIGUSR2)
+		print(send)
 	elif action is Action.CONFIRM_END:
 		tts(AFFIRMS[action], (send,))
-		os.write(pipe_out, send + "\r\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, send + "\r\n")
+		# os.kill(int(pid), signal.SIGUSR2)
+		print(send)
 	elif action is Action.QUIT:
-		os.write(pipe_out, "q" + "\r\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, "q" + "\r\n")
+		# os.kill(int(pid), signal.SIGUSR2)
+		print(send)
 	elif action is Action.NULL:
 		pass
 	else:
