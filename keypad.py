@@ -142,6 +142,8 @@ send = ''
 def action_on_transit(val, action):
 	""" Do something upon transition to next state ONCE"""
 	global send
+	print("Action : "),
+	print(action)
 	# Issue prompts for all the transitions in current state
 	for transition in State.transitions[state]:
 		tts(PROMPTS[transition])
@@ -197,11 +199,12 @@ def main():
 			for j in COL:
 				GPIO.output(j, 0)
 				for i in ROW:
-					while (GPIO.input(i) == 0):
+					if (GPIO.input(i) == 0):
+						time.sleep(0.1)
+						key = KEY((i, j))
+						handler(key)
+					else:
 						pass
-					time.sleep(0.1)
-					key = KEY((i, j))
-					handler(key)
 				GPIO.output(j, 1)
 	except KeyboardInterrupt as e:
 		GPIO.cleanup()
