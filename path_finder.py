@@ -122,10 +122,11 @@ class PathFinder(object):
 	def get_y_coordinate(self):
 		return self.__y_coordinate
 
-	""" PRIVATE FUNCTION """
-	def __coordinates_from_node(self, node):
+	def get_coordinates_from_node(self, node):
 		node_info = self.__node_info[node]
 		return (node_info['x'], node_info['y'])
+
+	""" PRIVATE FUNCTION """
 
 	def __is_reached(self, node_index, user_x, user_y):
 		node_x = self.__node_info[node_index]['x']
