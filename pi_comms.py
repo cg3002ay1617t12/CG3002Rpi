@@ -1,4 +1,5 @@
 import serial, struct, time, heapq, binascii, os, signal, sys, platform, json
+from audio import AudioQueue
 
 class PriorityQueue:
 	def __init__(self):
@@ -25,6 +26,11 @@ class PiComms(object):
 		self.platform_               = platform.platform()
 		self.ENV                     = json.loads(open(os.path.join(os.path.dirname(__file__), 'env.json')).read())
 		self.pq                      = PriorityQueue()
+		self.aq                      = AudioQueue()
+		for i in range(1):
+			t = Thread(target=self.aq.run)
+			t.daemon = True
+			t.start()
 		self.curr_mode               = 0
 		self.packet_type             = 0 #ACK or HELLO or DATA 
 		self.component_id            = 0
@@ -40,7 +46,7 @@ class PiComms(object):
 		self.crc_index               = 2 
 		self.read_status             = False
 		self.payload_final           = 0 
-		self.crc_final               = 0 
+		self.crc_final               = 0
 		self._buffer = {
 			1: [],
 			2: [],
@@ -200,8 +206,12 @@ class PiComms(object):
 				print("Handling Corrupt Packet")
 				self.curr_mode = 0
 				self.read_status = False
+		except TypeError as e:
+			# Most likely is ord() expected a character, but a string of length 0 found, arduino wiring might be loose
+			self.aq.tts("ERROR connecting with Arduino... fix wires and press reset when ready!")
+			print("[ERROR] Check connection with Arduino... Reset when ready")
 		except Exception as e:
-			print e
+			print(e)
 
 	def distribute_data(self):
 		self._buffer[self.component_id].append(str(self.component_id) + '~' + str(self.clean_data(self.payload_final)) + '\r\n')
