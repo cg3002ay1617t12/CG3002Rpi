@@ -52,6 +52,10 @@ class Localization(object):
 		self.x = x if x is not None else 0
 		self.y = y if y is not None else 0
 
+	def update_coordinates(self, x, y):
+		self.x = x
+		self.y = y
+
 	def process_new_data(self):
 		self.new_data = False
 		# Kalman filter

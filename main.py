@@ -1,5 +1,4 @@
 from path_finder import PathFinder
-from vhf import LocalPathFinder
 from step_detection import StepDetector
 import os, signal, sys, subprocess, shlex, time, json, threading, platform
 from fsm import *
@@ -32,7 +31,7 @@ class App(object):
 			plot = False
 		self.PathFinder   = PathFinder()
 		self.StepDetector = StepDetector(plot=plot)
-		self.Localization = Localization(x=0, y=0, north=self.PathFinder.angle_of_north, plot=plot)
+		self.Localization = Localization(x=0, y=0, north=self.PathFinder.get_angle_of_north(), plot=plot)
 		self.aq           = AudioQueue()
 		# Start audio queue workers
 		for i in range(1):
@@ -114,9 +113,10 @@ class App(object):
 				self.curr_start_node = int(userinput)
 			except Exception as e:
 				pass
-			(x, y)  = self.PathFinder.coordinates_from_node(self.curr_start_node)
+			(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
 			bearing = self.Localization.stabilized_bearing
 			self.PathFinder.update_coordinate(x, y, bearing)
+			self.Localization.update_coordinates(x, y)
 			self.update_steps()
 			pass
 		elif self.state is State.NAVIGATING:
@@ -127,7 +127,7 @@ class App(object):
 				pass
 			self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
 			print("Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
-			print("Current location: %.2f, %.2f, %.2f" % (self.PathFinder.x_coordinate, self.PathFinder.y_coordinate, self.Localization.stabilized_bearing))
+			print("Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 			self.update_steps()
 			pass
 		elif self.state is State.REACHED:
@@ -173,7 +173,7 @@ class App(object):
 						self.event_pipe.write("CHECKPOINT_REACHED\r\n")
 						os.kill(self.pid, signal.SIGUSR2)
 					else:
-						self.issue_instruction(self.PathFinder.get_audio_next_instruction(self.PathFinder.instruction))
+						self.issue_instruction(self.PathFinder.get_audio_next_instruction())
 					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.REACHED:
@@ -184,7 +184,7 @@ class App(object):
 					if reached:
 						self.issue_instruction(self.PathFinder.get_audio_reached(node))
 					else:
-						self.issue_instruction(self.PathFinder.get_audio_next_instruction(self.PathFinder.instruction))
+						self.issue_instruction(self.PathFinder.get_audio_next_instruction())
 					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.RESET:
@@ -195,7 +195,7 @@ class App(object):
 					if reached:
 						self.issue_instruction(self.PathFinder.get_audio_reached(node))
 					else:
-						self.issue_instruction(self.PathFinder.get_audio_next_instruction(self.PathFinder.instruction))
+						self.issue_instruction(self.PathFinder.get_audio_next_instruction())
 					self.StepDetector.curr_steps = 0
 					pass
 				else:

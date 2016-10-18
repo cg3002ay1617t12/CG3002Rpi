@@ -39,7 +39,6 @@ class PathFinder(object):
 		self.__y_coordinate = y_coordinate
 		self.__angle = self.__get_angle_wrt_grid(angle_from_north)
 		# self.__angle = angle_from_north
-
 		node_reached = -1
 		reached = False
 
@@ -92,7 +91,7 @@ class PathFinder(object):
 
 		if angle > 180:
 			right = False
-			angle -= 180
+			angle = 360 - angle
 
 		audio_string = 'From Node ' + str(from_index) + ' ' + str(from_name) + ' To Node ' + str(to_index) + ' ' + str(to_name) + ':'
 
@@ -257,9 +256,9 @@ class PathFinder(object):
 		self.__shortest_path = []
 
 		while 1:
-			self.__shortest_path.append(end_index)
 			if end_index == start_index:
 				break
+			self.__shortest_path.append(end_index)
 			end_index = predecesor[end_index]
 
 		self.__shortest_path.reverse()
@@ -295,7 +294,6 @@ class PathFinder(object):
 			curr_index = index
 
 			distance = self.__get_distance(prev_x, prev_y, curr_x, curr_y)
-
 			curr_angle = self.__get_angle(prev_x, prev_y, curr_x, curr_y)
 
 			self.__instruction.append({
@@ -387,7 +385,6 @@ if __name__ == "__main__":
 
 		pf.update_coordinate(0, 0, 0)
 		pf.update_source_and_target(source, target)
-
 		sign_x = [0, 1, 1, 1, 0, -1, -1, -1]
 		sign_y = [1, 1, 0, -1, -1, -1, 0, 1]
 
