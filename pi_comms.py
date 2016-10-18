@@ -1,4 +1,5 @@
 import serial, struct, time, heapq, binascii, os, signal, sys, platform, json
+from threading import Thread
 from audio import AudioQueue
 
 class PriorityQueue:
