@@ -1,8 +1,8 @@
 import json, requests, math, heapq, pprint
 
 class PathFinder(object):
-	def __init__(self):
-		self.__request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=Com1&Level=2'
+	def __init__(self, building='Com1', level='2'):
+		self.__request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=' + str(building) + '&Level=' + str(level)
 		# self.__request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=DemoBuilding&Level=1'
 		self.__wifi_radius = 150
 		self.__reach_radius = 50
@@ -351,10 +351,10 @@ class PathFinder(object):
 
 
 if __name__ == "__main__":
-	def test_visit():
+	def test_visit(building, level):
 		print 'testing::test_visit(): started visit test'
 
-		pf = PathFinder()
+		pf = PathFinder(building, level)
 
 		source = 1
 		target = pf._PathFinder__num_node
@@ -376,10 +376,10 @@ if __name__ == "__main__":
 
 		print 'testing::test_visit(): completed visit test'
 
-	def test_angle():
+	def test_angle(building, level):
 		print 'testing::test_angle(): started angle test'
 
-		pf = PathFinder()
+		pf = PathFinder(building, level)
 
 		source = 1
 		target = 1
@@ -409,10 +409,10 @@ if __name__ == "__main__":
 
 		print 'testing::test_angle(): completed angle test'
 
-	def test_instruction():
+	def test_instruction(building, level):
 		print 'testing::test_instruction(): started instruction test'
 
-		pf = PathFinder()
+		pf = PathFinder(building, level)
 
 		source = 1
 		target = pf._PathFinder__num_node
@@ -437,7 +437,14 @@ if __name__ == "__main__":
 			print 'Error'
 
 		print 'testing::test_instruction(): completed instruction test'
+
+	building = 'Com1'
+	level = '2'
 		
-	test_visit()
-	test_angle()
-	test_instruction()
+	# test_visit(building, level)
+	# test_angle(building, level)
+	# test_instruction(building, level)
+
+	pf = PathFinder(building, level)
+
+	pf = PathFinder()
