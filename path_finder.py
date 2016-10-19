@@ -39,6 +39,7 @@ class PathFinder(object):
 		self.__y_coordinate = y_coordinate
 		self.__angle = self.__get_angle_wrt_grid(angle_from_north)
 		# self.__angle = angle_from_north
+
 		node_reached = -1
 		reached = False
 
@@ -256,9 +257,9 @@ class PathFinder(object):
 		self.__shortest_path = []
 
 		while 1:
+			self.__shortest_path.append(end_index)
 			if end_index == start_index:
 				break
-			self.__shortest_path.append(end_index)
 			end_index = predecesor[end_index]
 
 		self.__shortest_path.reverse()
