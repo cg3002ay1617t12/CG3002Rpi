@@ -229,7 +229,7 @@ def transition_handler(signum, frame, *args, **kwargs):
 		app.transit    = True
 		app.userinput  = userinput
 		app.transition = transition
-			(app.state)
+		print(app.state)
 	except KeyError as e:
 		pass
 
