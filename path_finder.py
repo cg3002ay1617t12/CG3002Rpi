@@ -256,10 +256,11 @@ class PathFinder(object):
 		self.__shortest_path = []
 
 		while 1:
-			if end_index == start_index:
-				break
 			self.__shortest_path.append(end_index)
 			end_index = predecesor[end_index]
+
+			if end_index == start_index:
+				break
 
 		self.__shortest_path.reverse()
 
