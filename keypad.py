@@ -151,37 +151,39 @@ def action_on_transit(aq, val, action):
 	if action is Action.APPEND:
 		aq.tts(AFFIRMS[action], (val,))
 		send += str(val)
+		print(send)
 	elif action is Action.CLEAR:
 		aq.tts(AFFIRMS[action])
+		print(send)
 		clear_send()
 	elif action is Action.CONFIRM_START:
+		print(send)
 		aq.tts(AFFIRMS[action], (send,))
 		clear_send()
 		os.write(pipe_out, send + "\r\n")
 		os.kill(int(pid), signal.SIGUSR2)
-		print(send)
 	elif action is Action.CONFIRM_END:
 		aq.tts(AFFIRMS[action], (send,))
+		print(send)
 		clear_send()
 		os.write(pipe_out, send + "\r\n")
 		os.kill(int(pid), signal.SIGUSR2)
-		print(send)
 	elif action is Action.INCR:
+		print(send)
 		os.write(pipe_out, "++\r\n" + "\r\n")
 		os.kill(int(pid), signal.SIGUSR2)
-		print(send)
 	elif action is Action.DECR:
+		print(send)
 		os.write(pipe_out, "--\r\n" + "\r\n")
 		os.kill(int(pid), signal.SIGUSR2)
-		print(send)
 	elif action is Action.PLAY_MUSIC:
+		print(send)
 		args = shlex.split("omxplayer --vol -2000 good_life_remix.mp3")
 		process = subprocess.Popen(args)
-		print(send)
 	elif action is Action.QUIT:
+		print(send)
 		os.write(pipe_out, "q" + "\r\n")
 		os.kill(int(pid), signal.SIGUSR2)
-		print(send)
 	elif action is Action.NULL:
 		pass
 	else:
@@ -189,7 +191,7 @@ def action_on_transit(aq, val, action):
 	
 	# Issue prompts for all the transitions in current state
 	for transition in State.transitions[state]:
-		aq.tts(PROMPTS[transition])
+			aq.tts(PROMPTS[transition])
 
 def clear_send():
 	global send
