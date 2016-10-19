@@ -160,24 +160,24 @@ def action_on_transit(aq, val, action):
 		print(send)
 		aq.tts(AFFIRMS[action], (send,))
 		clear_send()
-		no = os.write(pipe_out, send + "\r\n")
+		no = os.write(pipe_out, send + "\n")
 		print("Bytes written : %d " % no)
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.CONFIRM_END:
 		aq.tts(AFFIRMS[action], (send,))
 		print(send)
 		clear_send()
-		no = os.write(pipe_out, send + "\r\n")
+		no = os.write(pipe_out, send + "\n")
 		print("Bytes written : %d " % no)
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.INCR:
 		print(send)
-		no = os.write(pipe_out, "++\r\n" + "\r\n")
+		no = os.write(pipe_out, "++\n")
 		print("Bytes written : %d " % no)
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.DECR:
 		print(send)
-		no = os.write(pipe_out, "--\r\n" + "\r\n")
+		no = os.write(pipe_out, "--\n")
 		print("Bytes written : %d " % no)
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.PLAY_MUSIC:
@@ -186,7 +186,7 @@ def action_on_transit(aq, val, action):
 		process = subprocess.Popen(args)
 	elif action is Action.QUIT:
 		print(send)
-		no = os.write(pipe_out, "q" + "\r\n")
+		no = os.write(pipe_out, "q\n")
 		print("Bytes written : %d " % no)
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.NULL:

@@ -222,7 +222,7 @@ def transition_handler(signum, frame, *args, **kwargs):
 	""" Asynchronous event handler to trigger state transitions"""
 	global app
 	event = app.event_pipe.readline()
-	print(event)
+	print("EVENT : %s" % event)
 	(transition, userinput) = Transitions.recognize_input(event)
 	print transition
 	try:
