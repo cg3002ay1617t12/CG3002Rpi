@@ -35,7 +35,7 @@ class PiComms(object):
 		self.curr_mode               = 0
 		self.packet_type             = 0 #ACK or HELLO or DATA 
 		self.component_id            = 0
-		if self.platform_            == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
+		if self.platform_            == "Linux-4.4.13-v6+-armv6l-with-debian-8.0":
 			self.ser                     = serial.Serial(port =PiComms.SERIAL_ADDRESS_RPI, baudrate = PiComms.BAUD, timeout = 3)
 		else:
 			self.ser                     = serial.Serial(port =PiComms.SERIAL_ADDRESS_MAC, baudrate = PiComms.BAUD, timeout = 3)
@@ -93,7 +93,7 @@ class PiComms(object):
 			print("Reopening serial port...")
 			while True:
 				try:
-					if self.platform_ == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
+					if self.platform_ == "Linux-4.4.13-v6+-armv6l-with-debian-8.0":
 						self.ser.close()
 						self.ser = serial.Serial(port =PiComms.SERIAL_ADDRESS_RPI, baudrate = PiComms.BAUD, timeout = 3)
 					else:
