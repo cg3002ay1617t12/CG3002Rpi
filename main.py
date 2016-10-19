@@ -24,8 +24,9 @@ class App(object):
 		self.userinput       = ''
 		self.transition      = None
 		self.start           = time.time()
+		self.platform_pi = ["Linux-4.4.13-v6+-armv6l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"]
 		# Init submodules
-		if self.platform_ == "Linux-4.4.13-v6+-armv6l-with-debian-8.0":
+		if self.platform_ in platform_pi:
 			plot = False
 		else:
 			plot = False
