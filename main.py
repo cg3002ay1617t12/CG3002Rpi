@@ -26,7 +26,7 @@ class App(object):
 		self.start           = time.time()
 		self.platform_pi = ["Linux-4.4.13-v6+-armv6l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"]
 		# Init submodules
-		if self.platform_ in platform_pi:
+		if self.platform_ in self.platform_pi:
 			plot = False
 		else:
 			plot = False
