@@ -125,12 +125,12 @@ ENV                = json.loads(open(os.path.join(os.path.dirname(__file__), 'en
 EVENT_PIPE         = ENV["EVENT_PIPE"]
 PID                = ENV["PID_FILE"]
 
-# if not os.path.exists(EVENT_PIPE):
-	# os.mkfifo(EVENT_PIPE)
+if not os.path.exists(EVENT_PIPE):
+	os.mkfifo(EVENT_PIPE)
 
-# pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
-# fpid     = open(PID, 'r')
-# pid      = fpid.read()
+pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
+fpid     = open(PID, 'r')
+pid      = fpid.read()
 lock  = threading.Lock()
 state = State.START
 send = ''

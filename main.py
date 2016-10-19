@@ -60,7 +60,7 @@ class App(object):
 		self.state = State.START
 		pipe_desc = os.open(App.DATA_PIPE, os.O_RDONLY)
 		print("Starting data pipe...listening for serial comms...")
-		self.data_pipe = os.fdopen(pipe_desc)
+		# self.data_pipe = os.fdopen(pipe_desc)
 		print("Serial comms connected!")
 		pipe_desc = os.open(App.EVENT_PIPE, os.O_RDWR)
 		print("Starting event pipe...listening for keystrokes...")
@@ -228,7 +228,7 @@ def transition_handler(signum, frame, *args, **kwargs):
 		app.transit    = True
 		app.userinput  = userinput
 		app.transition = transition
-		print(app.state)
+			(app.state)
 	except KeyError as e:
 		pass
 
@@ -323,7 +323,7 @@ def main():
 	if os.fork() == 0:
 		# Child processes
 		signal.signal(signal.SIGALRM, timeout_handler)
-		p1 = connect_picomms(platform_)
+		# p1 = connect_picomms(platform_)
 		p2 = connect_keypad(platform_)
 		fpid = open('./keypad_pid', 'w')
 		fpid.write(str(p2.pid))

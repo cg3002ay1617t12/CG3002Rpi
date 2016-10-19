@@ -209,12 +209,13 @@ class PiComms(object):
 				self.read_status = False
 		except TypeError as e:
 			# Most likely is ord() expected a character, but a string of length 0 found, arduino wiring might be loose
-			self.aq.tts("ERROR connecting with Arduino... fix wires and press reset when ready!")
+			self.aq.tts("Gee Gee Dot com dot ass gee")
 			print("[ERROR] Check connection with Arduino... Reset when ready")
 		except Exception as e:
 			print(e)
 
 	def distribute_data(self):
+		print self.payload_final
 		self._buffer[self.component_id].append(str(self.component_id) + '~' + str(self.clean_data(self.payload_final)) + '\r\n')
 		self.forward_data()
 
