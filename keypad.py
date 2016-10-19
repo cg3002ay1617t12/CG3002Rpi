@@ -28,17 +28,17 @@ class Transitions(Enum):
 class KEY(object):
 	"""Contains GPIO -> value mapping"""
 	MAP = {
-		(25,22) : 1,
-		(25,17) : 2,
-		(25,4)  : 3,
-		(24,22) : 4,
-		(24,17) : 5,
-		(24,4)  : 6,
-		(23,22) : 7,
-		(23,17) : 8,
-		(23,4)  : 9,
+		(25,22) : '1',
+		(25,17) : '2',
+		(25,4)  : '3',
+		(24,22) : '4',
+		(24,17) : '5',
+		(24,4)  : '6',
+		(23,22) : '7',
+		(23,17) : '8',
+		(23,4)  : '9',
 		(18,22) : '#',
-		(18,17) : 0,
+		(18,17) : '0',
 		(18,4)  : '*'
 	}
 	def __init__(self, ports):
@@ -133,7 +133,7 @@ fpid     = open(PID, 'r')
 pid      = fpid.read()
 lock  = threading.Lock()
 state = State.START
-send = ''
+send = ""
 # MATRIX = [
 # 	[1,2,3],    (25,22), (25,17), (25,4)
 # 	[4,5,6],    (24,22), (24,17), (24,4)
@@ -160,14 +160,14 @@ def action_on_transit(aq, val, action):
 		print(send)
 		aq.tts(AFFIRMS[action], (send,))
 		clear_send()
-		no = os.write(pipe_out, send + "\n")
+		no = os.write(pipe_out, "12" + "\n")
 		print("Bytes written : %d " % no)
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.CONFIRM_END:
 		aq.tts(AFFIRMS[action], (send,))
 		print(send)
 		clear_send()
-		no = os.write(pipe_out, send + "\n")
+		no = os.write(pipe_out, "24" + "\n")
 		print("Bytes written : %d " % no)
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.INCR:
