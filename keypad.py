@@ -157,30 +157,30 @@ def action_on_transit(aq, val, action):
 	elif action is Action.CONFIRM_START:
 		aq.tts(AFFIRMS[action], (send,))
 		clear_send()
-		# os.write(pipe_out, send + "\r\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, send + "\r\n")
+		os.kill(int(pid), signal.SIGUSR2)
 		print(send)
 	elif action is Action.CONFIRM_END:
 		aq.tts(AFFIRMS[action], (send,))
 		clear_send()
-		# os.write(pipe_out, send + "\r\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, send + "\r\n")
+		os.kill(int(pid), signal.SIGUSR2)
 		print(send)
 	elif action is Action.INCR:
-		# os.write(pipe_out, "++\r\n" + "\r\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, "++\r\n" + "\r\n")
+		os.kill(int(pid), signal.SIGUSR2)
 		print(send)
 	elif action is Action.DECR:
-		# os.write(pipe_out, "--\r\n" + "\r\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, "--\r\n" + "\r\n")
+		os.kill(int(pid), signal.SIGUSR2)
 		print(send)
 	elif action is Action.PLAY_MUSIC:
 		args = shlex.split("omxplayer --vol -2000 good_life_remix.mp3")
 		process = subprocess.Popen(args)
 		print(send)
 	elif action is Action.QUIT:
-		# os.write(pipe_out, "q" + "\r\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, "q" + "\r\n")
+		os.kill(int(pid), signal.SIGUSR2)
 		print(send)
 	elif action is Action.NULL:
 		pass
