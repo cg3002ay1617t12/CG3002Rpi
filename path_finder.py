@@ -3,7 +3,7 @@ import json, requests, math, heapq, pprint
 class PathFinder(object):
 	def __init__(self, building='Com1', level='2'):
 		self.__request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=' + str(building) + '&Level=' + str(level)
-		# self.__request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=DemoBuilding&Level=1'
+
 		self.__wifi_radius = 150
 		self.__reach_radius = 50
 
@@ -147,8 +147,24 @@ class PathFinder(object):
 
 	def __update_node_info(self):
 		request_info = requests.get(self.__request_url)
-
+		
 		json_request_info = json.loads(request_info.text)
+
+		try:
+			request_info = requests.get(self.__request_url)
+		except:
+			print 'Error >> PathFinder::__update_node_info: Request could not get resource from url.'
+			raise ValueError()
+
+		try:
+			json_request_info = json.loads(request_info.text)
+		except:
+			print 'Error >> PathFinder::__update_node_info: JSON could not be decoded. Check building and level'
+			raise ValueError()
+
+		if json_request_info['info'] is None:
+			print 'Error >> PathFinder::__update_node_info: JSON is empty. Check building and level'
+			raise ValueError()
 
 		# wifi_info = {}
 
@@ -477,4 +493,4 @@ if __name__ == "__main__":
 	test_update(building, level)
 
 	pf = PathFinder(building, level)
-	pf = PathFinder()
+	# pf = PathFinder()
