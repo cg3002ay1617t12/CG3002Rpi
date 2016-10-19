@@ -324,7 +324,7 @@ def main():
 	if os.fork() == 0:
 		# Child processes
 		signal.signal(signal.SIGALRM, timeout_handler)
-		# p1 = connect_picomms(platform_)
+		p1 = connect_picomms(platform_)
 		p2 = connect_keypad(platform_)
 		fpid = open('./keypad_pid', 'w')
 		fpid.write(str(p2.pid))
