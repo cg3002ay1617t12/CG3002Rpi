@@ -65,6 +65,8 @@ class PathFinder(object):
 
 		self.__update_shortest_path()
 
+		self.update_coordinate(self.__x_coordinate, self.__y_coordinate, self.__get_angle_wrt_north(self.__angle))
+
 	def get_audio_next_instruction(self):
 		if self.__node_info == None:
 			return 'Not Ready'
@@ -317,7 +319,14 @@ class PathFinder(object):
 		return int(math.sqrt(x_diff * x_diff + y_diff * y_diff))
 
 	def __get_angle_wrt_grid(self, angle):
-		angle = self.__angle_of_north + angle
+		angle = angle + self.__angle_of_north
+
+		angle = self.__convert_angle_to_convention(angle)
+
+		return angle
+
+	def __get_angle_wrt_north(self, angle):
+		angle = angle - self.__angle_of_north
 
 		angle = self.__convert_angle_to_convention(angle)
 
@@ -421,8 +430,9 @@ if __name__ == "__main__":
 		pf.update_source_and_target(source, target)
 
 		shortest_path = pf._PathFinder__shortest_path
+		instruction = pf._PathFinder__instruction
 
-		len_instruction = len(pf._PathFinder__instruction)
+		len_instruction = len(instruction)
 
 		for i in range(0, len(shortest_path)):
 			reached, node_reached = pf.update_coordinate(pf._PathFinder__node_info[shortest_path[i]]['x'], pf._PathFinder__node_info[shortest_path[i]]['y'], 0)
@@ -438,13 +448,33 @@ if __name__ == "__main__":
 
 		print 'testing::test_instruction(): completed instruction test'
 
+	def test_update(building, level):
+		print 'testing::test_update(): started update test'
+
+		pf = PathFinder(building, level)
+
+		source = 1
+		target = 1
+
+		pf.update_coordinate(pf._PathFinder__node_info[1]['x'], pf._PathFinder__node_info[1]['y'], 0)
+		pf.update_source_and_target(source, target)
+
+		instruction = pf._PathFinder__instruction
+
+		if len(instruction) != 0:
+			print 'Error'
+			print 'instruction'
+
+		print 'testing::test_update(): completed update test'
+	
 	building = 'Com1'
 	level = '2'
-		
-	# test_visit(building, level)
-	# test_angle(building, level)
-	# test_instruction(building, level)
+
+	""" uncomment any of these tests to run tests """
+	test_visit(building, level)
+	test_angle(building, level)
+	test_instruction(building, level)
+	test_update(building, level)
 
 	pf = PathFinder(building, level)
-
 	pf = PathFinder()
