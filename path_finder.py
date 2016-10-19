@@ -146,10 +146,6 @@ class PathFinder(object):
 		self.__update_instruction()
 
 	def __update_node_info(self):
-		request_info = requests.get(self.__request_url)
-		
-		json_request_info = json.loads(request_info.text)
-
 		try:
 			request_info = requests.get(self.__request_url)
 		except:
