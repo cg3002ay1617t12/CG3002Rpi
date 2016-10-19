@@ -1,9 +1,9 @@
 import json, requests, math, heapq, pprint
 
 class PathFinder(object):
-	def __init__(self):
-		self.__request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=Com1&Level=2'
-		# self.__request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=DemoBuilding&Level=1'
+	def __init__(self, building='Com1', level='2'):
+		self.__request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=' + str(building) + '&Level=' + str(level)
+
 		self.__wifi_radius = 150
 		self.__reach_radius = 50
 
@@ -39,6 +39,7 @@ class PathFinder(object):
 		self.__y_coordinate = y_coordinate
 		self.__angle = self.__get_angle_wrt_grid(angle_from_north)
 		# self.__angle = angle_from_north
+
 		node_reached = -1
 		reached = False
 
@@ -63,6 +64,8 @@ class PathFinder(object):
 		self.__target = target
 
 		self.__update_shortest_path()
+
+		self.update_coordinate(self.__x_coordinate, self.__y_coordinate, self.__get_angle_wrt_north(self.__angle))
 
 	def get_audio_next_instruction(self):
 		if self.__node_info == None:
@@ -143,9 +146,21 @@ class PathFinder(object):
 		self.__update_instruction()
 
 	def __update_node_info(self):
-		request_info = requests.get(self.__request_url)
+		try:
+			request_info = requests.get(self.__request_url)
+		except:
+			print 'Error >> PathFinder::__update_node_info: Request could not get resource from url.'
+			raise ValueError()
 
-		json_request_info = json.loads(request_info.text)
+		try:
+			json_request_info = json.loads(request_info.text)
+		except:
+			print 'Error >> PathFinder::__update_node_info: JSON could not be decoded. Check building and level'
+			raise ValueError()
+
+		if json_request_info['info'] is None:
+			print 'Error >> PathFinder::__update_node_info: JSON is empty. Check building and level'
+			raise ValueError()
 
 		# wifi_info = {}
 
@@ -257,10 +272,9 @@ class PathFinder(object):
 
 		while 1:
 			self.__shortest_path.append(end_index)
-			end_index = predecesor[end_index]
-
 			if end_index == start_index:
 				break
+			end_index = predecesor[end_index]
 
 		self.__shortest_path.reverse()
 
@@ -317,7 +331,14 @@ class PathFinder(object):
 		return int(math.sqrt(x_diff * x_diff + y_diff * y_diff))
 
 	def __get_angle_wrt_grid(self, angle):
-		angle = self.__angle_of_north + angle
+		angle = angle + self.__angle_of_north
+
+		angle = self.__convert_angle_to_convention(angle)
+
+		return angle
+
+	def __get_angle_wrt_north(self, angle):
+		angle = angle - self.__angle_of_north
 
 		angle = self.__convert_angle_to_convention(angle)
 
@@ -351,10 +372,10 @@ class PathFinder(object):
 
 
 if __name__ == "__main__":
-	def test_visit():
+	def test_visit(building, level):
 		print 'testing::test_visit(): started visit test'
 
-		pf = PathFinder()
+		pf = PathFinder(building, level)
 
 		source = 1
 		target = pf._PathFinder__num_node
@@ -376,10 +397,10 @@ if __name__ == "__main__":
 
 		print 'testing::test_visit(): completed visit test'
 
-	def test_angle():
+	def test_angle(building, level):
 		print 'testing::test_angle(): started angle test'
 
-		pf = PathFinder()
+		pf = PathFinder(building, level)
 
 		source = 1
 		target = 1
@@ -409,10 +430,10 @@ if __name__ == "__main__":
 
 		print 'testing::test_angle(): completed angle test'
 
-	def test_instruction():
+	def test_instruction(building, level):
 		print 'testing::test_instruction(): started instruction test'
 
-		pf = PathFinder()
+		pf = PathFinder(building, level)
 
 		source = 1
 		target = pf._PathFinder__num_node
@@ -421,8 +442,9 @@ if __name__ == "__main__":
 		pf.update_source_and_target(source, target)
 
 		shortest_path = pf._PathFinder__shortest_path
+		instruction = pf._PathFinder__instruction
 
-		len_instruction = len(pf._PathFinder__instruction)
+		len_instruction = len(instruction)
 
 		for i in range(0, len(shortest_path)):
 			reached, node_reached = pf.update_coordinate(pf._PathFinder__node_info[shortest_path[i]]['x'], pf._PathFinder__node_info[shortest_path[i]]['y'], 0)
@@ -437,7 +459,34 @@ if __name__ == "__main__":
 			print 'Error'
 
 		print 'testing::test_instruction(): completed instruction test'
-		
-	test_visit()
-	test_angle()
-	test_instruction()
+
+	def test_update(building, level):
+		print 'testing::test_update(): started update test'
+
+		pf = PathFinder(building, level)
+
+		source = 1
+		target = 1
+
+		pf.update_coordinate(pf._PathFinder__node_info[1]['x'], pf._PathFinder__node_info[1]['y'], 0)
+		pf.update_source_and_target(source, target)
+
+		instruction = pf._PathFinder__instruction
+
+		if len(instruction) != 0:
+			print 'Error'
+			print 'instruction'
+
+		print 'testing::test_update(): completed update test'
+	
+	building = 'Com1'
+	level = '2'
+
+	""" uncomment any of these tests to run tests """
+	test_visit(building, level)
+	test_angle(building, level)
+	test_instruction(building, level)
+	test_update(building, level)
+
+	pf = PathFinder(building, level)
+	# pf = PathFinder()

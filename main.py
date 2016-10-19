@@ -24,8 +24,9 @@ class App(object):
 		self.userinput       = ''
 		self.transition      = None
 		self.start           = time.time()
+		self.platform_pi = ["Linux-4.4.13-v6+-armv6l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"]
 		# Init submodules
-		if self.platform_ == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
+		if self.platform_ in self.platform_pi:
 			plot = False
 		else:
 			plot = False
@@ -280,7 +281,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 		buffer_.append(data)
 		line_count -= 1
 	timer.cancel()
-	if app.platform_ == "Linux-4.4.13-v7+-armv7l-with-debian-8.0":
+	if app.platform_ == "Linux-4.4.13-v6+-armv6l-with-debian-8.0":
 		map(process_rpi, buffer_)
 	else:
 		map(process_rpi, buffer_)
@@ -290,7 +291,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 
 def connect_keypad(platform=None):
 	print("Connecting with Keypad...")
-	if platform in ["Linux-4.4.13-v7+-armv7l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"] : # Raspberry Pi
+	if platform in ["Linux-4.4.13-v6+-armv6l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"] : # Raspberry Pi
 		cmd     = "python keypad.py"
 	elif platform in ["Darwin-15.2.0-x86_64-i386-64bit", "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty"]:
 		cmd     = "python keyboard_sim.py" # Mac, Windows, Ubuntu with connected keyboard
@@ -303,7 +304,7 @@ def connect_keypad(platform=None):
 
 def connect_picomms(platform=None):
 	print("Connecting with Arduino...")
-	if platform in ["Linux-4.4.13-v7+-armv7l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"] :
+	if platform in ["Linux-4.4.13-v6+-armv6l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"] :
 		cmd     = "python pi_comms.py"
 		# cmd     = "python serial_input.py"
 	elif platform == "Darwin-15.2.0-x86_64-i386-64bit" or platform == "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty":
