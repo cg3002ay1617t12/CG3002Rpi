@@ -96,12 +96,12 @@ class PathFinder(object):
 			right = False
 			angle = 360 - angle
 
-		audio_string = 'From ' + str(from_name) + ' To Node ' + str(to_index) + ' ' + str(to_name) + ':'
+		audio_string = 'From, ' + str(from_name) + ' To Node, ' + str(to_index) + ',' + str(to_name) + ':'
 
 		if right:
-			audio_string += 'Turn Right ' + str(angle) + ' And Go ' + str(distance)
+			audio_string += 'Turn Right, ' + str(angle) + ' And Go, ' + str(distance)
 		else:
-			audio_string += 'Turn Left ' + str(angle) + ' And Go ' + str(distance)
+			audio_string += 'Turn Left, ' + str(angle) + ' And Go, ' + str(distance)
 
 		return audio_string
 
@@ -111,7 +111,7 @@ class PathFinder(object):
 
 		reached_name = self.__node_info[reached_index]['name']
 
-		audio_string = 'Reached Node ' +  str(reached_index) + ' ' + str(reached_name)
+		audio_string = 'Reached Node, ' +  str(reached_index) + ',' + str(reached_name)
 
 		return audio_string
 

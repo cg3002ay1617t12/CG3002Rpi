@@ -79,6 +79,7 @@ class App(object):
 		signal.signal(signal.SIGUSR1, serial_handler)
 
 	def issue_instruction(self, instr, placeholders=()):
+		""" Only issue instruction after interval"""
 		if (time.time() - self.start) > App.INSTRUCTION_INTERVAL:
 			self.aq.tts(instr, placeholders)
 			self.start = time.time()
@@ -148,6 +149,7 @@ class App(object):
 	def run(self):
 		""" Run forever and multiplex between the states """
 		while True:
+			print("running main")
 			if self.transit:
 				self.run_once_on_transition(self.userinput)
 			try:
@@ -165,6 +167,7 @@ class App(object):
 					pass
 				elif self.state is State.NAVIGATING:
 					# Do something, make sure its non-blocking
+					print("Navigating")
 					self.StepDetector.run()
 					if (self.StepDetector.curr_steps > 0):
 						self.aq.tts("Step detected")
@@ -246,7 +249,6 @@ def serial_handler(signum, frame, *args, **kwargs):
 		""" Run this if using the pi_comms protocol"""
 		(component_id, readings) = datum.split('~')
 		component_id = int(component_id)
-		print("Incoming serial data... from component %d" % component_id)
 		try:
 			if component_id == 1:
 				(a_x, a_y, a_z) = map(lambda x: x.strip('\0\r\n\t'), readings.split(','))
@@ -288,6 +290,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 		buffer_.append(data)
 		line_count -= 1
 	timer.cancel()
+	print("Incoming serial data... from component %d" % buffer_[0].split('~')[0])
 	if app.platform_ in app.platform_pi:
 		map(process_rpi, buffer_)
 	else:
