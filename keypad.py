@@ -142,28 +142,28 @@ send = ""
 # 	]
 ROW = [18,23,24,25] # G, H, J, K
 COL = [4,17,22] # D, E, F
-def action_on_transit(aq, val, action):
+def action_on_transit(val, action):
 	""" Do something upon transition to next state ONCE"""
 	global send
 	print("Action : "),
 	print(action)
 	
 	if action is Action.APPEND:
-		aq.tts(AFFIRMS[action], (val,))
+		tts(AFFIRMS[action], (val,))
 		send += str(val)
 		print(send)
 	elif action is Action.CLEAR:
-		aq.tts(AFFIRMS[action])
+		tts(AFFIRMS[action])
 		print(send)
 		clear_send()
 	elif action is Action.CONFIRM_START:
 		print(send)
-		aq.tts(AFFIRMS[action], (send,))
+		tts(AFFIRMS[action], (send,))
 		os.write(pipe_out, send + "\n")
 		os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.CONFIRM_END:
-		aq.tts(AFFIRMS[action], (send,))
+		tts(AFFIRMS[action], (send,))
 		print(send)
 		os.write(pipe_out, send + "\n")
 		os.kill(int(pid), signal.SIGUSR2)
@@ -193,13 +193,13 @@ def action_on_transit(aq, val, action):
 	# Issue prompts for all the transitions in current state
 	# for transition in State.transitions[state]:
 	# 	prompts.append(PROMPTS[transition])
-	# aq.tts(' '.join(prompts))
+	# 	tts(' '.join(prompts))
 
 def clear_send():
 	global send
 	send = ''
 
-def handler(aq, key):
+def handler(key):
 	# Construct key object
 	print("Key triggered : %s" % str(key.value))
 	global state
@@ -208,7 +208,7 @@ def handler(aq, key):
 			# Ensure that only one interrupt is processed at a time
 			lock.acquire()
 			(state, action) = State.transitions[state][transition]
-			action_on_transit(aq, key.value, action)
+			action_on_transit(key.value, action)
 		except KeyError as e:
 			pass
 		finally:
@@ -224,14 +224,6 @@ def setup():
 
 def run():
 	pass
-
-def start_audio_queue():
-	aq = AudioQueue()
-	for i in range(NUM_WORKERS):
-		t = Thread(target=aq.run)
-		t.daemon = True
-		t.start()
-	return aq
 
 def main():
 	MATRIX = {
@@ -257,7 +249,6 @@ def main():
 		}
 	}
 	setup()
-	aq = start_audio_queue()
 	try:
 		while(True):
 			for j in COL:
@@ -268,7 +259,7 @@ def main():
 							MATRIX[i][j] = True
 							time.sleep(0.1)
 							key = KEY((i, j))
-							handler(aq, key)
+							handler(key)
 						else:
 							# Key is already pressed
 							pass

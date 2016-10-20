@@ -20,7 +20,7 @@ class PiComms(object):
 	BAUD               = 115200
 	SERIAL_ADDRESS_MAC = '/dev/cu.usbmodem1411'
 	SERIAL_ADDRESS_RPI = '/dev/ttyAMA0'
-	SAMPLES_PER_PACKET = 25
+	SAMPLES_PER_PACKET = 10
 	CRC_POLY           = "100000111"
 
 	def __init__(self):

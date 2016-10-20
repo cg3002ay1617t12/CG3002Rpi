@@ -3,7 +3,7 @@ from step_detection import StepDetector
 import os, signal, sys, subprocess, shlex, time, json, threading, platform
 from fsm import *
 from localization import *
-from audio import AudioQueue
+from audio import tts
 from threading import Thread
 
 class App(object):
@@ -33,12 +33,6 @@ class App(object):
 		self.PathFinder   = PathFinder()
 		self.StepDetector = StepDetector(plot=plot)
 		self.Localization = Localization(x=0, y=0, north=self.PathFinder.get_angle_of_north(), plot=plot)
-		self.aq           = AudioQueue()
-		# Start audio queue workers
-		for i in range(1):
-			t = Thread(target=self.aq.run)
-			t.daemon = True
-			t.start()
 		# self.LPF = LocalPathFinder(mode='demo')
 
 		# Init environment and user-defined variables
@@ -81,7 +75,7 @@ class App(object):
 	def issue_instruction(self, instr, placeholders=()):
 		""" Only issue instruction after interval"""
 		if (time.time() - self.start) > App.INSTRUCTION_INTERVAL:
-			self.aq.tts(instr, placeholders)
+			tts(instr, placeholders)
 			self.start = time.time()
 
 	def wait_for_stable_heading(self):
@@ -104,13 +98,13 @@ class App(object):
 	def run_once_on_transition(self, userinput):
 		""" Run once upon transition to new state"""
 		if self.state is State.END:
-			self.aq.tts("Shutting down now")
+			tts("Shutting down now")
 			pass
 		elif self.state is State.ACCEPT_START:
-			self.aq.tts("Please enter start node")
+			tts("Please enter start node")
 			pass
 		elif self.state is State.ACCEPT_END:
-			self.aq.tts("Please enter end destination")
+			tts("Please enter end destination")
 			try:
 				self.curr_start_node = int(userinput)
 			except Exception as e:
@@ -122,7 +116,7 @@ class App(object):
 			self.update_steps()
 			pass
 		elif self.state is State.NAVIGATING:
-			self.aq.tts("Entering navigation state")
+			tts("Entering navigation state")
 			try:
 				self.curr_end_node = int(userinput)
 			except Exception as e:
@@ -133,12 +127,12 @@ class App(object):
 			self.update_steps()
 			pass
 		elif self.state is State.REACHED:
-			self.aq.tts("You have arrived!")
-			self.aq.tts(self.PathFinder.get_audio_reached(self.curr_end_node))
+			tts("You have arrived!")
+			tts(self.PathFinder.get_audio_reached(self.curr_end_node))
 			self.update_steps()
 			pass
 		elif self.state is State.RESET:
-			self.aq.tts("Resetting step counter and localization module")
+			tts("Resetting step counter and localization module")
 			self.StepDetector.reset_step()
 			self.Localization.reset()
 			pass
@@ -168,7 +162,7 @@ class App(object):
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
 					if (self.StepDetector.curr_steps > 0):
-						self.aq.tts("Step detected")
+						tts("Step detected")
 					self.Localization.run(self.StepDetector.curr_steps)
 					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
@@ -184,7 +178,7 @@ class App(object):
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
 					if (self.StepDetector.curr_steps > 0):
-						self.aq.tts("Step detected")
+						tts("Step detected")
 					self.Localization.run(self.StepDetector.curr_steps)
 					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
@@ -197,7 +191,7 @@ class App(object):
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
 					if (self.StepDetector.curr_steps > 0):
-						self.aq.tts("Step detected")
+						tts("Step detected")
 					self.Localization.run(self.StepDetector.curr_steps)
 					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
