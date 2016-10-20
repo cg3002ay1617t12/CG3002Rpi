@@ -189,9 +189,11 @@ def action_on_transit(aq, val, action):
 	else:
 		raise Exception("Unrecognized action!")
 	
+	prompts = []
 	# Issue prompts for all the transitions in current state
 	for transition in State.transitions[state]:
-			aq.tts(PROMPTS[transition])
+		prompts.append(PROMPTS[transition])
+	aq.tts(' '.join(prompts))
 
 def clear_send():
 	global send

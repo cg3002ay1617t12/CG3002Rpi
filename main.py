@@ -241,7 +241,6 @@ def serial_handler(signum, frame, *args, **kwargs):
 		""" Run this if using the pi_comms protocol"""
 		(component_id, readings) = datum.split('~')
 		component_id = int(component_id)
-		print(datum)
 		try:
 			if component_id == 1:
 				(a_x, a_y, a_z) = map(lambda x: x.strip('\0\r\n\t'), readings.split(','))
