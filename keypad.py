@@ -147,8 +147,6 @@ def action_on_transit(aq, val, action):
 	global send
 	print("Action : "),
 	print(action)
-	print "~~~~~~~~"
-	print ""
 	
 	if action is Action.APPEND:
 		aq.tts(AFFIRMS[action], (val,))
