@@ -242,7 +242,7 @@ def transition_handler(signum, frame, *args, **kwargs):
 def serial_handler(signum, frame, *args, **kwargs):
 	""" Handles all incoming sensor data and distribute to the relevant submodules"""
 	global app
-	# print("Incoming serial data...")
+	print("Incoming serial data...")
 	def process_rpi(datum):
 		""" Run this if using the pi_comms protocol"""
 		(component_id, readings) = datum.split('~')

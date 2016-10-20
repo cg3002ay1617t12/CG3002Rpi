@@ -125,6 +125,16 @@ class Localization(object):
 
 	def run(self, steps_taken):
 		direction = self.get_stabilized_bearing()
+		if direction == -1:
+			if (time.time() - self.start) > 5:
+				self.start = time.time()
+				print("Not receiving compass readings")
+		elif direction > 0:
+			if (time.time() - self.start) > 5:
+				self.start = time.time()
+				print("Waiting for compass to stabilize")
+		else:
+			pass
 		if direction > 0:
 			# Update stabilized bearing
 			self.stabilized_bearing = direction
@@ -135,10 +145,6 @@ class Localization(object):
 			print("%d steps taken in %.2f" % (steps_taken, direction))
 			# Update x, y
 			self.calculate_new_position(steps_taken, direction)
-		else:
-			if (time.time() - self.start) > 5:
-				self.start = time.time()
-				print("Waiting for compass readings to stabilize")
 		if self.is_plot:
 			# Update plot
 			if (time.time() - self.start) > 1/self.FPS:
