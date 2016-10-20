@@ -126,7 +126,11 @@ class PathFinder(object):
 
 	def get_coordinates_from_node(self, node):
 		node_info = self.__node_info[node]
-		return (node_info['x'], node_info['y'])
+		try:
+			return (node_info['x'], node_info['y'])
+		except KeyError as e:
+			print(e)
+			return (-1, -1)	
 
 	""" PRIVATE FUNCTION """
 
