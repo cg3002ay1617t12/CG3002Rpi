@@ -12,7 +12,7 @@ class Localization(object):
 	SAMPLES_PER_WINDOW    = 100
 	SAMPLES_PER_PACKET    = 25
 	SAMPLES_PER_SECOND    = 50
-	VARIANCE_THRES        = 50
+	VARIANCE_THRES        = 1000
 
 	def __init__(self, x=None, y=None, bearing=None, north=0, plot=False):
 		""" 
@@ -84,7 +84,7 @@ class Localization(object):
 	def get_stabilized_bearing(self):
 		""" Convert values above 350 to x - 360 and calculate variance, only return readings when variance is low enough"""
 		start = Localization.NUM_POINTS - Localization.SAMPLES_PER_PACKET
-		window = list(itertools.islice(self.bearing, start, None))
+		window = list(itertools.islice(self.heading, start, None))
 		window = map(lambda x: 360 - x if x > 350 else x, window)
 		var = np.var(window)
 		if var < Localization.VARIANCE_THRES:
