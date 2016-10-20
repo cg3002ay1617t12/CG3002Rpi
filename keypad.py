@@ -1,5 +1,5 @@
 from enum import Enum
-from audio import AudioQueue
+from audio import tts
 import RPi.GPIO as GPIO
 import time, os, signal, json, shlex, subprocess, threading
 from threading import Thread
