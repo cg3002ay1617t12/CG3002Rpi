@@ -149,7 +149,6 @@ class App(object):
 	def run(self):
 		""" Run forever and multiplex between the states """
 		while True:
-			print("running main")
 			if self.transit:
 				self.run_once_on_transition(self.userinput)
 			try:
@@ -167,7 +166,6 @@ class App(object):
 					pass
 				elif self.state is State.NAVIGATING:
 					# Do something, make sure its non-blocking
-					print("Navigating")
 					self.StepDetector.run()
 					if (self.StepDetector.curr_steps > 0):
 						self.aq.tts("Step detected")

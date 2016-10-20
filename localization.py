@@ -12,7 +12,7 @@ class Localization(object):
 	SAMPLES_PER_WINDOW    = 100
 	SAMPLES_PER_PACKET    = 25
 	SAMPLES_PER_SECOND    = 50
-	VARIANCE_THRES        = 1000
+	VARIANCE_THRES        = 10000
 
 	def __init__(self, x=None, y=None, bearing=None, north=0, plot=False):
 		""" 

@@ -207,7 +207,7 @@ class PiComms(object):
 					self.read_status = False
 
 			elif self.curr_mode == 8:
-				print("Handling Corrupt Packet")
+				# print("Handling Corrupt Packet")
 				self.curr_mode = 0
 				self.read_status = False
 		except TypeError as e:
