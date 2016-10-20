@@ -4,7 +4,7 @@ from Queue import Queue
 class AudioQueue(object):
 	def __init__(self, q=None):
 		if q is None:
-			self.q = Queue(maxsize=10)
+			self.q = Queue(maxsize=100)
 		else:
 			self.q = q
 
