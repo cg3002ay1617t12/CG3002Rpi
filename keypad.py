@@ -54,6 +54,7 @@ class KEY(object):
 			self.types.append(Transitions.KEY_INCR)
 		if self.value == 5:
 			self.types.append(Transitions.KEY_MUSIC)
+			self.types.append(Transitions.KEY_NAV)
 		if self.value == '*':
 			self.types.append(Transitions.KEY_STAR)
 		if self.value == '#':
