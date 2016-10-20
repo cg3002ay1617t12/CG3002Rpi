@@ -59,9 +59,9 @@ class App(object):
 		# Setting up IPC
 		self.master = True
 		self.state = State.START
-		# pipe_desc = os.open(App.DATA_PIPE, os.O_RDONLY)
+		pipe_desc = os.open(App.DATA_PIPE, os.O_RDONLY)
 		print("Starting data pipe...listening for serial comms...")
-		# self.data_pipe = os.fdopen(pipe_desc)
+		self.data_pipe = os.fdopen(pipe_desc)
 		print("Serial comms connected!")
 		pipe_desc = os.open(App.EVENT_PIPE, os.O_RDWR)
 		print("Starting event pipe...listening for keystrokes...")

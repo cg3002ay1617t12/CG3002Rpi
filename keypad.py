@@ -98,8 +98,8 @@ State.transitions = {
 		Transitions.KEY_INCR : (State.FFA, Action.INCR),
 		Transitions.KEY_DECR : (State.FFA, Action.DECR),
 		Transitions.KEY_HASH : (State.START, Action.NULL),
-		Transitions.KEY_STAR : (State.FFA, Action.QUIT),
-		Transitions.KEY_MUSIC : (State.FFA, Action.PLAY_MUSIC)
+		Transitions.KEY_STAR : (State.FFA, Action.QUIT)
+		# Transitions.KEY_MUSIC : (State.FFA, Action.PLAY_MUSIC)
 	}
 }
 

@@ -106,6 +106,7 @@ class PiComms(object):
 					time.sleep(5)
 					pass
 		except Exception as e:
+			print(e)
 			print("Terminated serial connection")
 			sys.exit(1)
 		try:
