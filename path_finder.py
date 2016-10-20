@@ -96,7 +96,8 @@ class PathFinder(object):
 			right = False
 			angle = 360 - angle
 
-		audio_string = 'From, ' + str(from_name) + ' To Node, ' + str(to_index) + ',' + str(to_name) + ':'
+		# audio_string = 'From, ' + str(from_name) + ' To Node, ' + str(to_index) + ',' + str(to_name) + ':'
+		audio_string = ""
 
 		if right:
 			audio_string += 'Turn Right, ' + str(angle) + ' And Go, ' + str(distance)
