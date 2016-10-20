@@ -166,6 +166,8 @@ class App(object):
 				elif self.state is State.NAVIGATING:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
+					if (self.StepDetector.curr_steps > 0):
+						self.aq.tts("Step detected")
 					self.Localization.run(self.StepDetector.curr_steps)
 					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
@@ -180,6 +182,8 @@ class App(object):
 				elif self.state is State.REACHED:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
+					if (self.StepDetector.curr_steps > 0):
+						self.aq.tts("Step detected")
 					self.Localization.run(self.StepDetector.curr_steps)
 					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
@@ -191,6 +195,8 @@ class App(object):
 				elif self.state is State.RESET:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
+					if (self.StepDetector.curr_steps > 0):
+						self.aq.tts("Step detected")
 					self.Localization.run(self.StepDetector.curr_steps)
 					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:

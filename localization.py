@@ -128,6 +128,8 @@ class Localization(object):
 		if direction > 0:
 			# Update stabilized bearing
 			self.stabilized_bearing = direction
+		else:
+			print("Waiting for compass readings to stabilize")
 		if self.new_data:
 			# Update incoming data
 			self.process_new_data()

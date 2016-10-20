@@ -1,7 +1,7 @@
 import json, requests, math, heapq, pprint
 
 class PathFinder(object):
-	def __init__(self, building='Com1', level='2'):
+	def __init__(self, building='Com1', level='1'):
 		self.__request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=' + str(building) + '&Level=' + str(level)
 
 		self.__wifi_radius = 150
