@@ -170,6 +170,7 @@ class App(object):
 					if (self.StepDetector.curr_steps > 0):
 						self.aq.tts("Step detected")
 					self.Localization.run(self.StepDetector.curr_steps)
+					#print ("main.py, run , bearing "+ str(self.Localization.stabilized_bearing))
 					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
 						self.issue_instruction(self.PathFinder.get_audio_reached(node))
@@ -219,11 +220,11 @@ app = App()
 def timeout_handler():
 	global app
 	try:
-		os.kill(int(app.serial_pid), signal.SIGUSR1)
+		#os.kill(int(app.serial_pid), signal.SIGUSR1)
 		print("triggered! %s" % app.serial_pid)
 	except Exception as e:
 		pass # Process may have terminated already
-	connect_picomms(platform=app.platform_)
+	#connect_picomms(platform=app.platform_)
 
 def transition_handler(signum, frame, *args, **kwargs):
 	""" Asynchronous event handler to trigger state transitions"""
@@ -254,7 +255,9 @@ def serial_handler(signum, frame, *args, **kwargs):
 				app.StepDetector.ay.append(float(a_y))
 				app.StepDetector.az.append(float(a_z))
 			if component_id == 2:
-				heading = readings.strip('\r\n').strip('\0\n\r\t')
+				#print ("main, serial_handler, readings " + readings)
+				#heading = readings.strip('\r\n').strip('\0\n\r\t')
+				heading = readings
 				app.Localization.heading.append(float(heading))
 			if component_id == 3:
 				(g_x, g_y, g_z) = map(lambda x: x.strip(' \0\r\n\t'), readings.split(','))
@@ -288,7 +291,6 @@ def serial_handler(signum, frame, *args, **kwargs):
 		buffer_.append(data)
 		line_count -= 1
 	timer.cancel()
-	print("Incoming serial data... from component %s" % buffer_[0].split('~')[0])
 	if app.platform_ in app.platform_pi:
 		map(process_rpi, buffer_)
 	else:

@@ -87,11 +87,11 @@ class Localization(object):
 		window = list(itertools.islice(self.heading, start, None))
 		window = map(lambda x: 360 - x if x > 350 else x, window)
 		var = np.var(window)
-		if var < Localization.VARIANCE_THRES:
-			return self.convert_to_positive(np.average(window))
-		else:
-			# special value to indicate unstable readings
-			return -1.0
+	#	if var < Localization.VARIANCE_THRES:
+		return self.convert_to_positive(np.average(window))
+	#	else:
+	#		# special value to indicate unstable readings
+	#		return -1.0
 
 	def convert_to_positive(self, deg):
 		""" Deg must be negative"""

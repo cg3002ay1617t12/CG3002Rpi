@@ -65,7 +65,7 @@ class PathFinder(object):
 
 		self.__update_shortest_path()
 
-		self.update_coordinate(self.__x_coordinate, self.__y_coordinate, self.__get_angle_wrt_north(self.__angle))
+		# self.update_coordinate(self.__x_coordinate, self.__y_coordinate, self.__get_angle_wrt_north(self.__angle))
 
 	def get_audio_next_instruction(self):
 		if self.__node_info == None:
