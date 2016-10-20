@@ -1,13 +1,12 @@
-import os
+import os, subprocess, shlex
 
-
-def tts(self, instruction, placeholders=(), verbose=True):
+def tts(instruction, placeholders=(), verbose=True):
 	""" Execute command, blocking"""
 	if verbose:
 		print("[INSTRUCTION] : "),
 		print(instruction % placeholders)
-	cmd = 'flite -t ' + ("\"" + instruction % placeholders + "\"")
-	os.system(cmd)
+	cmd = shlex.split('flite -t ' + "\"" + instruction % placeholders + "\"")
+	subprocess.Popen(cmd)
 
 if __name__ == "__main__":
 	tts("hello world")

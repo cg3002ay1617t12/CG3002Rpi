@@ -37,9 +37,9 @@ class KEY(object):
 		(23,22) : 7,
 		(23,17) : 8,
 		(23,4)  : 9,
-		(18,22) : '*',
+		(18,22) : '#',
 		(18,17) : 0,
-		(18,4)  : '#'
+		(18,4)  : '*'
 	}
 	def __init__(self, ports):
 		"""Takes a GPIO port_id and returns a KEY object with transition types and value"""
