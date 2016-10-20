@@ -290,7 +290,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 		buffer_.append(data)
 		line_count -= 1
 	timer.cancel()
-	print("Incoming serial data... from component %d" % buffer_[0].split('~')[0])
+	print("Incoming serial data... from component %s" % buffer_[0].split('~')[0])
 	if app.platform_ in app.platform_pi:
 		map(process_rpi, buffer_)
 	else:
