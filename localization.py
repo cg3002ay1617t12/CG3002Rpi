@@ -84,7 +84,7 @@ class Localization(object):
 	def get_stabilized_bearing(self):
 		""" Convert values above 350 to x - 360 and calculate variance, only return readings when variance is low enough"""
 		start = Localization.NUM_POINTS - Localization.SAMPLES_PER_PACKET
-		window = list(itertools.islice(self.heading, start, None))
+		window = list(itertools.islice(self.bearing, start, None))
 		window = map(lambda x: 360 - x if x > 350 else x, window)
 		var = np.var(window)
 		if var < Localization.VARIANCE_THRES:
@@ -129,12 +129,6 @@ class Localization(object):
 			if (time.time() - self.start) > 5:
 				self.start = time.time()
 				print("Not receiving compass readings")
-		elif direction > 0:
-			if (time.time() - self.start) > 5:
-				self.start = time.time()
-				print("Waiting for compass to stabilize")
-		else:
-			pass
 		if direction > 0:
 			# Update stabilized bearing
 			self.stabilized_bearing = direction

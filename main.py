@@ -9,7 +9,7 @@ from threading import Thread
 class App(object):
 	EVENT_PIPE = './event_pipe'
 	DATA_PIPE  = './data_pipe'
-	INSTRUCTION_INTERVAL = 5
+	INSTRUCTION_INTERVAL = 8
 	
 	def __init__(self):
 		self.platform_ = platform.platform()
@@ -127,8 +127,7 @@ class App(object):
 			self.update_steps()
 			pass
 		elif self.state is State.REACHED:
-			tts("You have arrived!")
-			tts(self.PathFinder.get_audio_reached(self.curr_end_node))
+			# self.curr_reached_node = self.PathFinder.get_audio_reached(self.curr_end_node)
 			self.update_steps()
 			pass
 		elif self.state is State.RESET:
@@ -166,7 +165,8 @@ class App(object):
 					self.Localization.run(self.StepDetector.curr_steps)
 					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
-						self.issue_instruction(self.PathFinder.get_audio_reached(node))
+						self.curr_reached_node = self.PathFinder.get_audio_reached(node)
+						self.issue_instruction(self.curr_reached_node)
 						# Transit to REACHED state
 						self.event_pipe.write("CHECKPOINT_REACHED\r\n")
 						os.kill(self.pid, signal.SIGUSR2)
@@ -184,7 +184,8 @@ class App(object):
 					if reached:
 						self.issue_instruction(self.PathFinder.get_audio_reached(node))
 					else:
-						self.issue_instruction(self.PathFinder.get_audio_next_instruction())
+						next_instr = self.PathFinder.get_audio_next_instruction()
+						self.issue_instruction("You have arrived! " + self.curr_reached_node + next_instr)
 					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.RESET:

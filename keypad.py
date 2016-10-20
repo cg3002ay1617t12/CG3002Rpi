@@ -24,6 +24,7 @@ class Transitions(Enum):
 	KEY_INCR  = 3
 	KEY_DECR  = 4
 	KEY_MUSIC = 5
+	KEY_NAV   = 6
 
 class KEY(object):
 	"""Contains GPIO -> value mapping"""
@@ -68,6 +69,7 @@ class Action(Enum):
 	INCR          = 7
 	DECR          = 8
 	PLAY_MUSIC    = 9
+	NAV           = 10
 
 State.transitions = {
 	State.START : {
@@ -98,6 +100,7 @@ State.transitions = {
 		Transitions.KEY_INCR : (State.FFA, Action.INCR),
 		Transitions.KEY_DECR : (State.FFA, Action.DECR),
 		Transitions.KEY_HASH : (State.START, Action.NULL),
+		Transitions.KEY_NAV  : (State.FFA, Action.NAV)
 		# Transitions.KEY_STAR : (State.FFA, Action.QUIT)
 		# Transitions.KEY_MUSIC : (State.FFA, Action.PLAY_MUSIC)
 	}
@@ -118,7 +121,8 @@ AFFIRMS = {
 	Action.CONFIRM_START : "your start destination is %s",
 	Action.CONFIRM_END : "your end destination is %s",
 	Action.NULL : "",
-	Action.QUIT : "Shutting down"
+	Action.QUIT : "Shutting down",
+	Action.NAV : ""
 }
 
 ENV                = json.loads(open(os.path.join(os.path.dirname(__file__), 'env.json')).read())
@@ -186,6 +190,9 @@ def action_on_transit(val, action):
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.NULL:
 		pass
+	elif action is Action.NAV:
+		os.write(pipe_out, "NAVIGATE\n")
+		os.kill(int(pid), signal.SIGUSR2)
 	else:
 		raise Exception("Unrecognized action!")
 	
