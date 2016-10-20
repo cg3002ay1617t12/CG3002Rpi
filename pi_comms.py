@@ -95,7 +95,7 @@ class PiComms(object):
 			print("Reopening serial port...")
 			while True:
 				try:
-					if self.platform_ == "Linux-4.4.13-v6+-armv6l-with-debian-8.0":
+					if self.platform_ in self.platform_pi:
 						self.ser.close()
 						self.ser = serial.Serial(port =PiComms.SERIAL_ADDRESS_RPI, baudrate = PiComms.BAUD, timeout = 3)
 					else:
@@ -218,7 +218,7 @@ class PiComms(object):
 			print(e)
 
 	def distribute_data(self):
-		print self.payload_final
+		# print self.payload_final
 		self._buffer[self.component_id].append(str(self.component_id) + '~' + str(self.clean_data(self.payload_final)) + '\r\n')
 		self.forward_data()
 

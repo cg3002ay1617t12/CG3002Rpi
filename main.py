@@ -236,6 +236,7 @@ def transition_handler(signum, frame, *args, **kwargs):
 def serial_handler(signum, frame, *args, **kwargs):
 	""" Handles all incoming sensor data and distribute to the relevant submodules"""
 	global app
+	print("Incoming serial data...")
 	def process_rpi(datum):
 		""" Run this if using the pi_comms protocol"""
 		(component_id, readings) = datum.split('~')
@@ -281,7 +282,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 		buffer_.append(data)
 		line_count -= 1
 	timer.cancel()
-	if app.platform_ == "Linux-4.4.13-v6+-armv6l-with-debian-8.0":
+	if app.platform_ in self.platform_pi:
 		map(process_rpi, buffer_)
 	else:
 		map(process_rpi, buffer_)
