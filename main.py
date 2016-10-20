@@ -282,7 +282,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 		buffer_.append(data)
 		line_count -= 1
 	timer.cancel()
-	if app.platform_ in self.platform_pi:
+	if app.platform_ in app.platform_pi:
 		map(process_rpi, buffer_)
 	else:
 		map(process_rpi, buffer_)
