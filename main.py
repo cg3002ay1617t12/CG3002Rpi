@@ -74,9 +74,7 @@ class App(object):
 
 	def issue_instruction(self, instr, placeholders=()):
 		""" Only issue instruction after interval"""
-		if (time.time() - self.start) > App.INSTRUCTION_INTERVAL:
-			tts(instr, placeholders)
-			self.start = time.time()
+		tts(instr, placeholders)
 
 	def wait_for_stable_heading(self):
 		""" Wait for a stable heading from compass to init PathFinder"""
@@ -96,7 +94,7 @@ class App(object):
 			pass
 
 	def get_instruction(self):
-		if self.transition is Transitions.KEY_GET_INSTR:
+		if self.transition in [Transitions.KEY_GET_INSTR, Transitions.KEY_DECR, Transitions.KEY_INCR]:
 			(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 			if reached:
 				self.curr_reached_node = self.PathFinder.get_audio_reached(node)
@@ -146,7 +144,7 @@ class App(object):
 			self.update_steps()
 			pass
 		elif self.state is State.NAVIGATING:
-			if self.transition is not Transitions.KEY_GET_INSTR:
+			if self.transition not in [Transitions.KEY_GET_INSTR, Transitions.KEY_INCR, Transitions.KEY_DECR]:
 				tts("Entering navigation state")
 			try:
 				self.curr_end_node = int(userinput)
