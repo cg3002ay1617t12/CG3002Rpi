@@ -75,20 +75,20 @@ class KEY(object):
 			self.types.append(Transitions.KEY_HASH)
 
 class Action(Enum):
-	START            = 0
-	APPEND           = 1
-	CLEAR            = 2
-	CONFIRM_START    = 3
-	CONFIRM_END      = 4
-	NULL             = 5
-	QUIT             = 6
-	INCR             = 7
-	DECR             = 8
-	PLAY_MUSIC       = 9
-	NAV              = 10
-	CONFIRM_BUILDING = 11
-	CONFIRM_LEVEL    = 12
-	DOWNLOAD_MAP     = 13
+	START            = 1
+	APPEND           = 2
+	CLEAR            = 3
+	CONFIRM_START    = 4
+	CONFIRM_END      = 5
+	NULL             = 6
+	QUIT             = 7
+	INCR             = 8
+	DECR             = 9
+	PLAY_MUSIC       = 10
+	NAV              = 11
+	CONFIRM_BUILDING = 12
+	CONFIRM_LEVEL    = 13
+	DOWNLOAD_MAP     = 14
 
 State.transitions = {
 	State.MAP_BUILDING  : {
