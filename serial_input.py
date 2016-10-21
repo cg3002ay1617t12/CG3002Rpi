@@ -4,8 +4,8 @@ ENV                = json.loads(open(os.path.join(os.path.dirname(__file__), 'en
 DATA_PIPE          = ENV["DATA_PIPE"]
 EVENT_PIPE         = ENV["EVENT_PIPE"]
 BAUD               = ENV["SERIAL_BAUD_RATE"]
-# SERIAL             = ENV["SERIAL_ADDRESS_RPI"]
-SERIAL             = ENV["SERIAL_ADDRESS_MAC"]
+SERIAL             = ENV["SERIAL_ADDRESS_RPI"]
+# SERIAL             = ENV["SERIAL_ADDRESS_MAC"]
 PID                = ENV["PID_FILE"]
 SAMPLES_PER_PACKET = ENV["STEP_SAMPLES_PER_PACKET"]
 

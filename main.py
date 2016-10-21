@@ -260,7 +260,7 @@ app = App()
 def timeout_handler():
 	global app
 	try:
-		#os.kill(int(app.serial_pid), signal.SIGUSR1)
+		os.kill(int(app.serial_pid), signal.SIGUSR1)
 		print("triggered! %s" % app.serial_pid)
 	except Exception as e:
 		pass # Process may have terminated already
@@ -356,8 +356,8 @@ def connect_keypad(platform=None):
 def connect_picomms(platform=None):
 	print("Connecting with Arduino...")
 	if platform in ["Linux-4.4.13-v6+-armv6l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"] :
-		cmd     = "python pi_comms.py"
-		# cmd     = "python serial_input.py"
+		# cmd     = "python pi_comms.py"
+		cmd     = "python serial_input.py"
 	elif platform == "Darwin-15.2.0-x86_64-i386-64bit" or platform == "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty":
 		# cmd     = "python serial_input.py"
 		cmd     = "python pi_comms.py"
