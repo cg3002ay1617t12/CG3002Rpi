@@ -17,7 +17,7 @@ class PriorityQueue:
 class PiComms(object):
 
 	DATA_PIPE          = './data_pipe'
-	BAUD               = 115200
+	BAUD               = 9600
 	SERIAL_ADDRESS_MAC = '/dev/cu.usbmodem1411'
 	SERIAL_ADDRESS_RPI = '/dev/ttyAMA0'
 	SAMPLES_PER_PACKET = 10
@@ -128,7 +128,7 @@ class PiComms(object):
 					self.curr_mode = 2
 				else:
 					self.curr_mode = 8
-					print("CORRUPT")
+					print("CORRUPT1")
 		
 			elif self.curr_mode == 2 :
 				self.incoming_byte = ord(self.incoming_byte)
@@ -139,7 +139,7 @@ class PiComms(object):
 					self.curr_mode = 3 
 				else:
 					self.curr_mode = 8
-					print("CORRUPT")
+					print("CORRUPT2")
 
 			elif self.curr_mode == 3 :
 				self.incoming_byte = ord(self.incoming_byte)
@@ -151,7 +151,7 @@ class PiComms(object):
 					self.data_index = self.payload_length
 				else:
 					self.curr_mode = 8
-					print("CORRUPT")
+					print("CORRUPT3")
 			
 			elif self.curr_mode == 5 :
 				# print("receiving payload")
@@ -178,14 +178,14 @@ class PiComms(object):
 						self.curr_mode = 7
 				else:
 					self.curr_mode = 8 
-					print("CORRUPT")
+					print("CORRUPT6")
 
 			elif self.curr_mode == 7:
 				self.incoming_byte = ord(self.incoming_byte)
 				# print("Terminate")
 				if self.incoming_byte != 62 :
 					self.curr_mode = 8
-					print("CORRUPT")
+					print("CORRUPT7")
 					self.read_status = False
 				else:
 					# print("Successfully")
@@ -196,7 +196,9 @@ class PiComms(object):
 					# print ("String sent to buffer:") 
 					# print(self.component_id)
 					# print("~")
-					# print(str(self.payload_final)),
+					#if self.component_id == 2:
+						#print("pi_comms, buff length " +str(len(self._buffer[2])))
+						#print("pi_comms, payload_final " +  str(self.payload_final))
 					if self.packet_type ==1 or self.packet_type ==6:
 						self.handling_packets()
 					self.read_status = False
@@ -208,6 +210,7 @@ class PiComms(object):
 		except TypeError as e:
 			# Most likely is ord() expected a character, but a string of length 0 found, arduino wiring might be loose
 			# self.aq.tts("Gee Gee Dot com dot ass gee")
+			print e
 			print("[ERROR] Check connection with Arduino... Reset when ready")
 		except Exception as e:
 			print(e)
@@ -220,6 +223,7 @@ class PiComms(object):
 	def forward_data(self):
 		if len(self._buffer[self.component_id]) > 0 and len(self._buffer[self.component_id]) % PiComms.SAMPLES_PER_PACKET == 0:
 			datastream = ''.join(self._buffer[self.component_id])
+			#print  self._buffer[self.component_id]
 			os.write(self.pipe_out, datastream)
 			os.kill(int(self.pid), signal.SIGUSR1) # Raise SIGUSR1 signal
 			self._buffer[self.component_id] = []

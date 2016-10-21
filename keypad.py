@@ -178,6 +178,7 @@ pid      = fpid.read()
 lock  = threading.Lock()
 state = State.MAP_BUILDING
 send = ""
+
 def action_on_transit(val, action):
 	""" Do something upon transition to next state ONCE"""
 	global send
@@ -257,7 +258,7 @@ def action_on_transit(val, action):
 	# Issue prompts for all the transitions in current state
 	# for transition in State.transitions[state]:
 	# 	prompts.append(PROMPTS[transition])
-	# 	tts(' '.join(prompts))
+	#   tts(' '.join(prompts))
 
 def clear_send():
 	global send

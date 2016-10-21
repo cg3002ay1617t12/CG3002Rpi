@@ -30,7 +30,7 @@ class App(object):
 			plot = False
 		else:
 			plot = False
-		self.PathFinder   = PathFinder()
+		self.PathFinder   = PathFinder(1, 1)
 		self.StepDetector = StepDetector(plot=plot)
 		self.Localization = Localization(x=0, y=0, north=self.PathFinder.get_angle_of_north(), plot=plot)
 		# self.LPF = LocalPathFinder(mode='demo')
@@ -166,6 +166,8 @@ class App(object):
 			pass
 		elif self.state is State.REACHED:
 			# self.curr_reached_node = self.PathFinder.get_audio_reached(self.curr_end_node)
+			tts("You have arrived!")
+			tts(self.PathFinder.get_audio_reached(self.curr_end_node))
 			self.update_steps()
 			self.get_instruction()
 			pass
@@ -259,11 +261,11 @@ app = App()
 def timeout_handler():
 	global app
 	try:
-		os.kill(int(app.serial_pid), signal.SIGUSR1)
+		#os.kill(int(app.serial_pid), signal.SIGUSR1)
 		print("triggered! %s" % app.serial_pid)
 	except Exception as e:
 		pass # Process may have terminated already
-	connect_picomms(platform=app.platform_)
+	#connect_picomms(platform=app.platform_)
 
 def transition_handler(signum, frame, *args, **kwargs):
 	""" Asynchronous event handler to trigger state transitions"""
@@ -294,7 +296,9 @@ def serial_handler(signum, frame, *args, **kwargs):
 				app.StepDetector.ay.append(float(a_y))
 				app.StepDetector.az.append(float(a_z))
 			if component_id == 2:
+				#print ("main, serial_handler, readings " + readings)
 				heading = readings.strip('\r\n').strip('\0\n\r\t')
+				heading = readings
 				app.Localization.heading.append(float(heading))
 			if component_id == 3:
 				(g_x, g_y, g_z) = map(lambda x: x.strip(' \0\r\n\t'), readings.split(','))
@@ -328,12 +332,12 @@ def serial_handler(signum, frame, *args, **kwargs):
 		buffer_.append(data)
 		line_count -= 1
 	timer.cancel()
-	print("Incoming serial data... from component %s" % buffer_[0].split('~')[0])
 	if app.platform_ in app.platform_pi:
 		map(process_rpi, buffer_)
 	else:
 		map(process_rpi, buffer_)
 		# map(process_laptop, buffer_)
+	print("Incoming serial data from component %s" % buffer_[0].split('~')[0])
 	app.StepDetector.new_data = True
 	app.Localization.new_data = True
 
