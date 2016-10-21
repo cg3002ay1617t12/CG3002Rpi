@@ -106,7 +106,7 @@ State.transitions = {
 	State.MAP_LEVEL : {
 		Transitions.KEY_DIGIT : (State.MAP_LEVEL, Action.APPEND),
 		Transitions.KEY_HASH  : (State.MAP_LEVEL, Action.CLEAR),
-		Transitions.KEY_STAR : (State.START, Action.START)
+		Transitions.KEY_STAR : (State.START, Action.CONFIRM_LEVEL)
 	},
 	State.START : {
 		Transitions.KEY_DIGIT : (State.START_1, Action.APPEND),
