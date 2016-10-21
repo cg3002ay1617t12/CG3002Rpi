@@ -155,8 +155,7 @@ class App(object):
 				self.curr_end_node = int(userinput)
 			except Exception as e:
 				pass
-			if self.transition is Transitions.KEY_NODE:
-				self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
+			self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
 			print("Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
 			print("Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 			self.update_steps()

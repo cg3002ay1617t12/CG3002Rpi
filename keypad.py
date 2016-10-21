@@ -30,6 +30,7 @@ class Transitions(Enum):
 	KEY_MAP   = 7
 	KEY_INSTR = 8
 	KEY_PREV  = 9
+	KEY_WAI   = 10
 
 # MATRIX = [
 # 	[1,2,3],    (25,22), (25,17), (25,4)
@@ -77,6 +78,8 @@ class KEY(object):
 			self.types.append(Transitions.KEY_INSTR)
 		if self.value == 4:
 			self.types.append(Transitions.KEY_PREV)
+		if self.value == 6:
+			self.types.append(Transitions.KEY)
 
 class Action(Enum):
 	START            = 1
@@ -258,7 +261,7 @@ def action_on_transit(val, action):
 		os.kill(int(pid), signal.SIGUSR2)
 		pass
 	elif action is Action.GET_PREV:
-		os.write(pipe, "GET_PREV\n")
+		os.write(pipe_out, "GET_PREV\n")
 		os.kill(int(pid), signal.SIGUSR2)
 	else:
 		raise Exception("Unrecognized action!")
