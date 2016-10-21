@@ -61,6 +61,8 @@ class PathFinder(object):
 		self.__source = source
 		self.__target = target
 
+		# self.__visited_nodes = []
+
 		self.__update_shortest_path()
 
 		# self.update_coordinate(self.__x_coordinate, self.__y_coordinate, self.__get_angle_wrt_north(self.__angle))
@@ -131,11 +133,11 @@ class PathFinder(object):
 			print(e)
 			return (None, None)
 
-	def get_last_visited_node(self):
+	def get_prev_visited_node(self):
 		if self.__visited_nodes:
 			return self.__visited_nodes[-1]
 		else:
-			return None
+			return "None"
 
 	""" PRIVATE FUNCTION """
 	def __is_reached(self, node_index, user_x, user_y):

@@ -155,7 +155,8 @@ class App(object):
 				self.curr_end_node = int(userinput)
 			except Exception as e:
 				pass
-			self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
+			if self.transition is Transitions.KEY_NODE:
+				self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
 			print("Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
 			print("Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 			self.update_steps()
@@ -173,6 +174,8 @@ class App(object):
 			pass
 		else:
 			pass
+		if self.transition is Transitions.KEY_GET_PREV:
+			tts("Your previous visited node is : " + self.PathFinder.get_prev_visited_node())
 		self.transit = False
 
 	def run(self):
@@ -273,7 +276,8 @@ def transition_handler(signum, frame, *args, **kwargs):
 		app.state      = State.transitions[app.state][transition]
 		app.transit    = True
 		app.userinput  = userinput
-		app.transition = transition
+		app.
+		 = transition
 		print(app.state)
 	except KeyError as e:
 		pass

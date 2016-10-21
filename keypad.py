@@ -29,6 +29,7 @@ class Transitions(Enum):
 	KEY_NAV   = 6
 	KEY_MAP   = 7
 	KEY_INSTR = 8
+	KEY_PREV  = 9
 
 # MATRIX = [
 # 	[1,2,3],    (25,22), (25,17), (25,4)
@@ -74,6 +75,8 @@ class KEY(object):
 			self.types.append(Transitions.KEY_HASH)
 		if self.value == 0:
 			self.types.append(Transitions.KEY_INSTR)
+		if self.value == 4:
+			self.types.append(Transitions.KEY_PREV)
 
 class Action(Enum):
 	START            = 1
@@ -91,6 +94,7 @@ class Action(Enum):
 	CONFIRM_LEVEL    = 13
 	DOWNLOAD_MAP     = 14
 	GET_INSTR        = 15
+	GET_PREV         = 16
 
 State.transitions = {
 	State.MAP_BUILDING  : {
@@ -133,7 +137,8 @@ State.transitions = {
 		Transitions.KEY_HASH : (State.START, Action.START),
 		Transitions.KEY_NAV  : (State.FFA, Action.NAV),
 		Transitions.KEY_STAR  : (State.MAP_BUILDING, Action.DOWNLOAD_MAP),
-		Transitions.KEY_INSTR : (State.FFA, Action.GET_INSTR)
+		Transitions.KEY_INSTR : (State.FFA, Action.GET_INSTR),
+		Transitions.KEY_PREV : (State.FFA, Action.GET_PREV)
 		# Transitions.KEY_STAR : (State.FFA, Action.QUIT)
 		# Transitions.KEY_MUSIC : (State.FFA, Action.PLAY_MUSIC)
 	}
@@ -160,7 +165,8 @@ AFFIRMS = {
 	Action.QUIT : "Shutting down",
 	Action.NAV : "",
 	Action.DOWNLOAD_MAP : "Downloading new map, please enter building followed by level",
-	Action.GET_INSTR : ""
+	Action.GET_INSTR : "",
+	Action.GET_PREV : ""
 }
 
 ALLOWED_BUILDINGS  = [1,2]
@@ -251,6 +257,9 @@ def action_on_transit(val, action):
 		os.write(pipe_out, "GET_INSTR\n")
 		os.kill(int(pid), signal.SIGUSR2)
 		pass
+	elif action is Action.GET_PREV:
+		os.write(pipe, "GET_PREV\n")
+		os.kill(int(pid), signal.SIGUSR2)
 	else:
 		raise Exception("Unrecognized action!")
 	

@@ -121,6 +121,7 @@ class StepDetector(object):
 	def incr_step(self):
 		""" Need to take another step forward in the last recorded bearing"""
 		self.total_steps += 1
+		self.curr_steps = 1
 
 	def setup_comm(self):
 		pid = os.getpid()
