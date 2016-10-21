@@ -238,6 +238,7 @@ def action_on_transit(val, action):
 	elif action is Action.NAV:
 		# os.write(pipe_out, "NAVIGATE\n")
 		# os.kill(int(pid), signal.SIGUSR2)
+		pass
 	else:
 		raise Exception("Unrecognized action!")
 	
