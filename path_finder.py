@@ -182,7 +182,6 @@ class PathFinder(object):
 		request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=' + str(building_name) + '&Level=' + str(level)
 
 		try:
-			a = 5 / 0
 			request_info = requests.get(request_url)
 			request_info = request_info.text
 
