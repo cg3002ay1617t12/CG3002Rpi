@@ -208,7 +208,7 @@ def action_on_transit(val, action):
 		print(send)
 		# os.write(pipe_out, send + "\n")
 		# os.kill(int(pid), signal.SIGUSR2)
-		clear_send()	
+		clear_send()
 	elif action is Action.CONFIRM_START:
 		print(send)
 		tts(AFFIRMS[action], (send,))
@@ -242,6 +242,9 @@ def action_on_transit(val, action):
 	elif action is Action.NAV:
 		# os.write(pipe_out, "NAVIGATE\n")
 		# os.kill(int(pid), signal.SIGUSR2)
+		pass
+	elif action is Action.START:
+		tts(AFFIRMS[action])
 		pass
 	else:
 		raise Exception("Unrecognized action!")
