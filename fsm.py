@@ -72,7 +72,7 @@ class State(Enum):
 		return None
 
 State.transitions = {
-	State.START: {
+	State.ACCEPT: {
 		Transitions.SW_READY : State.ACCEPT_BUILDING
 	},
 	State.ACCEPT_BUILDING : {

@@ -166,7 +166,7 @@ class App(object):
 					self.Localization.run(self.StepDetector.curr_steps)
 					pass
 				elif self.state is State.ACCEPT_LEVEL:
-					self.Localization.run(self.StepDetetor.curr_steps)
+					self.Localization.run(self.StepDetector.curr_steps)
 					pass
 				elif self.state is State.ACCEPT_START:
 					# Do something, make sure its non-blocking
