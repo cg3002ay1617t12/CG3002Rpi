@@ -53,10 +53,10 @@ class App(object):
 		# Setting up IPC
 		self.master = True
 		self.state = State.START
-		# pipe_desc = os.open(App.DATA_PIPE, os.O_RDONLY)
-		# print("Starting data pipe...listening for serial comms...")
-		# self.data_pipe = os.fdopen(pipe_desc)
-		# print("Serial comms connected!")
+		pipe_desc = os.open(App.DATA_PIPE, os.O_RDONLY)
+		print("Starting data pipe...listening for serial comms...")
+		self.data_pipe = os.fdopen(pipe_desc)
+		print("Serial comms connected!")
 		pipe_desc = os.open(App.EVENT_PIPE, os.O_RDWR)
 		print("Starting event pipe...listening for keystrokes...")
 		self.event_pipe = os.fdopen(pipe_desc, 'w+')
@@ -95,6 +95,20 @@ class App(object):
 		else:
 			pass
 
+	def get_instruction(self):
+		if self.transition is Transitions.KEY_GET_INSTR:
+			(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+			if reached:
+				self.curr_reached_node = self.PathFinder.get_audio_reached(node)
+				self.issue_instruction(self.curr_reached_node)
+				# Transit to REACHED state
+				self.event_pipe.write("CHECKPOINT_REACHED\r\n")
+				os.kill(self.pid, signal.SIGUSR2)
+			else:
+				self.issue_instruction(self.PathFinder.get_audio_next_instruction())
+		else:
+			pass
+
 	def run_once_on_transition(self, userinput):
 		""" Run once upon transition to new state"""
 		if self.state is State.END:
@@ -115,6 +129,7 @@ class App(object):
 			try:
 				self.level = int(userinput)
 				self.PathFinder = PathFinder(building=self.building, level=self.level)
+				print(self.PathFinder._PathFinder__node_info)
 			except Exception as e:
 				print e
 			pass
@@ -131,7 +146,8 @@ class App(object):
 			self.update_steps()
 			pass
 		elif self.state is State.NAVIGATING:
-			tts("Entering navigation state")
+			if self.transition is not Transitions.KEY_GET_INSTR:
+				tts("Entering navigation state")
 			try:
 				self.curr_end_node = int(userinput)
 			except Exception as e:
@@ -140,10 +156,12 @@ class App(object):
 			print("Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
 			print("Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 			self.update_steps()
+			self.issue_instruction()
 			pass
 		elif self.state is State.REACHED:
 			# self.curr_reached_node = self.PathFinder.get_audio_reached(self.curr_end_node)
 			self.update_steps()
+			self.issue_instruction()
 			pass
 		elif self.state is State.RESET:
 			tts("Resetting step counter and localization module")
@@ -181,45 +199,45 @@ class App(object):
 				elif self.state is State.NAVIGATING:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
+					self.Localization.run(self.StepDetector.curr_steps)
 					if (self.StepDetector.curr_steps > 0):
 						tts("Step detected")
-					self.Localization.run(self.StepDetector.curr_steps)
-					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
-					if reached:
-						self.curr_reached_node = self.PathFinder.get_audio_reached(node)
-						self.issue_instruction(self.curr_reached_node)
-						# Transit to REACHED state
-						self.event_pipe.write("CHECKPOINT_REACHED\r\n")
-						os.kill(self.pid, signal.SIGUSR2)
-					else:
-						self.issue_instruction(self.PathFinder.get_audio_next_instruction())
+						(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+						if reached:
+							self.curr_reached_node = self.PathFinder.get_audio_reached(node)
+							self.issue_instruction(self.curr_reached_node)
+							# Transit to REACHED state
+							self.event_pipe.write("CHECKPOINT_REACHED\r\n")
+							os.kill(self.pid, signal.SIGUSR2)
+						else:
+							self.issue_instruction(self.PathFinder.get_audio_next_instruction())
 					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.REACHED:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
+					self.Localization.run(self.StepDetector.curr_steps)
 					if (self.StepDetector.curr_steps > 0):
 						tts("Step detected")
-					self.Localization.run(self.StepDetector.curr_steps)
-					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
-					if reached:
-						self.issue_instruction(self.PathFinder.get_audio_reached(node))
-					else:
-						next_instr = self.PathFinder.get_audio_next_instruction()
-						self.issue_instruction("You have arrived! " + self.curr_reached_node + next_instr)
+						(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+						if reached:
+							self.issue_instruction(self.PathFinder.get_audio_reached(node))
+						else:
+							next_instr = self.PathFinder.get_audio_next_instruction()
+							self.issue_instruction("You have arrived! " + self.curr_reached_node + next_instr)
 					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.RESET:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
+					self.Localization.run(self.StepDetector.curr_steps)
 					if (self.StepDetector.curr_steps > 0):
 						tts("Step detected")
-					self.Localization.run(self.StepDetector.curr_steps)
-					(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
-					if reached:
-						self.issue_instruction(self.PathFinder.get_audio_reached(node))
-					else:
-						self.issue_instruction(self.PathFinder.get_audio_next_instruction())
+						(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+						if reached:
+							self.issue_instruction(self.PathFinder.get_audio_reached(node))
+						else:
+							self.issue_instruction(self.PathFinder.get_audio_next_instruction())
 					self.StepDetector.curr_steps = 0
 					pass
 				else:
@@ -348,7 +366,7 @@ def main():
 	if os.fork() == 0:
 		# Child processes
 		signal.signal(signal.SIGALRM, timeout_handler)
-		# p1 = connect_picomms(platform_)
+		p1 = connect_picomms(platform_)
 		p2 = connect_keypad(platform_)
 		fpid = open('./keypad_pid', 'w')
 		fpid.write(str(p2.pid))

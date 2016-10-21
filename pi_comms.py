@@ -27,11 +27,6 @@ class PiComms(object):
 		self.platform_               = platform.platform()
 		self.ENV                     = json.loads(open(os.path.join(os.path.dirname(__file__), 'env.json')).read())
 		self.pq                      = PriorityQueue()
-		# self.aq                      = AudioQueue()
-		# for i in range(1):
-		# 	t = Thread(target=self.aq.run)
-		# 	t.daemon = True
-		# 	t.start()
 		self.curr_mode               = 0
 		self.packet_type             = 0 #ACK or HELLO or DATA 
 		self.component_id            = 0
