@@ -45,7 +45,6 @@ class App(object):
 			self.Localization.stride           = self.ENV["STRIDE_LENGTH"]
 			App.DATA_PIPE                      = self.ENV['DATA_PIPE']
 			App.EVENT_PIPE                     = self.ENV['EVENT_PIPE']
-			# print(self.env)
 		except Exception as e:
 			print("Environment file not found, using defaults instead")
 		
@@ -109,6 +108,7 @@ class App(object):
 
 	def run_once_on_transition(self, userinput):
 		""" Run once upon transition to new state"""
+		time.sleep(0.5)
 		if self.state is State.END:
 			tts("Shutting down now")
 			pass
@@ -135,7 +135,7 @@ class App(object):
 				print(e)
 			pass
 		elif self.state is State.ACCEPT_END:
-			tts("Please enter end destination")
+		tts("Please enter end destination")
 			try:
 				self.curr_start_node = int(userinput)
 			except Exception as e:
@@ -264,7 +264,7 @@ def timeout_handler():
 		print("triggered! %s" % app.serial_pid)
 	except Exception as e:
 		pass # Process may have terminated already
-	#connect_picomms(platform=app.platform_)
+	connect_picomms(platform=app.platform_)
 
 def transition_handler(signum, frame, *args, **kwargs):
 	""" Asynchronous event handler to trigger state transitions"""
@@ -295,7 +295,6 @@ def serial_handler(signum, frame, *args, **kwargs):
 				app.StepDetector.ay.append(float(a_y))
 				app.StepDetector.az.append(float(a_z))
 			if component_id == 2:
-				#print ("main, serial_handler, readings " + readings)
 				heading = readings.strip('\r\n').strip('\0\n\r\t')
 				heading = readings
 				app.Localization.heading.append(float(heading))
@@ -336,7 +335,9 @@ def serial_handler(signum, frame, *args, **kwargs):
 	else:
 		map(process_laptop, buffer_)
 		# map(process_laptop, buffer_)
-	print("Incoming serial data from Arduino")
+	if time.time() - app.start > 5:
+		print("Incoming serial data from Arduino")
+		app.start = time.time()
 	app.StepDetector.new_data = True
 	app.Localization.new_data = True
 
