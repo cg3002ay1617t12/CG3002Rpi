@@ -100,15 +100,30 @@ class App(object):
 		if self.state is State.END:
 			tts("Shutting down now")
 			pass
+		elif self.state is State.ACCEPT_BUILDING:
+			tts("Please enter building")
+			pass
+		elif self.state is State.ACCEPT_LEVEL:
+			tts("Please enter level")
+			try:
+				self.building = int(userinput)
+			except Exception as e:
+				print e
+			pass
 		elif self.state is State.ACCEPT_START:
 			tts("Please enter start node")
+			try:
+				self.level = int(userinput)
+				self.PathFinder(building=self.building, level=self.level)
+			except Exception as e:
+				print e
 			pass
 		elif self.state is State.ACCEPT_END:
 			tts("Please enter end destination")
 			try:
 				self.curr_start_node = int(userinput)
 			except Exception as e:
-				pass
+				print e
 			(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
 			bearing = self.Localization.stabilized_bearing
 			self.PathFinder.update_coordinate(x, y, bearing)
@@ -147,6 +162,12 @@ class App(object):
 			try:
 				if self.state is State.END:
 					break
+				elif self.state is State.ACCEPT_BUILDING:
+					self.Localization.run(self.StepDetector.curr_steps)
+					pass
+				elif self.state is State.ACCEPT_LEVEL:
+					self.Localization.run(self.StepDetetor.curr_steps)
+					pass
 				elif self.state is State.ACCEPT_START:
 					# Do something, make sure its non-blocking
 					self.Localization.run(self.StepDetector.curr_steps)
