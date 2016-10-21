@@ -78,7 +78,7 @@ State.transitions = {
 	State.ACCEPT_BUILDING : {
 		Transitions.KEY_NODE : State.ACCEPT_LEVEL,
 		Transitions.KEY_DECR : State.ACCEPT_BUILDING,
-		Transitions.KEY_INCR : State.ACCEPT_BULDING,
+		Transitions.KEY_INCR : State.ACCEPT_BUILDING,
 		Transitions.KEY_SHUTDOWN : State.END
 	},
 	State.ACCEPT_LEVEL : {
