@@ -332,9 +332,9 @@ def serial_handler(signum, frame, *args, **kwargs):
 		line_count -= 1
 	timer.cancel()
 	if app.platform_ in app.platform_pi:
-		map(process_rpi, buffer_)
+		map(process_laptop, buffer_)
 	else:
-		map(process_rpi, buffer_)
+		map(process_laptop, buffer_)
 		# map(process_laptop, buffer_)
 	print("Incoming serial data from component %s" % buffer_[0].split('~')[0])
 	app.StepDetector.new_data = True
