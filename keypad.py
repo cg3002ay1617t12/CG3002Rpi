@@ -75,6 +75,7 @@ class KEY(object):
 			self.types.append(Transitions.KEY_HASH)
 
 class Action(Enum):
+	START            = 0
 	APPEND           = 1
 	CLEAR            = 2
 	CONFIRM_START    = 3
@@ -131,7 +132,7 @@ State.transitions = {
 	State.FFA : {
 		Transitions.KEY_INCR : (State.FFA, Action.INCR),
 		Transitions.KEY_DECR : (State.FFA, Action.DECR),
-		Transitions.KEY_HASH : (State.START, Action.NULL),
+		Transitions.KEY_HASH : (State.START, Action.START),
 		Transitions.KEY_NAV  : (State.FFA, Action.NAV),
 		Transitions.KEY_STAR  : (State.MAP_BUILDING, Action.DOWNLOAD_MAP)
 		# Transitions.KEY_STAR : (State.FFA, Action.QUIT)
@@ -149,18 +150,21 @@ PROMPTS = {
 }
 
 AFFIRMS = {
+	Action.START: "Please enter a new start destination",
 	Action.APPEND: "you have entered %s",
 	Action.CLEAR : "cleared all input",
 	Action.CONFIRM_START : "your start destination is %s",
 	Action.CONFIRM_END : "your end destination is %s",
-	Action.CONFIRM_BUILDING : "your building is %s",
+	Action.CONFIRM_BUILDING : "your building is COM %s",
 	Action.CONFIRM_LEVEL : "your level is %s",
 	Action.NULL : "",
 	Action.QUIT : "Shutting down",
 	Action.NAV : "",
-	Action.DOWNLOAD_MAP : "Downloading new map"
+	Action.DOWNLOAD_MAP : "Downloading new map, please enter building followed by level"
 }
 
+ALLOWED_BUILDINGS  = [1,2]
+ALLOWED_LEVELS     = [1,2]
 ENV                = json.loads(open(os.path.join(os.path.dirname(__file__), 'env.json')).read())
 EVENT_PIPE         = ENV["EVENT_PIPE"]
 PID                = ENV["PID_FILE"]
