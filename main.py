@@ -30,7 +30,7 @@ class App(object):
 			plot = False
 		else:
 			plot = False
-		self.PathFinder   = PathFinder()
+		self.PathFinder   = PathFinder(1, 1)
 		self.StepDetector = StepDetector(plot=plot)
 		self.Localization = Localization(x=0, y=0, north=self.PathFinder.get_angle_of_north(), plot=plot)
 		self.aq           = AudioQueue()
