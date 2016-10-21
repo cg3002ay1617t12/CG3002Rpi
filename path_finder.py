@@ -125,8 +125,8 @@ class PathFinder(object):
 		return self.__y_coordinate
 
 	def get_coordinates_from_node(self, node):
-		node_info = self.__node_info[node]
 		try:
+			node_info = self.__node_info[node]
 			return (node_info['x'], node_info['y'])
 		except KeyError as e:
 			print(e)
