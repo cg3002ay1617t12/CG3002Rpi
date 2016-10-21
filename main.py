@@ -9,7 +9,7 @@ from threading import Thread
 class App(object):
 	EVENT_PIPE = './event_pipe'
 	DATA_PIPE  = './data_pipe'
-	INSTRUCTION_INTERVAL = 5
+	INSTRUCTION_INTERVAL = 8
 	
 	def __init__(self):
 		self.platform_ = platform.platform()
