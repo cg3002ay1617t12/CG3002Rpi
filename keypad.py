@@ -187,7 +187,7 @@ PID                = ENV["PID_FILE"]
 if not os.path.exists(EVENT_PIPE):
 	os.mkfifo(EVENT_PIPE)
 
-# pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
+pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
 fpid     = open(PID, 'r')
 pid      = fpid.read()
 lock  = threading.Lock()
@@ -210,53 +210,53 @@ def action_on_transit(val, action):
 	elif action is Action.DOWNLOAD_MAP:
 		tts(AFFIRMS[action])
 		print(send)
-		# os.write(pipe_out, "DOWNLOAD_MAP" + "\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, "DOWNLOAD_MAP" + "\n")
+		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.CONFIRM_BUILDING:
 		tts(AFFIRMS[action], (send,))
 		print(send)
-		# os.write(pipe_out, send + "\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, send + "\n")
+		os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.CONFIRM_LEVEL:
 		tts(AFFIRMS[action], (send,))
 		print(send)
-		# os.write(pipe_out, send + "\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, send + "\n")
+		os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.CONFIRM_START:
 		print(send)
 		tts(AFFIRMS[action], (send,))
-		# os.write(pipe_out, send + "\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, send + "\n")
+		os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.CONFIRM_END:
 		tts(AFFIRMS[action], (send,))
 		print(send)
-		# os.write(pipe_out, send + "\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, send + "\n")
+		os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.INCR:
 		print(send)
-		# os.write(pipe_out, "++\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, "++\n")
+		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.DECR:
 		print(send)
-		# os.write(pipe_out, "--\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, "--\n")
+		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.PLAY_MUSIC:
 		print(send)
 		args = shlex.split("omxplayer --vol -2000 good_life_remix.mp3")
 		process = subprocess.Popen(args)
 	elif action is Action.QUIT:
 		print(send)
-		# os.write(pipe_out, "q\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, "q\n")
+		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.NULL:
 		pass
 	elif action is Action.NAV:
-		# os.write(pipe_out, "NAVIGATE\n")
-		# os.kill(int(pid), signal.SIGUSR2)
+		os.write(pipe_out, "NAVIGATE\n")
+		os.kill(int(pid), signal.SIGUSR2)
 		pass
 	elif action is Action.START:
 		tts(AFFIRMS[action])

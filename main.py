@@ -53,10 +53,10 @@ class App(object):
 		# Setting up IPC
 		self.master = True
 		self.state = State.START
-		pipe_desc = os.open(App.DATA_PIPE, os.O_RDONLY)
-		print("Starting data pipe...listening for serial comms...")
-		self.data_pipe = os.fdopen(pipe_desc)
-		print("Serial comms connected!")
+		# pipe_desc = os.open(App.DATA_PIPE, os.O_RDONLY)
+		# print("Starting data pipe...listening for serial comms...")
+		# self.data_pipe = os.fdopen(pipe_desc)
+		# print("Serial comms connected!")
 		pipe_desc = os.open(App.EVENT_PIPE, os.O_RDWR)
 		print("Starting event pipe...listening for keystrokes...")
 		self.event_pipe = os.fdopen(pipe_desc, 'w+')
@@ -348,7 +348,7 @@ def main():
 	if os.fork() == 0:
 		# Child processes
 		signal.signal(signal.SIGALRM, timeout_handler)
-		p1 = connect_picomms(platform_)
+		# p1 = connect_picomms(platform_)
 		p2 = connect_keypad(platform_)
 		fpid = open('./keypad_pid', 'w')
 		fpid.write(str(p2.pid))
