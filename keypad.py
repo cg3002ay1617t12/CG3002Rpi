@@ -28,10 +28,6 @@ class Transitions(Enum):
 	KEY_MUSIC = 5
 	KEY_NAV   = 6
 	KEY_MAP   = 7
-	KEY_BLD_1 = 8
-	KEY_BLD_2 = 9
-	KEY_LVL_1 = 10
-	KEY_LVL_2 = 11
 
 # MATRIX = [
 # 	[1,2,3],    (25,22), (25,17), (25,4)
