@@ -148,36 +148,39 @@ class PathFinder(object):
 		self.__update_instruction()
 
 	def __update_node_info(self, building, level):
-		if building == 0:
-			building_name = 'DemoBuilding'
+		# if building == 0:
+		# 	building_name = 'DemoBuilding'
 
-			if level == 1 or level == 2 or level == 3:
-				print 'Demo Building Level ' + str(level)
-			else:
-				print 'Error >> PathFinder::__update_node_info: Demo Building Level ' + str(level) + ' does not exist'
-				raise ValueError()
+		# 	# if level == 1 or level == 2 or level == 3:
+		# 	# 	print 'Demo Building Level ' + str(level)
+		# 	# else:
+		# 	# 	print 'Error >> PathFinder::__update_node_info: Demo Building Level ' + str(level) + ' does not exist'
+		# 	# 	raise ValueError()
 
-		elif building == 1:
-			building_name = 'Com1'
+		# elif building == 1:
+		# 	building_name = 'Com1'
 
-			if level == 1 or level == 2:
-				print 'Com 1 Level ' +  str(level)
-			else:
-				print 'Error >> PathFinder::__update_node_info: Com 1 Level ' + str(level) + ' does not exist'
-				raise ValueError()
+		# 	# if level == 1 or level == 2:
+		# 	# 	print 'Com 1 Level ' +  str(level)
+		# 	# else:
+		# 	# 	print 'Error >> PathFinder::__update_node_info: Com 1 Level ' + str(level) + ' does not exist'
+		# 	# 	raise ValueError()
 
-		elif building == 2:
-			building_name = 'Com2'
+		# elif building == 2:
+		# 	building_name = 'Com2'
 
-			if level == 2 or level == 3:
-				print 'Com 2 Level ' +  str(level)
-			else:
-				print 'Error >> PathFinder::__update_node_info: Com 2 Level ' + str(level) + ' does not exist'
-				raise ValueError()
+		# 	# if level == 2 or level == 3:
+		# 	# 	print 'Com 2 Level ' +  str(level)
+		# 	# else:
+		# 	# 	print 'Error >> PathFinder::__update_node_info: Com 2 Level ' + str(level) + ' does not exist'
+		# 	# 	raise ValueError()
 
-		else:
-			print 'Error >> PathFinder::__update_node_info: Input Building does not exist'
-			raise ValueError()
+		# else:
+		# 	# print 'Error >> PathFinder::__update_node_info: Input Building does not exist'
+		# 	# raise ValueError()
+		# 	building_name = building # Incase of stupid digits for building 
+
+		building_name = building # Incase of stupid digits for building 
 
 		request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=' + str(building_name) + '&Level=' + str(level)
 
