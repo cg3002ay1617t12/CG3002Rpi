@@ -250,7 +250,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 				app.StepDetector.az.append(float(a_z))
 			if component_id == 2:
 				#print ("main, serial_handler, readings " + readings)
-				#heading = readings.strip('\r\n').strip('\0\n\r\t')
+				heading = readings.strip('\r\n').strip('\0\n\r\t')
 				heading = readings
 				app.Localization.heading.append(float(heading))
 			if component_id == 3:
@@ -290,6 +290,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 	else:
 		map(process_rpi, buffer_)
 		# map(process_laptop, buffer_)
+	print("Incoming serial data from component %s" % buffer_[0].split('~')[0])
 	app.StepDetector.new_data = True
 	app.Localization.new_data = True
 
