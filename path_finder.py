@@ -98,9 +98,9 @@ class PathFinder(object):
 		audio_string = ''
 
 		if right:
-			audio_string += 'Turn Right, ' + str(angle) + ' And Go, ' + str(distance)
+			audio_string += 'Turn Right, %.2f And Go %d' % (angle, distance)
 		else:
-			audio_string += 'Turn Left, ' + str(angle) + ' And Go, ' + str(distance)
+			audio_string += 'Turn Left, %.2f And Go %d' % (angle, distance)
 
 		return audio_string
 

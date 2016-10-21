@@ -197,7 +197,7 @@ class StepDetector(object):
 			self.total_steps = self.total_steps + self.curr_steps
 			if self.curr_steps > 0:
 				# self.curr_steps = 1 # Force steps to be detected one at a time
-				print("Step %d" % self.curr_steps)
+				print("Step %d, with threshold %.2f" % (self.curr_steps, self.THRES))
 
 	def run(self):
 		if self.new_data:
