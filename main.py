@@ -156,12 +156,12 @@ class App(object):
 			print("Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
 			print("Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 			self.update_steps()
-			self.issue_instruction()
+			self.get_instruction()
 			pass
 		elif self.state is State.REACHED:
 			# self.curr_reached_node = self.PathFinder.get_audio_reached(self.curr_end_node)
 			self.update_steps()
-			self.issue_instruction()
+			self.get_instruction()
 			pass
 		elif self.state is State.RESET:
 			tts("Resetting step counter and localization module")
