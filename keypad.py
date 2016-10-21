@@ -30,6 +30,10 @@ class Transitions(Enum):
 	KEY_MUSIC = 5
 	KEY_NAV   = 6
 	KEY_MAP   = 7
+	KEY_BLD_1 = 8
+	KEY_BLD_2 = 9
+	KEY_LVL_1 = 10
+	KEY_LVL_2 = 11
 
 # MATRIX = [
 # 	[1,2,3],    (25,22), (25,17), (25,4)
@@ -66,6 +70,8 @@ class KEY(object):
 			self.types.append(Transitions.KEY_DECR)
 		if self.value == 2:
 			self.types.append(Transitions.KEY_INCR)
+			self.types.append(Transitions.KEY_BLD_2)
+			self.types.append(Transitions.KEY_LVL_2)
 		if self.value == 5:
 			self.types.append(Transitions.KEY_MUSIC)
 			self.types.append(Transitions.KEY_NAV)
@@ -73,6 +79,9 @@ class KEY(object):
 			self.types.append(Transitions.KEY_STAR)
 		if self.value == '#':
 			self.types.append(Transitions.KEY_HASH)
+		if self.value == 1:
+			self.types.append(Transitions.KEY_BLD_1)
+			self.types.append(Transitions.KEY_LVL_1)
 
 class Action(Enum):
 	START            = 1
@@ -92,14 +101,20 @@ class Action(Enum):
 
 State.transitions = {
 	State.MAP_BUILDING  : {
-		Transitions.KEY_DIGIT : (State.MAP_BUILDING_CONFIRM, Action.APPEND),
+		Transitions.KEY_BLD_1 : (State.MAP_BUILDING_CONFIRM, Action.APPEND),
+		Transitions.KEY_BLD_2 : (State.MAP_BUILDING_CONFIRM, Action.APPEND),
+		Transitions.KEY_LVL_1 : (State.MAP_BUILDING_CONFIRM, Action.APPEND),
+		Transitions.KEY_LVL_2 : (State.MAP_BUILDING_CONFIRM, Action.APPEND)
 	},
 	State.MAP_BUILDING_CONFIRM : {
 		Transitions.KEY_HASH : (State.MAP_BUILDING, Action.CLEAR),
 		Transitions.KEY_STAR : (State.MAP_LEVEL, Action.CONFIRM_BUILDING)
 	},
 	State.MAP_LEVEL : {
-		Transitions.KEY_DIGIT : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
+		Transitions.KEY_BLD_1 : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
+		Transitions.KEY_BLD_2 : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
+		Transitions.KEY_LVL_1 : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
+		Transitions.KEY_LVL_2 : (State.MAP_LEVEL_CONFIRM, Action.APPEND)
 	},
 	State.MAP_LEVEL_CONFIRM : {
 		Transitions.KEY_HASH : (State.MAP_LEVEL, Action.CLEAR),
