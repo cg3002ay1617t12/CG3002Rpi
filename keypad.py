@@ -194,13 +194,13 @@ def action_on_transit(val, action):
 		# os.write(pipe_out, "DOWNLOAD_MAP" + "\n")
 		# os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.CONFIRM_BUILDING:
-		tts(AFFIRMS[action])
+		tts(AFFIRMS[action], (send,))
 		print(send)
 		# os.write(pipe_out, send + "\n")
 		# os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.CONFIRM_LEVEL:
-		tts(AFFIRMS[action])
+		tts(AFFIRMS[action], (send,))
 		print(send)
 		# os.write(pipe_out, send + "\n")
 		# os.kill(int(pid), signal.SIGUSR2)
