@@ -31,6 +31,15 @@ class Transitions(Enum):
 	KEY_NAV   = 6
 	KEY_MAP   = 7
 
+# MATRIX = [
+# 	[1,2,3],    (25,22), (25,17), (25,4)
+# 	[4,5,6],    (24,22), (24,17), (24,4)
+# 	[7,8,9],    (23,22), (23,17), (23,4)
+# 	["*",0,"#"] (18,22), (18,17), (18,4)
+# 	]
+ROW = [18,23,24,25] # G, H, J, K
+COL = [4,17,22] # D, E, F
+
 class KEY(object):
 	"""Contains GPIO -> value mapping"""
 	MAP = {
@@ -86,7 +95,7 @@ State.transitions = {
 	},
 	State.MAP_BUILDING_CONFIRM : {
 		Transitions.KEY_HASH : (State.MAP_BUILDING, Action.CLEAR),
-		Transitions.KEY_STAR : (State.LEVEL, Action.CONFIRM_BUILDING)
+		Transitions.KEY_STAR : (State.MAP_LEVEL, Action.CONFIRM_BUILDING)
 	},
 	State.MAP_LEVEL : {
 		Transitions.KEY_DIGIT : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
@@ -159,20 +168,12 @@ PID                = ENV["PID_FILE"]
 if not os.path.exists(EVENT_PIPE):
 	os.mkfifo(EVENT_PIPE)
 
-pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
+# pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
 fpid     = open(PID, 'r')
 pid      = fpid.read()
 lock  = threading.Lock()
-state = State.START
+state = State.MAP_BUILDING
 send = ""
-# MATRIX = [
-# 	[1,2,3],    (25,22), (25,17), (25,4)
-# 	[4,5,6],    (24,22), (24,17), (24,4)
-# 	[7,8,9],    (23,22), (23,17), (23,4)
-# 	["*",0,"#"] (18,22), (18,17), (18,4)
-# 	]
-ROW = [18,23,24,25] # G, H, J, K
-COL = [4,17,22] # D, E, F
 def action_on_transit(val, action):
 	""" Do something upon transition to next state ONCE"""
 	global send
@@ -190,53 +191,53 @@ def action_on_transit(val, action):
 	elif action is Action.DOWNLOAD_MAP:
 		tts(AFFIRMS[action])
 		print(send)
-		os.write(pipe_out, "DOWNLOAD_MAP" + "\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, "DOWNLOAD_MAP" + "\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.CONFIRM_BUiLDING:
 		tts(AFFIRMS[action])
 		print(send)
-		os.write(pipe_out, send + "\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, send + "\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.CONFIRM_LEVEL:
 		tts(AFFIRMS[action])
 		print(send)
-		os.write(pipe_out, send + "\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, send + "\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 		clear_send()	
 	elif action is Action.CONFIRM_START:
 		print(send)
 		tts(AFFIRMS[action], (send,))
-		os.write(pipe_out, send + "\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, send + "\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.CONFIRM_END:
 		tts(AFFIRMS[action], (send,))
 		print(send)
-		os.write(pipe_out, send + "\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, send + "\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.INCR:
 		print(send)
-		os.write(pipe_out, "++\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, "++\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.DECR:
 		print(send)
-		os.write(pipe_out, "--\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, "--\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.PLAY_MUSIC:
 		print(send)
 		args = shlex.split("omxplayer --vol -2000 good_life_remix.mp3")
 		process = subprocess.Popen(args)
 	elif action is Action.QUIT:
 		print(send)
-		os.write(pipe_out, "q\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, "q\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.NULL:
 		pass
 	elif action is Action.NAV:
-		os.write(pipe_out, "NAVIGATE\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, "NAVIGATE\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 	else:
 		raise Exception("Unrecognized action!")
 	
