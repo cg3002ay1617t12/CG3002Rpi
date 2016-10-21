@@ -216,7 +216,7 @@ class PiComms(object):
 			# Most likely is ord() expected a character, but a string of length 0 found, arduino wiring might be loose
 			# self.aq.tts("Gee Gee Dot com dot ass gee")
 			print e
-			#print("[ERROR] Check connection with Arduino... Reset when ready")
+			print("[ERROR] Check connection with Arduino... Reset when ready")
 		except Exception as e:
 			print(e)
 
