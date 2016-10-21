@@ -64,8 +64,6 @@ class KEY(object):
 			self.types.append(Transitions.KEY_DECR)
 		if self.value == 2:
 			self.types.append(Transitions.KEY_INCR)
-			self.types.append(Transitions.KEY_BLD_2)
-			self.types.append(Transitions.KEY_LVL_2)
 		if self.value == 5:
 			self.types.append(Transitions.KEY_MUSIC)
 			self.types.append(Transitions.KEY_NAV)
@@ -73,9 +71,6 @@ class KEY(object):
 			self.types.append(Transitions.KEY_STAR)
 		if self.value == '#':
 			self.types.append(Transitions.KEY_HASH)
-		if self.value == 1:
-			self.types.append(Transitions.KEY_BLD_1)
-			self.types.append(Transitions.KEY_LVL_1)
 
 class Action(Enum):
 	START            = 1
