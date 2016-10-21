@@ -128,8 +128,11 @@ class App(object):
 				self.level = int(userinput)
 				self.PathFinder = PathFinder(building=self.building, level=self.level)
 				print(self.PathFinder._PathFinder__node_info)
+			except ValueError as e:
+				print("[Error] Wrong building and level entered")
+				tts("Please enter a valid building and level")
 			except Exception as e:
-				print e
+				print(e)
 			pass
 		elif self.state is State.ACCEPT_END:
 			tts("Please enter end destination")
@@ -137,11 +140,16 @@ class App(object):
 				self.curr_start_node = int(userinput)
 			except Exception as e:
 				print e
+
 			(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
-			bearing = self.Localization.stabilized_bearing
-			self.PathFinder.update_coordinate(x, y, bearing)
-			self.Localization.update_coordinates(x, y)
-			self.update_steps()
+			if x == -1 and y == -1:
+				print("[ERROR] Invalid start node given, please try again")
+				tts("Error, invalid start node given, please enter again")
+			else:
+				bearing = self.Localization.stabilized_bearing
+				self.PathFinder.update_coordinate(x, y, bearing)
+				self.Localization.update_coordinates(x, y)
+				self.update_steps()
 			pass
 		elif self.state is State.NAVIGATING:
 			if self.transition not in [Transitions.KEY_GET_INSTR, Transitions.KEY_INCR, Transitions.KEY_DECR]:
