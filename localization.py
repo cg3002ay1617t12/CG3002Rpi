@@ -3,6 +3,7 @@ import numpy as np
 import math, os, sys, time, itertools
 from collections import deque
 import matplotlib.pyplot as plt
+from audio import tts
 np.seterr(invalid='ignore')
 
 class Localization(object):
@@ -129,6 +130,7 @@ class Localization(object):
 			if (time.time() - self.start) > 5:
 				self.start = time.time()
 				print("Not receiving compass readings")
+				tts("ERROR, Check connection with Arduino... Reset when ready")
 		if direction > 0:
 			# Update stabilized bearing
 			self.stabilized_bearing = direction

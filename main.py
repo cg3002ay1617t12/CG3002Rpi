@@ -108,26 +108,24 @@ class App(object):
 
 	def run_once_on_transition(self, userinput):
 		""" Run once upon transition to new state"""
-		time.sleep(0.5)
 		if self.state is State.END:
 			tts("Shutting down now")
 			pass
 		elif self.state is State.ACCEPT_BUILDING:
-			tts("Please enter building")
+			# tts("Please enter building")
 			pass
 		elif self.state is State.ACCEPT_LEVEL:
-			tts("Please enter level")
+			# tts("Please enter level")
 			try:
 				self.building = int(userinput)
 			except Exception as e:
 				print e
 			pass
 		elif self.state is State.ACCEPT_START:
-			tts("Please enter start node")
+			# tts("Please enter start node")
 			try:
 				self.level = int(userinput)
 				self.PathFinder = PathFinder(building=self.building, level=self.level)
-				print(self.PathFinder._PathFinder__node_info)
 			except ValueError as e:
 				print("[Error] Wrong building and level entered")
 				tts("Please enter a valid building and level")
@@ -135,7 +133,7 @@ class App(object):
 				print(e)
 			pass
 		elif self.state is State.ACCEPT_END:
-			tts("Please enter end destination")
+			# tts("Please enter end destination")
 			try:
 				self.curr_start_node = int(userinput)
 			except Exception as e:
@@ -165,8 +163,7 @@ class App(object):
 			pass
 		elif self.state is State.REACHED:
 			# self.curr_reached_node = self.PathFinder.get_audio_reached(self.curr_end_node)
-			tts("You have arrived!")
-			tts(self.PathFinder.get_audio_reached(self.curr_end_node))
+			tts("You have arrived!" + self.PathFinder.get_audio_reached(self.curr_end_node))
 			self.update_steps()
 			self.get_instruction()
 			pass
@@ -208,16 +205,16 @@ class App(object):
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
 					if (self.StepDetector.curr_steps > 0):
-						tts("Step detected")
 						(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 						if reached:
-							self.curr_reached_node = self.PathFinder.get_audio_reached(node)
+							self.curr_reached_node = "Step detected." + self.PathFinder.get_audio_reached(node)
 							self.issue_instruction(self.curr_reached_node)
+							self.StepDetector.curr_steps = 0
 							# Transit to REACHED state
 							self.event_pipe.write("CHECKPOINT_REACHED\r\n")
 							os.kill(self.pid, signal.SIGUSR2)
 						else:
-							self.issue_instruction(self.PathFinder.get_audio_next_instruction())
+							self.issue_instruction("Step detected." + self.PathFinder.get_audio_next_instruction())
 					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.REACHED:
@@ -225,13 +222,12 @@ class App(object):
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
 					if (self.StepDetector.curr_steps > 0):
-						tts("Step detected")
 						(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 						if reached:
-							self.issue_instruction(self.PathFinder.get_audio_reached(node))
+							self.issue_instruction("Step detected. " + self.PathFinder.get_audio_reached(node))
 						else:
 							next_instr = self.PathFinder.get_audio_next_instruction()
-							self.issue_instruction("You have arrived! " + self.curr_reached_node + next_instr)
+							self.issue_instruction("Step detected. You have arrived! " + self.curr_reached_node + next_instr)
 					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.RESET:
@@ -239,12 +235,11 @@ class App(object):
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
 					if (self.StepDetector.curr_steps > 0):
-						tts("Step detected")
 						(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 						if reached:
-							self.issue_instruction(self.PathFinder.get_audio_reached(node))
+							self.issue_instruction("Step detected." + self.PathFinder.get_audio_reached(node))
 						else:
-							self.issue_instruction(self.PathFinder.get_audio_next_instruction())
+							self.issue_instruction("Step detected." + self.PathFinder.get_audio_next_instruction())
 					self.StepDetector.curr_steps = 0
 					pass
 				else:
@@ -262,6 +257,7 @@ def timeout_handler():
 	try:
 		os.kill(int(app.serial_pid), signal.SIGUSR1)
 		print("triggered! %s" % app.serial_pid)
+		tts("Error...timeout on serial data. Check Arduino connection and reset when ready")
 	except Exception as e:
 		pass # Process may have terminated already
 	connect_picomms(platform=app.platform_)
@@ -314,13 +310,14 @@ def serial_handler(signum, frame, *args, **kwargs):
 			app.StepDetector.ay.append(float(y))
 			app.StepDetector.az.append(float(z))
 			app.Localization.heading.append(float(d))
+			print("heading : %.2f" % float(d))
 			app.Localization.rotate_x.append(float(a))
 			app.Localization.rotate_y.append(float(b))
 			app.Localization.rotate_z.append(float(c))
 		except ValueError as e:
 			print e
 	# terminate process in timeout seconds
-	timeout    = 2 # seconds
+	timeout    = 3 # seconds
 	timer      = threading.Timer(timeout, timeout_handler)
 	timer.start()
 	line_count = StepDetector.SAMPLES_PER_PACKET
