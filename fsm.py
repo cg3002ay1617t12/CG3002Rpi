@@ -25,7 +25,7 @@ class Transitions(Enum):
 	@classmethod
 	def recognize_input(cls, string):
 		"""Define keystrokes for valid transitions here"""
-		node   = re.compile(r"^(\d\d)$")
+		node   = re.compile(r"^(\d+)$")
 		string = string.strip('\r\n')
 		match  = re.match(node, string)
 		if match is not None:
