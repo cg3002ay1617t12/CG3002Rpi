@@ -114,7 +114,7 @@ class App(object):
 			tts("Please enter start node")
 			try:
 				self.level = int(userinput)
-				self.PathFinder(building=self.building, level=self.level)
+				self.PathFinder = PathFinder(building=self.building, level=self.level)
 			except Exception as e:
 				print e
 			pass

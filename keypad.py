@@ -175,8 +175,8 @@ send = ""
 def action_on_transit(val, action):
 	""" Do something upon transition to next state ONCE"""
 	global send
-	print("Action : "),
-	print(action)
+	# print("Action : "),
+	# print(action)
 	
 	if action is Action.APPEND:
 		tts(AFFIRMS[action], (val,))
