@@ -1,9 +1,7 @@
 import json, requests, math, heapq, pprint
 
 class PathFinder(object):
-	def __init__(self, building='Com1', level='1'):
-		self.__request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=' + str(building) + '&Level=' + str(level)
-
+	def __init__(self, building, level):
 		self.__wifi_radius = 150
 		self.__reach_radius = 50
 
@@ -25,7 +23,7 @@ class PathFinder(object):
 
 		self.__instruction = []
 
-		self.__update_node_info()
+		self.__update_node_info(building, level)
 
 	""" PUBLIC FUNCTION """
 	# def is_initialized(self):
@@ -98,6 +96,7 @@ class PathFinder(object):
 
 		#audio_string = 'From, ' + str(from_name) + ' To Node, ' + str(to_index) + ',' + str(to_name) + ':'
 		audio_string = ''
+
 		if right:
 			audio_string += 'Turn Right, ' + str(angle) + ' And Go, ' + str(distance)
 		else:
@@ -133,7 +132,6 @@ class PathFinder(object):
 			return (-1, -1)	
 
 	""" PRIVATE FUNCTION """
-
 	def __is_reached(self, node_index, user_x, user_y):
 		node_x = self.__node_info[node_index]['x']
 		node_y = self.__node_info[node_index]['y']
@@ -149,21 +147,72 @@ class PathFinder(object):
 
 		self.__update_instruction()
 
-	def __update_node_info(self):
-		try:
-			request_info = requests.get(self.__request_url)
-		except:
-			print 'Error >> PathFinder::__update_node_info: Request could not get resource from url.'
+	def __update_node_info(self, building, level):
+		if building == 0:
+			building_name = 'DemoBuilding'
+
+			if level == 1 or level == 2 or level == 3:
+				print 'Demo Building Level ' + str(level)
+			else:
+				print 'Error >> PathFinder::__update_node_info: Demo Building Level ' + str(level) + ' does not exist'
+				raise ValueError()
+
+		elif building == 1:
+			building_name = 'Com1'
+
+			if level == 1 or level == 2:
+				print 'Com 1 Level ' +  str(level)
+			else:
+				print 'Error >> PathFinder::__update_node_info: Com 1 Level ' + str(level) + ' does not exist'
+				raise ValueError()
+
+		elif building == 2:
+			building_name = 'Com2'
+
+			if level == 2 or level == 3:
+				print 'Com 2 Level ' +  str(level)
+			else:
+				print 'Error >> PathFinder::__update_node_info: Com 2 Level ' + str(level) + ' does not exist'
+				raise ValueError()
+
+		else:
+			print 'Error >> PathFinder::__update_node_info: Input Building does not exist'
 			raise ValueError()
 
+		request_url = 'http://showmyway.comp.nus.edu.sg/getMapInfo.php?Building=' + str(building_name) + '&Level=' + str(level)
+
 		try:
-			json_request_info = json.loads(request_info.text)
+			a = 5 / 0
+			request_info = requests.get(request_url)
+			request_info = request_info.text
+
 		except:
-			print 'Error >> PathFinder::__update_node_info: JSON could not be decoded. Check building and level'
+			if building == 0 and level == 1:
+				request_info = json.dumps({"info":{"northAt":"180"},"map":[{"nodeId":"1","x":"200","y":"100","nodeName":"Entrance","linkTo":"2"},{"nodeId":"2","x":"400","y":"100","nodeName":"Room 1","linkTo":"1, 3"},{"nodeId":"3","x":"400","y":"200","nodeName":"Room 2","linkTo":"2, 4, 8"},{"nodeId":"4","x":"600","y":"200","nodeName":"Male Toilet","linkTo":"3, 6"},{"nodeId":"5","x":"600","y":"500","nodeName":"Female Toilet","linkTo":"8, 6"},{"nodeId":"6","x":"600","y":"300","nodeName":"Corridor","linkTo":"4, 5, 7"},{"nodeId":"7","x":"800","y":"300","nodeName":"TO level 2","linkTo":"6"},{"nodeId":"8","x":"400","y":"500","nodeName":"Room 3","linkTo":"3, 5"}],"wifi":[{"nodeId":"1","x":"300","y":"150","nodeName":"ap-101","macAddr":"29:11:A1:8B:C2:D0"},{"nodeId":"2","x":"700","y":"270","nodeName":"ap-102","macAddr":"9A:22:5B:1C:D4:5E"},{"nodeId":"3","x":"500","y":"500","nodeName":"ap-103","macAddr":"F9:33:0A:92:9C:D9"},{"nodeId":"4","x":"500","y":"350","nodeName":"ap-104","macAddr":"B1:44:A6:BB:EC:D0"}]})
+			elif building == 0 and level == 2:
+				request_info = json.dumps({"info":{"northAt":"180"},"map":[{"nodeId":"1","x":"800","y":"300","nodeName":"TO level 1,3","linkTo":"2"},{"nodeId":"2","x":"800","y":"100","nodeName":"Corridor","linkTo":"1,3"},{"nodeId":"3","x":"600","y":"100","nodeName":"Still Corridor","linkTo":"2,4"},{"nodeId":"4","x":"400","y":"100","nodeName":"Some more Corridor","linkTo":"3,5"},{"nodeId":"5","x":"200","y":"100","nodeName":"End of Corridor","linkTo":"4"}],"wifi":[{"nodeId":"2","x":"700","y":"200","nodeName":"ap-201","macAddr":"1C:DD:5E:AA:22:5B"}]})
+			elif building == 0 and level == 3:
+				request_info = json.dumps({"info":{"northAt":"180"},"map":[{"nodeId":"1","x":"800","y":"300","nodeName":"TO level 2","linkTo":"2,4"},{"nodeId":"2","x":"600","y":"500","nodeName":"North Point","linkTo":"1,3,5"},{"nodeId":"3","x":"600","y":"300","nodeName":"Center Point","linkTo":"1,2,4,5"},{"nodeId":"4","x":"600","y":"100","nodeName":"South Point","linkTo":"1,3,5"},{"nodeId":"5","x":"400","y":"300","nodeName":"West Point","linkTo":"2,3,4"}],"wifi":[{"nodeId":"1","x":"500","y":"450","nodeName":"ap-301","macAddr":"29:11:A1:8B:C2:D0"},{"nodeId":"2","x":"700","y":"270","nodeName":"ap-302","macAddr":"9A:22:5B:1C:D4:5E"}]})
+			elif building == 1 and level == 1:
+				request_info = json.dumps({"info":{"northAt":"315"},"map":[{"nodeId":"1","x":"500","y":"1200","nodeName":"Front Door","linkTo":"2"},{"nodeId":"2","x":"700","y":"1200","nodeName":"Front Mid","linkTo":"1, 3"},{"nodeId":"3","x":"700","y":"1100","nodeName":"1m","linkTo":"2, 4"},{"nodeId":"4","x":"700","y":"900","nodeName":"2m","linkTo":"3, 5"},{"nodeId":"5","x":"700","y":"600","nodeName":"3m","linkTo":"4, 6"},{"nodeId":"6","x":"700","y":"180","nodeName":"4.2m","linkTo":"5, 7, 8"},{"nodeId":"7","x":"500","y":"180","nodeName":"Dead End","linkTo":"6"},{"nodeId":"8","x":"900","y":"180","nodeName":"Back Door","linkTo":"6"}],"wifi":[]})
+			elif building == 1 and level == 2:
+				request_info = json.dumps({"info":{"northAt":"315"},"map":[{"nodeId":"1","x":"0","y":"2436","nodeName":"TO LT15","linkTo":"2 "},{"nodeId":"2","x":"2152","y":"2436","nodeName":"P2","linkTo":"1, 3, 4 "},{"nodeId":"3","x":"2152","y":"731","nodeName":"Linkway","linkTo":"2"},{"nodeId":"4","x":"2883","y":"2436","nodeName":"P4","linkTo":"2, 5, 6, 7"},{"nodeId":"5","x":"2883","y":"1787","nodeName":"P5","linkTo":"4, 8 "},{"nodeId":"6","x":"2883","y":"2924","nodeName":"Seminar Room 6","linkTo":"4"},{"nodeId":"7","x":"3776","y":"2436","nodeName":"Lobby ","linkTo":"4, 10"},{"nodeId":"8","x":"3330","y":"1787","nodeName":"P8","linkTo":"5, 9, 10 "},{"nodeId":"9","x":"3330","y":"934","nodeName":"Seminar Room 2","linkTo":"8"},{"nodeId":"10","x":"3776","y":"1787","nodeName":"P10","linkTo":"7, 8, 11"},{"nodeId":"11","x":"5603","y":"1787","nodeName":"Student Area","linkTo":"10, 12, 13, 14"},{"nodeId":"12","x":"5603","y":"2924","nodeName":"Seminar Room 1","linkTo":"11"},{"nodeId":"13","x":"5603","y":"609","nodeName":"P13","linkTo":"11, 36"},{"nodeId":"14","x":"7065","y":"1787","nodeName":"P14","linkTo":"11, 15, 37 "},{"nodeId":"15","x":"7065","y":"2802","nodeName":"P15","linkTo":"14, 32 "},{"nodeId":"16","x":"7065","y":"731","nodeName":"P16","linkTo":"18, 37"},{"nodeId":"17","x":"9014","y":"2802","nodeName":"P17","linkTo":"39, 19, 21 "},{"nodeId":"18","x":"8283","y":"731","nodeName":"P18","linkTo":"16, 20, 22"},{"nodeId":"19","x":"9014","y":"2193","nodeName":"Executive Classroom","linkTo":"17"},{"nodeId":"20","x":"8283","y":"1056","nodeName":"Tutorial Room 11","linkTo":"18"},{"nodeId":"21","x":"9460","y":"2802","nodeName":"P21","linkTo":"17, 23, 24 "},{"nodeId":"22","x":"9744","y":"731","nodeName":"P22","linkTo":"18, 25, 34"},{"nodeId":"23","x":"9460","y":"3248","nodeName":"Seminar Room 9","linkTo":"21"},{"nodeId":"24","x":"11003","y":"2802","nodeName":"P24","linkTo":"21, 27, 28"},{"nodeId":"25","x":"9744","y":"1056","nodeName":"NUS Hacker's Room","linkTo":"22"},{"nodeId":"26","x":"11003","y":"691","nodeName":"P26","linkTo":"34, 28, 29 "},{"nodeId":"27","x":"11003","y":"3248","nodeName":"Seminar Room 11","linkTo":"24 "},{"nodeId":"28","x":"11003","y":"1259","nodeName":"P28","linkTo":"24, 26, 30"},{"nodeId":"29","x":"11571","y":"691","nodeName":"P29","linkTo":"26, 31 "},{"nodeId":"30","x":"12180","y":"731","nodeName":"TO Canteen","linkTo":"28 "},{"nodeId":"31","x":"11815","y":"406","nodeName":"TO COM2-2-1","linkTo":"29 "},{"nodeId":"32","x":"7552","y":"2802","nodeName":"P32","linkTo":"15, 33, 39 "},{"nodeId":"33","x":"7552","y":"3086","nodeName":"Seminar Room 7","linkTo":"32"},{"nodeId":"34","x":"10272","y":"731","nodeName":"P34","linkTo":"22, 26, 35 "},{"nodeId":"35","x":"10272","y":"447","nodeName":"Tutorial Room 5","linkTo":"34 "},{"nodeId":"36","x":"4263","y":"609","nodeName":"Cerebro","linkTo":"13"},{"nodeId":"37","x":"7065","y":"1543","nodeName":"P37","linkTo":"14, 16, 38 "},{"nodeId":"38","x":"7552","y":"1543","nodeName":"SR3 Front","linkTo":"37"},{"nodeId":"39","x":"8811","y":"2802","nodeName":"P39","linkTo":"17, 32, 40 "},{"nodeId":"40","x":"8811","y":"2436","nodeName":"SR3 Back","linkTo":"39"}],"wifi":[{"nodeId":"1","x":"569","y":"2599","nodeName":"arc-0201-a","macAddr":"e8:ba:70:61:c9:60"},{"nodeId":"2","x":"2274","y":"2599","nodeName":"arc-0202-a","macAddr":"e8:ba:70:61:af:20"},{"nodeId":"3","x":"2964","y":"731","nodeName":"arc-0204-a","macAddr":"04:da:d2:74:cf:30"},{"nodeId":"4","x":"5400","y":"934","nodeName":"arc-0205-a","macAddr":"e8:ba:70:52:3b:e0"},{"nodeId":"5","x":"4060","y":"609","nodeName":"arc-0205-b","macAddr":"e8:ba:70:52:bf:80"},{"nodeId":"6","x":"4263","y":"2315","nodeName":"arc-0206-a","macAddr":"e8:ba:70:52:0b:40"},{"nodeId":"7","x":"6578","y":"2924","nodeName":"arc-0206-b","macAddr":"e8:ba:70:52:1e:90"},{"nodeId":"8","x":"8445","y":"2842","nodeName":"arc-0212-a","macAddr":"e8:ba:70:52:ab:e0"},{"nodeId":"9","x":"10435","y":"2964","nodeName":"arc-0210-a","macAddr":"e8:ba:70:61:b3:50"},{"nodeId":"10","x":"7796","y":"1706","nodeName":"arc-0212-b","macAddr":"50:06:04:8d:d0:10"},{"nodeId":"11","x":"8608","y":"1868","nodeName":"arc-0213-a","macAddr":"04:da:d2:74:c8:70"},{"nodeId":"12","x":"10800","y":"1097","nodeName":"arc-0214-a","macAddr":"e8:ba:70:52:bd:80"},{"nodeId":"13","x":"9866","y":"731","nodeName":"arc-0239-a","macAddr":"e8:ba:70:61:a8:80"},{"nodeId":"14","x":"6902","y":"934","nodeName":"arc-0241-a","macAddr":"28:93:fe:d3:8b:20"}]})
+			elif building == 2 and level == 2:
+				request_info = json.dumps({"info":{"northAt":"305"},"map":[{"nodeId":"1","x":"61","y":"4024","nodeName":"TO COM1-2-31","linkTo":"17"},{"nodeId":"2","x":"1585","y":"2561","nodeName":"P2","linkTo":"3, 5, 17"},{"nodeId":"3","x":"1342","y":"2378","nodeName":"Uncle Soo's Office","linkTo":"2"},{"nodeId":"4","x":"2134","y":"2317","nodeName":"Colin's Office","linkTo":"5"},{"nodeId":"5","x":"1951","y":"2195","nodeName":"P5","linkTo":"2, 4, 19"},{"nodeId":"6","x":"2988","y":"1098","nodeName":"P6","linkTo":"7, 11, 19"},{"nodeId":"7","x":"3353","y":"732","nodeName":"P7","linkTo":"6, 8"},{"nodeId":"8","x":"4085","y":"732","nodeName":"P8","linkTo":"7, 9, 10"},{"nodeId":"9","x":"4085","y":"976","nodeName":"Discussion Room 6","linkTo":"8"},{"nodeId":"10","x":"8047","y":"732","nodeName":"End of Corridor","linkTo":"8"},{"nodeId":"11","x":"3475","y":"1646","nodeName":"Glass Door","linkTo":"6, 12"},{"nodeId":"12","x":"3780","y":"1829","nodeName":"Wooden Door","linkTo":"11, 13"},{"nodeId":"13","x":"4146","y":"2012","nodeName":"Another Door","linkTo":"12, 14"},{"nodeId":"14","x":"4329","y":"2317","nodeName":"Stairwell","linkTo":"13, 15"},{"nodeId":"15","x":"3841","y":"2744","nodeName":"Halfway","linkTo":"14, 16"},{"nodeId":"16","x":"3719","y":"2622","nodeName":"TO COM2-3-11","linkTo":"15"},{"nodeId":"17","x":"1159","y":"2927","nodeName":"P17","linkTo":"1, 2, 18"},{"nodeId":"18","x":"915","y":"2805","nodeName":"Bimlesh's Office","linkTo":"17"},{"nodeId":"19","x":"2622","y":"1464","nodeName":"P19","linkTo":"5, 6, 20"},{"nodeId":"20","x":"2378","y":"1342","nodeName":"Damith's Office","linkTo":"19"}],"wifi":[{"nodeId":"1","x":"366","y":"3658","nodeName":"arc-0215-a","macAddr":"e8:ba:70:61:b6:50"},{"nodeId":"2","x":"1464","y":"2683","nodeName":"arc2-0261-a","macAddr":"50:06:04:8d:ac:c0"},{"nodeId":"3","x":"2500","y":"1585","nodeName":"arc-0229-a","macAddr":"e8:ba:70:61:a8:f0"},{"nodeId":"4","x":"3841","y":"732","nodeName":"arc2-0254-a","macAddr":"e8:ba:70:52:3e:80"},{"nodeId":"5","x":"5548","y":"671","nodeName":"arc2-0250-a","macAddr":"e8:ba:70:61:ad:b0"},{"nodeId":"6","x":"7681","y":"671","nodeName":"arc2-0243-a","macAddr":"e8:ba:70:52:53:10"}]})
+			elif building == 2 and level == 3:
+				request_info = json.dumps({"info":{"northAt":"305"},"map":[{"nodeId":"1","x":"61","y":"4024","nodeName":"TO COM1-3-18","linkTo":"16"},{"nodeId":"2","x":"2988","y":"1098","nodeName":"P2","linkTo":"3, 7, 14 "},{"nodeId":"3","x":"3353","y":"732","nodeName":"P3","linkTo":"2, 4 "},{"nodeId":"4","x":"3902","y":"732","nodeName":"P4","linkTo":"3, 5, 12 "},{"nodeId":"5","x":"3902","y":"976","nodeName":"Discussion Room 7","linkTo":"4"},{"nodeId":"6","x":"8047","y":"732","nodeName":"End of Corridor","linkTo":"12"},{"nodeId":"7","x":"3475","y":"1646","nodeName":"Glass Door","linkTo":"2, 8"},{"nodeId":"8","x":"3780","y":"1829","nodeName":"Wooden Door","linkTo":"7, 9"},{"nodeId":"9","x":"4146","y":"2012","nodeName":"Another Door","linkTo":"8, 10"},{"nodeId":"10","x":"4207","y":"2134","nodeName":"Stairwell","linkTo":"9, 11"},{"nodeId":"11","x":"3719","y":"2622","nodeName":"TO COM2-2-16","linkTo":"10"},{"nodeId":"12","x":"4085","y":"732","nodeName":"P12","linkTo":"4, 6, 13"},{"nodeId":"13","x":"4085","y":"976","nodeName":"Discussion Room 8","linkTo":"12"},{"nodeId":"14","x":"2134","y":"1951","nodeName":"P14","linkTo":"2, 15, 16 "},{"nodeId":"15","x":"2317","y":"2012","nodeName":"Henry's Room","linkTo":"14"},{"nodeId":"16","x":"1524","y":"2500","nodeName":"Mysterious Pt","linkTo":"1, 14"}],"wifi":[{"nodeId":"1","x":"1037","y":"2988","nodeName":"arc-0334-a","macAddr":"e8:ba:70:52:51:70"},{"nodeId":"2","x":"2195","y":"1829","nodeName":"arc-0324-a","macAddr":"e8:ba:70:61:b1:60"},{"nodeId":"3","x":"3719","y":"732","nodeName":"arc2-0348-a","macAddr":"28:93:fe:c8:a8:e0"},{"nodeId":"4","x":"5487","y":"671","nodeName":"arc2-0318-a","macAddr":"70:10:5c:7d:39:b0"},{"nodeId":"5","x":"7255","y":"732","nodeName":"arc2-0339-a","macAddr":"e8:ba:70:52:bf:b0"},{"nodeId":"6","x":"9205","y":"732","nodeName":"arc2-0332-a","macAddr":"e8:ba:70:52:c5:20"}]})
+			else:
+				print 'Error >> PathFinder::__update_node_info: Unexpected combination of building and level input.'
+				raise ValueError()
+
+		try:
+			json_request_info = json.loads(request_info)
+		except:
+			print 'Error >> PathFinder::__update_node_info: JSON could not be decoded.'
 			raise ValueError()
 
 		if json_request_info['info'] is None:
-			print 'Error >> PathFinder::__update_node_info: JSON is empty. Check building and level'
+			print 'Error >> PathFinder::__update_node_info: JSON is empty.'
 			raise ValueError()
 
 		# wifi_info = {}
@@ -475,6 +524,8 @@ if __name__ == "__main__":
 		pf.update_coordinate(pf._PathFinder__node_info[1]['x'], pf._PathFinder__node_info[1]['y'], 0)
 		pf.update_source_and_target(source, target)
 
+		pf.update_coordinate(pf._PathFinder__node_info[1]['x'], pf._PathFinder__node_info[1]['y'], 0)
+
 		instruction = pf._PathFinder__instruction
 
 		if len(instruction) != 0:
@@ -483,14 +534,11 @@ if __name__ == "__main__":
 
 		print 'testing::test_update(): completed update test'
 	
-	building = 'Com1'
-	level = '2'
-
 	""" uncomment any of these tests to run tests """
-	test_visit(building, level)
-	test_angle(building, level)
-	test_instruction(building, level)
-	test_update(building, level)
+	# building = 0
+	# level = 1
 
-	pf = PathFinder(building, level)
-	# pf = PathFinder()
+	# test_visit(building, level)
+	# test_angle(building, level)
+	# test_instruction(building, level)
+	# test_update(building, level)
