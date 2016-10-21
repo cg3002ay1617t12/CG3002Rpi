@@ -310,7 +310,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 	def process_laptop(datum):
 		""" Run this if not using the pi_comms protocol"""
 		try:
-			(x,y,z,a,b,c,d) = map(lambda x: x.strip('\r\n'), readings.split(','))
+			(x,y,z,a,b,c,d) = map(lambda x: x.strip('\r\n'), datum.split(','))
 			app.StepDetector.ax.append(float(x))
 			app.StepDetector.ay.append(float(y))
 			app.StepDetector.az.append(float(z))
@@ -336,7 +336,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 	else:
 		map(process_laptop, buffer_)
 		# map(process_laptop, buffer_)
-	print("Incoming serial data from component %s" % buffer_[0].split('~')[0])
+	print("Incoming serial data from Arduino")
 	app.StepDetector.new_data = True
 	app.Localization.new_data = True
 

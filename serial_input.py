@@ -22,7 +22,7 @@ pid      = fpid.read()
 ser      = serial.Serial(SERIAL, BAUD, timeout=1)
 count    = 0
 data     = []
-os.write(pipe_out, '\r\n')
+# os.write(pipe_out, '\r\n')
 
 def signal_handler(signum, frame):
 	print("Serial input terminated old connection")
