@@ -1,6 +1,6 @@
 import serial, struct, time, heapq, binascii, os, signal, sys, platform, json
 from threading import Thread
-from audio import AudioQueue
+from audio import tts
 
 class PriorityQueue:
 	def __init__(self):
