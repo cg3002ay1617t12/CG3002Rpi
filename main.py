@@ -140,9 +140,8 @@ class App(object):
 				self.curr_start_node = int(userinput)
 			except Exception as e:
 				print e
-
 			(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
-			if x == -1 and y == -1:
+			if x is None and y is None:
 				print("[ERROR] Invalid start node given, please try again")
 				tts("Error, invalid start node given, please enter again")
 			else:

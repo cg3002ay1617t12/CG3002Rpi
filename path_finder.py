@@ -129,7 +129,7 @@ class PathFinder(object):
 			return (node_info['x'], node_info['y'])
 		except KeyError as e:
 			print(e)
-			return (-1, -1)
+			return (None, None)
 
 	def get_last_visited_node(self):
 		if self.__visited_nodes:
