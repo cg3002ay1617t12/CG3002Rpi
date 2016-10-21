@@ -10,16 +10,14 @@ NUM_WORKERS = 1
 
 class State(Enum):
 	MAP_BUILDING         = 0
-	MAP_BUILDING_CONFIRM = 1
-	MAP_LEVEL            = 2
-	MAP_LEVEL_CONFIRM    = 3
-	START                = 4
-	START_1              = 5
-	START_2              = 6
-	END                  = 7
-	END_1                = 8
-	END_2                = 9
-	FFA                  = 10
+	MAP_LEVEL            = 1
+	START                = 2
+	START_1              = 3
+	START_2              = 4
+	END                  = 5
+	END_1                = 6
+	END_2                = 7
+	FFA                  = 8
 
 class Transitions(Enum):
 	KEY_DIGIT = 0
@@ -101,24 +99,14 @@ class Action(Enum):
 
 State.transitions = {
 	State.MAP_BUILDING  : {
-		Transitions.KEY_BLD_1 : (State.MAP_BUILDING_CONFIRM, Action.APPEND),
-		Transitions.KEY_BLD_2 : (State.MAP_BUILDING_CONFIRM, Action.APPEND),
-		Transitions.KEY_LVL_1 : (State.MAP_BUILDING_CONFIRM, Action.APPEND),
-		Transitions.KEY_LVL_2 : (State.MAP_BUILDING_CONFIRM, Action.APPEND)
-	},
-	State.MAP_BUILDING_CONFIRM : {
-		Transitions.KEY_HASH : (State.MAP_BUILDING, Action.CLEAR),
+		Transitions.KEY_DIGIT : (State.MAP_BUILDING, Action.APPEND),
+		Transitions.KEY_HASH  : (State.MAP_BUILDING, Action.CLEAR),
 		Transitions.KEY_STAR : (State.MAP_LEVEL, Action.CONFIRM_BUILDING)
 	},
 	State.MAP_LEVEL : {
-		Transitions.KEY_BLD_1 : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
-		Transitions.KEY_BLD_2 : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
-		Transitions.KEY_LVL_1 : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
-		Transitions.KEY_LVL_2 : (State.MAP_LEVEL_CONFIRM, Action.APPEND)
-	},
-	State.MAP_LEVEL_CONFIRM : {
-		Transitions.KEY_HASH : (State.MAP_LEVEL, Action.CLEAR),
-		Transitions.KEY_STAR : (State.START, Action.CONFIRM_LEVEL)
+		Transitions.KEY_DIGIT : (State.MAP_LEVEL, Action.APPEND),
+		Transitions.KEY_HASH  : (State.MAP_LEVEL, Action.CLEAR),
+		Transitions.KEY_STAR : (State.START, Action.START)
 	},
 	State.START : {
 		Transitions.KEY_DIGIT : (State.START_1, Action.APPEND),
@@ -187,7 +175,7 @@ PID                = ENV["PID_FILE"]
 if not os.path.exists(EVENT_PIPE):
 	os.mkfifo(EVENT_PIPE)
 
-pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
+# pipe_out = os.open(EVENT_PIPE, os.O_WRONLY)
 fpid     = open(PID, 'r')
 pid      = fpid.read()
 lock  = threading.Lock()
@@ -210,53 +198,53 @@ def action_on_transit(val, action):
 	elif action is Action.DOWNLOAD_MAP:
 		tts(AFFIRMS[action])
 		print(send)
-		os.write(pipe_out, "DOWNLOAD_MAP" + "\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, "DOWNLOAD_MAP" + "\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.CONFIRM_BUILDING:
 		tts(AFFIRMS[action], (send,))
 		print(send)
-		os.write(pipe_out, send + "\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, send + "\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.CONFIRM_LEVEL:
 		tts(AFFIRMS[action], (send,))
 		print(send)
-		os.write(pipe_out, send + "\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, send + "\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.CONFIRM_START:
 		print(send)
 		tts(AFFIRMS[action], (send,))
-		os.write(pipe_out, send + "\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, send + "\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.CONFIRM_END:
 		tts(AFFIRMS[action], (send,))
 		print(send)
-		os.write(pipe_out, send + "\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, send + "\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
 	elif action is Action.INCR:
 		print(send)
-		os.write(pipe_out, "++\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, "++\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.DECR:
 		print(send)
-		os.write(pipe_out, "--\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, "--\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.PLAY_MUSIC:
 		print(send)
 		args = shlex.split("omxplayer --vol -2000 good_life_remix.mp3")
 		process = subprocess.Popen(args)
 	elif action is Action.QUIT:
 		print(send)
-		os.write(pipe_out, "q\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, "q\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.NULL:
 		pass
 	elif action is Action.NAV:
-		os.write(pipe_out, "NAVIGATE\n")
-		os.kill(int(pid), signal.SIGUSR2)
+		# os.write(pipe_out, "NAVIGATE\n")
+		# os.kill(int(pid), signal.SIGUSR2)
 		pass
 	elif action is Action.START:
 		tts(AFFIRMS[action])
