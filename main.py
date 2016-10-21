@@ -94,9 +94,9 @@ class App(object):
 
 	def get_instruction(self):
 		if self.transition in [Transitions.KEY_GET_INSTR, Transitions.KEY_DECR, Transitions.KEY_INCR]:
-			(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+			reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 			if reached:
-				self.curr_reached_node = self.PathFinder.get_audio_reached(node)
+				self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 				self.issue_instruction(self.curr_reached_node)
 				# Transit to REACHED state
 				self.event_pipe.write("CHECKPOINT_REACHED\r\n")
@@ -163,7 +163,6 @@ class App(object):
 			pass
 		elif self.state is State.REACHED:
 			# self.curr_reached_node = self.PathFinder.get_audio_reached(self.curr_end_node)
-			tts("You have arrived!" + self.PathFinder.get_audio_reached(self.curr_end_node))
 			self.update_steps()
 			self.get_instruction()
 			pass
@@ -205,9 +204,10 @@ class App(object):
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
 					if (self.StepDetector.curr_steps > 0):
-						(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+						print((self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing))
+						reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 						if reached:
-							self.curr_reached_node = "Step detected." + self.PathFinder.get_audio_reached(node)
+							self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 							self.issue_instruction(self.curr_reached_node)
 							self.StepDetector.curr_steps = 0
 							# Transit to REACHED state
@@ -222,12 +222,13 @@ class App(object):
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
 					if (self.StepDetector.curr_steps > 0):
-						(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+						print((self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing))
+						reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 						if reached:
-							self.issue_instruction("Step detected. " + self.PathFinder.get_audio_reached(node))
+							self.issue_instruction("Step detected. " + self.PathFinder.get_audio_reached(reached_node))
 						else:
 							next_instr = self.PathFinder.get_audio_next_instruction()
-							self.issue_instruction("Step detected. You have arrived! " + self.curr_reached_node + next_instr)
+							self.issue_instruction("You have arrived" + self.curr_reached_node + next_instr)
 					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.RESET:
@@ -235,9 +236,9 @@ class App(object):
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
 					if (self.StepDetector.curr_steps > 0):
-						(reached, node) = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+						reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 						if reached:
-							self.issue_instruction("Step detected." + self.PathFinder.get_audio_reached(node))
+							self.issue_instruction("Step detected." + self.PathFinder.get_audio_reached(reached_node))
 						else:
 							self.issue_instruction("Step detected." + self.PathFinder.get_audio_next_instruction())
 					self.StepDetector.curr_steps = 0
@@ -326,7 +327,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 		buffer_.append(data)
 		line_count -= 1
 	timer.cancel()
-	print("Heading : %.2f" % buffer_[-1].split(',')[-1])
+	# print("Heading : %.2f" % float(buffer_[-1].split(',')[-1]))
 	if app.platform_ in app.platform_pi:
 		map(process_laptop, buffer_)
 	else:

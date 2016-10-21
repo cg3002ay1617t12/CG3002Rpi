@@ -314,6 +314,7 @@ def main():
 		}
 	}
 	setup()
+	tts("Software ready! Please enter building number")
 	try:
 		while(True):
 			for j in COL:
