@@ -30,7 +30,7 @@ class Transitions(Enum):
 	KEY_MAP   = 7
 	KEY_INSTR = 8
 	KEY_PREV  = 9
-	KEY_WAI   = 10
+	KEY_REACHED   = 10
 
 # MATRIX = [
 # 	[1,2,3],    (25,22), (25,17), (25,4)
@@ -79,7 +79,7 @@ class KEY(object):
 		if self.value == 4:
 			self.types.append(Transitions.KEY_PREV)
 		if self.value == 6:
-			self.types.append(Transitions.KEY)
+			self.types.append(Transitions.KEY_REACHED)
 
 class Action(Enum):
 	START            = 1
@@ -98,6 +98,7 @@ class Action(Enum):
 	DOWNLOAD_MAP     = 14
 	GET_INSTR        = 15
 	GET_PREV         = 16
+	REACHED          = 17
 
 State.transitions = {
 	State.MAP_BUILDING  : {
@@ -141,7 +142,8 @@ State.transitions = {
 		Transitions.KEY_NAV  : (State.FFA, Action.NAV),
 		Transitions.KEY_STAR  : (State.MAP_BUILDING, Action.DOWNLOAD_MAP),
 		Transitions.KEY_INSTR : (State.FFA, Action.GET_INSTR),
-		Transitions.KEY_PREV : (State.FFA, Action.GET_PREV)
+		Transitions.KEY_PREV : (State.FFA, Action.GET_PREV),
+		Transitions.KEY_REACHED : (State.FFA, Action.REACHED)
 		# Transitions.KEY_STAR : (State.FFA, Action.QUIT)
 		# Transitions.KEY_MUSIC : (State.FFA, Action.PLAY_MUSIC)
 	}
@@ -169,7 +171,8 @@ AFFIRMS = {
 	Action.NAV : "",
 	Action.DOWNLOAD_MAP : "Downloading new map, please enter building followed by level",
 	Action.GET_INSTR : "",
-	Action.GET_PREV : ""
+	Action.GET_PREV : "",
+	Action.REACHED : "You have forced reached checkpoint"
 }
 
 ALLOWED_BUILDINGS  = [1,2]
@@ -262,6 +265,9 @@ def action_on_transit(val, action):
 		pass
 	elif action is Action.GET_PREV:
 		os.write(pipe_out, "GET_PREV\n")
+		os.kill(int(pid), signal.SIGUSR2)
+	elif action is Action.REACHED:
+		os.write(pipe_out, "CHECKPOINT_REACHED\n")
 		os.kill(int(pid), signal.SIGUSR2)
 	else:
 		raise Exception("Unrecognized action!")

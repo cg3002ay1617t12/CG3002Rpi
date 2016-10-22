@@ -31,6 +31,9 @@ class PathFinder(object):
 
 	def is_ready(self):
 		return (self.__x_coordinate != -1 and self.__y_coordinate != -1 and self.__angle != -1)
+    
+	def get_next_coordinates(self)
+		return self.get_coordinates_from_node(self.__next_node)
 
 	def update_coordinate(self, x_coordinate, y_coordinate, angle_from_north):
 		self.__x_coordinate = x_coordinate

@@ -90,7 +90,7 @@ class Localization(object):
 		# window = map(lambda x: 360 - x if x > 350 else x, window)
 		# var = np.var(window)
 		# if var < Localization.VARIANCE_THRES:
-		return self.convert_to_positive(np.average(window))
+		return self.convert_to_positive(np.(window[-1]))
 	#	else:
 	#		# special value to indicate unstable readings
 	#		return -1.0

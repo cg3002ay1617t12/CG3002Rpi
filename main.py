@@ -174,6 +174,12 @@ class App(object):
 			pass
 		if self.transition is Transitions.KEY_GET_PREV:
 			tts("Your previous visited node is : " + str(self.PathFinder.get_prev_visited_node()))
+		elif self.transition is Transitions.SW_REACHED_NODE:
+			new_coord = self.PathFinder.get_next_coordinates()
+			self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
+			self.Localization.update_coordinates(new_coord[0], new_coord[1])
+		else:
+			pass
 		self.transit = False
 
 	def run(self):
@@ -210,6 +216,8 @@ class App(object):
 						if reached:
 							self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 							self.issue_instruction(self.curr_reached_node)
+							(x, y) = self.PathFinder.get_coordinates_from_node(reached_node)
+							self.Localization.update_coordinates(x, y)
 							self.StepDetector.curr_steps = 0
 							# Transit to REACHED state
 							self.event_pipe.write("CHECKPOINT_REACHED\r\n")
