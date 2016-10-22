@@ -62,33 +62,34 @@ class Localization(object):
 		# Kalman filter
 		# Equation of motion : X_t = AX_t-1 + Bu_t + w_t, assume no angular acceleration, so = 0
 		# Equation of motion : X = X_o + omega * t
-		skip  = 1
-		start = Localization.NUM_POINTS - Localization.SAMPLES_PER_PACKET
-		heading_window  = itertools.islice(self.heading, start, None, skip)
-		velocity_window = list(itertools.islice(self.rotate_x, start, None, skip))
-		for (i, mea) in enumerate(heading_window):
-			self.predicted_state       = np.dot(self.A, self.prev_est)
-			self.predicted_cov_p       = np.dot(np.dot(self.A, self.prev_cov_p), self.A.T) + self.Q
-			self.predicted_cov_p[0][1] = 0 # Zero out cross terms for numerical stability
-			self.predicted_cov_p[1][0] = 0 # Zero out cross terms for numerical stability
-			self.mea                   = np.dot(self.C, np.array([[mea], [velocity_window[i]]]))
-			self.K                     = np.nan_to_num(np.true_divide(np.dot(self.predicted_cov_p, self.H), np.dot(np.dot(self.H, self.predicted_cov_p), self.H.T) + self.prev_R))
-			self.est                   = self.predicted_state + np.dot(self.K, (self.mea - np.dot(self.H, self.predicted_state)))
-			self.cov_p                 = np.dot((np.eye(2) - np.dot(self.K, self.H)), self.predicted_cov_p)
-			self.prev_cov_p            = self.cov_p
-			# print("Final estimate: %.2f" % self.est[0][0])
-			# print(self.est)
-			self.prev_est              = self.est
-			self.prev_mea              = self.mea
-			self.bearing.append(self.est[0][0])
+		# skip  = 1
+		# start = Localization.NUM_POINTS - Localization.SAMPLES_PER_PACKET
+		# heading_window  = itertools.islice(self.heading, start, None, skip)
+		# velocity_window = list(itertools.islice(self.rotate_x, start, None, skip))
+		# for (i, mea) in enumerate(heading_window):
+		# 	self.predicted_state       = np.dot(self.A, self.prev_est)
+		# 	self.predicted_cov_p       = np.dot(np.dot(self.A, self.prev_cov_p), self.A.T) + self.Q
+		# 	self.predicted_cov_p[0][1] = 0 # Zero out cross terms for numerical stability
+		# 	self.predicted_cov_p[1][0] = 0 # Zero out cross terms for numerical stability
+		# 	self.mea                   = np.dot(self.C, np.array([[mea], [velocity_window[i]]]))
+		# 	self.K                     = np.nan_to_num(np.true_divide(np.dot(self.predicted_cov_p, self.H), np.dot(np.dot(self.H, self.predicted_cov_p), self.H.T) + self.prev_R))
+		# 	self.est                   = self.predicted_state + np.dot(self.K, (self.mea - np.dot(self.H, self.predicted_state)))
+		# 	self.cov_p                 = np.dot((np.eye(2) - np.dot(self.K, self.H)), self.predicted_cov_p)
+		# 	self.prev_cov_p            = self.cov_p
+		# 	# print("Final estimate: %.2f" % self.est[0][0])
+		# 	# print(self.est)
+		# 	self.prev_est              = self.est
+		# 	self.prev_mea              = self.mea
+		# 	self.bearing.append(self.est[0][0])
+		pass
 
 	def get_stabilized_bearing(self):
 		""" Convert values above 350 to x - 360 and calculate variance, only return readings when variance is low enough"""
 		start = Localization.NUM_POINTS - Localization.SAMPLES_PER_PACKET
-		window = list(itertools.islice(self.bearing, start, None))
-		window = map(lambda x: 360 - x if x > 350 else x, window)
-		var = np.var(window)
-	#	if var < Localization.VARIANCE_THRES:
+		window = list(itertools.islice(self.heading, start, None))
+		# window = map(lambda x: 360 - x if x > 350 else x, window)
+		# var = np.var(window)
+		# if var < Localization.VARIANCE_THRES:
 		return self.convert_to_positive(np.average(window))
 	#	else:
 	#		# special value to indicate unstable readings
