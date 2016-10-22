@@ -149,8 +149,8 @@ class App(object):
 				self.update_steps()
 			pass
 		elif self.state is State.NAVIGATING:
-			if self.transition not in [Transitions.KEY_GET_INSTR, Transitions.KEY_INCR, Transitions.KEY_DECR, Transitions.SW_REACHED_NODE]:
-				tts("Entering navigation state")
+			# if self.transition not in [Transitions.KEY_GET_INSTR, Transitions.KEY_INCR, Transitions.KEY_DECR, Transitions.SW_REACHED_NODE]:
+			# 	tts("Entering navigation state")
 			try:
 				self.curr_end_node = int(userinput)
 			except Exception as e:
@@ -244,10 +244,11 @@ class App(object):
 						print((self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing))
 						reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 						if reached:
+							self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 							self.issue_instruction("Step detected. " + self.PathFinder.get_audio_reached(reached_node))
 						else:
 							next_instr = self.PathFinder.get_audio_next_instruction()
-							self.issue_instruction("You have arrived " + self.curr_reached_node + next_instr)
+							self.issue_instruction("You have arrived " + self.curr_reached_node + " " + next_instr)
 					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.RESET:
@@ -257,6 +258,7 @@ class App(object):
 					if (self.StepDetector.curr_steps > 0):
 						reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 						if reached:
+							self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 							self.issue_instruction("Step detected. " + self.PathFinder.get_audio_reached(reached_node))
 						else:
 							self.issue_instruction("Step detected. " + self.PathFinder.get_audio_next_instruction())
