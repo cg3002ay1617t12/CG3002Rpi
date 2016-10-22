@@ -179,8 +179,8 @@ class App(object):
 			print("User triggered next node!")
 			new_coord = self.PathFinder.get_next_coordinates()
 			if new_coord[0] is not None and new_coord[1] is not None:
-				self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
-				reached, reached_node = self.Localization.update_coordinates(new_coord[0], new_coord[1])
+				self.Localization.update_coordinates(new_coord[0], new_coord[1])
+				reached, reached_node = self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
 				if reached:
 					self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 					self.issue_instruction(self.curr_reached_node)
