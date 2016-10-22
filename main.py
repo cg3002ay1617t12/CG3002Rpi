@@ -331,8 +331,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 			app.StepDetector.ax.append(float(x))
 			app.StepDetector.ay.append(float(y))
 			app.StepDetector.az.append(float(z))
-			print("Heading : %d" % (float(d)))
-			app.Localization.heading.append(float(d))
+			app.Localization.stabilized_bearing = float(d)
 			app.Localization.rotate_x.append(float(a))
 			app.Localization.rotate_y.append(float(b))
 			app.Localization.rotate_z.append(float(c))
@@ -349,7 +348,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 		buffer_.append(data)
 		line_count -= 1
 	timer.cancel()
-	# print("Heading : %.2f" % float(buffer_[-1].split(',')[-1]))
+	print("Heading : %.2f" % float(buffer_[-1].split(',')[-1]))
 	if app.platform_ in app.platform_pi:
 		map(process_laptop, buffer_)
 	else:
