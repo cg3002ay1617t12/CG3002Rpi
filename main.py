@@ -173,7 +173,7 @@ class App(object):
 		else:
 			pass
 		if self.transition is Transitions.KEY_GET_PREV:
-			tts("Your previous visited node is : " + self.PathFinder.get_prev_visited_node())
+			tts("Your previous visited node is : " + str(self.PathFinder.get_prev_visited_node()))
 		self.transit = False
 
 	def run(self):
@@ -318,7 +318,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 		except ValueError as e:
 			print e
 	# terminate process in timeout seconds
-	timeout    = 3 # seconds
+	timeout    = 2 # seconds
 	timer      = threading.Timer(timeout, timeout_handler)
 	timer.start()
 	line_count = StepDetector.SAMPLES_PER_PACKET
