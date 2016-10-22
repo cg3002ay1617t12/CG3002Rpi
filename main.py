@@ -180,7 +180,12 @@ class App(object):
 			new_coord = self.PathFinder.get_next_coordinates()
 			if new_coord[0] is not None and new_coord[1] is not None:
 				self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
-				self.Localization.update_coordinates(new_coord[0], new_coord[1])
+				reached, reached_node = self.Localization.update_coordinates(new_coord[0], new_coord[1])
+				if reached:
+					self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
+					self.issue_instruction(self.curr_reached_node)
+				else:
+					pass
 			else:
 				print("Error! Invalid new coordinates for reached node")
 		else:
@@ -242,7 +247,7 @@ class App(object):
 							self.issue_instruction("Step detected. " + self.PathFinder.get_audio_reached(reached_node))
 						else:
 							next_instr = self.PathFinder.get_audio_next_instruction()
-							self.issue_instruction("You have arrived" + self.curr_reached_node + next_instr)
+							self.issue_instruction("You have arrived " + self.curr_reached_node + next_instr)
 					self.StepDetector.curr_steps = 0
 					pass
 				elif self.state is State.RESET:
@@ -252,9 +257,9 @@ class App(object):
 					if (self.StepDetector.curr_steps > 0):
 						reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 						if reached:
-							self.issue_instruction("Step detected." + self.PathFinder.get_audio_reached(reached_node))
+							self.issue_instruction("Step detected. " + self.PathFinder.get_audio_reached(reached_node))
 						else:
-							self.issue_instruction("Step detected." + self.PathFinder.get_audio_next_instruction())
+							self.issue_instruction("Step detected. " + self.PathFinder.get_audio_next_instruction())
 					self.StepDetector.curr_steps = 0
 					pass
 				else:
