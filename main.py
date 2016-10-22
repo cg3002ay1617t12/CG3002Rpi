@@ -311,6 +311,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 			app.StepDetector.ax.append(float(x))
 			app.StepDetector.ay.append(float(y))
 			app.StepDetector.az.append(float(z))
+			print("Heading : %d" % (float(z)))
 			app.Localization.heading.append(float(d))
 			app.Localization.rotate_x.append(float(a))
 			app.Localization.rotate_y.append(float(b))

@@ -1,4 +1,4 @@
-import json, requests, math, heapq, pprint
+import json, requests, math, heapq, pprint, math
 
 class PathFinder(object):
 	def __init__(self, building, level):
@@ -100,9 +100,9 @@ class PathFinder(object):
 		audio_string = ''
 
 		if right:
-			audio_string += 'Turn Right, %.2f And Go %d' % (angle, distance)
+			audio_string += 'Turn Right, %d And Go %d' % (math.floor(angle), distance)
 		else:
-			audio_string += 'Turn Left, %.2f And Go %d' % (angle, distance)
+			audio_string += 'Turn Left, %d And Go %d' % (math.floor(angle), distance)
 
 		return audio_string
 
