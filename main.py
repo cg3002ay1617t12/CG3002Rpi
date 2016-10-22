@@ -149,15 +149,16 @@ class App(object):
 				self.update_steps()
 			pass
 		elif self.state is State.NAVIGATING:
-			if self.transition not in [Transitions.KEY_GET_INSTR, Transitions.KEY_INCR, Transitions.KEY_DECR]:
+			if self.transition not in [Transitions.KEY_GET_INSTR, Transitions.KEY_INCR, Transitions.KEY_DECR, Transitions.SW_REACHED_NODE]:
 				tts("Entering navigation state")
 			try:
 				self.curr_end_node = int(userinput)
 			except Exception as e:
 				pass
-			self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
-			print("Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
-			print("Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
+			if self.transition is Transitions.KEY_NODE:
+				self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
+				print("Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
+				print("Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 			self.update_steps()
 			self.get_instruction()
 		elif self.state is State.REACHED:
@@ -175,9 +176,13 @@ class App(object):
 		if self.transition is Transitions.KEY_GET_PREV:
 			tts("Your previous visited node is : " + str(self.PathFinder.get_prev_visited_node()))
 		elif self.transition is Transitions.SW_REACHED_NODE:
+			print("User triggered next node!")
 			new_coord = self.PathFinder.get_next_coordinates()
-			self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
-			self.Localization.update_coordinates(new_coord[0], new_coord[1])
+			if new_coord[0] is not None and new_coord[1] is not None:
+				self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
+				self.Localization.update_coordinates(new_coord[0], new_coord[1])
+			else:
+				print("Error! Invalid new coordinates for reached node")
 		else:
 			pass
 		self.transit = False
@@ -319,7 +324,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 			app.StepDetector.ax.append(float(x))
 			app.StepDetector.ay.append(float(y))
 			app.StepDetector.az.append(float(z))
-			print("Heading : %d" % (float(z)))
+			print("Heading : %d" % (float(d)))
 			app.Localization.heading.append(float(d))
 			app.Localization.rotate_x.append(float(a))
 			app.Localization.rotate_y.append(float(b))
