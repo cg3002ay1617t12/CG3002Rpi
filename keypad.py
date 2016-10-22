@@ -347,6 +347,8 @@ def main():
 				GPIO.output(j, 1)
 	except KeyboardInterrupt as e:
 		GPIO.cleanup()
+	except Exception as e:
+		print e
 
 if __name__ == "__main__":
 	main()
