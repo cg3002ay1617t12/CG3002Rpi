@@ -107,7 +107,7 @@ State.transitions = {
 		Transitions.KEY_DIGIT : (State.MAP_BUILDING_CONFIRM, Action.APPEND),
 		Transitions.KEY_HASH  : (State.MAP_BUILDING, Action.CLEAR)
 	},
-	State.MAP_BUILDING_CONFRIM  : {
+	State.MAP_BUILDING_CONFIRM  : {
 		Transitions.KEY_DIGIT : (State.MAP_BUILDING_CONFIRM, Action.APPEND),
 		Transitions.KEY_HASH  : (State.MAP_BUILDING, Action.CLEAR),
 		Transitions.KEY_STAR  : (State.MAP_LEVEL, Action.CONFIRM_BUILDING)
