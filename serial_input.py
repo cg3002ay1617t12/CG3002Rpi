@@ -22,7 +22,6 @@ pid      = fpid.read()
 ser      = serial.Serial(SERIAL, BAUD, timeout=1)
 count    = 0
 data     = []
-# os.write(pipe_out, '\r\n')
 
 def signal_handler(signum, frame):
 	print("Serial input terminated old connection")
@@ -32,9 +31,12 @@ signal.signal(signal.SIGUSR1, signal_handler)
 while True:
 	try:
 		datum = ser.readline()
-		data.append(datum)   # read a '\n' terminated line
-		count += 1
-		if count % SAMPLES_PER_PACKET == 0:
+		if len(datum.split(',')) != 7:
+			pass
+		else:
+			data.append(datum)
+			count += 1
+		if len(data) > 0 and count % SAMPLES_PER_PACKET == 0:
 			packet = ''.join(data)
 			os.write(pipe_out, packet)
 			os.kill(int(pid), signal.SIGUSR1) # Raise SIGUSR1 signal

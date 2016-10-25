@@ -282,12 +282,6 @@ def action_on_transit(val, action):
 		os.kill(int(pid), signal.SIGUSR2)
 	else:
 		raise Exception("Unrecognized action!")
-	
-	# prompts = []
-	# Issue prompts for all the transitions in current state
-	# for transition in State.transitions[state]:
-	# 	prompts.append(PROMPTS[transition])
-	#   tts(' '.join(prompts))
 
 def clear_send():
 	global send

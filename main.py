@@ -350,7 +350,6 @@ def serial_handler(signum, frame, *args, **kwargs):
 		buffer_.append(data)
 		line_count -= 1
 	timer.cancel()
-	print("Heading : %.2f" % float(buffer_[-1].split(',')[-1]))
 	if app.platform_ in app.platform_pi:
 		map(process_laptop, buffer_)
 	else:
