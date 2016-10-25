@@ -10,14 +10,16 @@ NUM_WORKERS = 1
 
 class State(Enum):
 	MAP_BUILDING         = 0
-	MAP_LEVEL            = 1
-	START                = 2
-	START_1              = 3
-	START_2              = 4
-	END                  = 5
-	END_1                = 6
-	END_2                = 7
-	FFA                  = 8
+	MAP_BUILDING_CONFIRM = 1
+	MAP_LEVEL            = 2
+	MAP_LEVEL_CONFIRM    = 3
+	START                = 4
+	START_1              = 5
+	START_2              = 6
+	END                  = 7
+	END_1                = 8
+	END_2                = 9
+	FFA                  = 10
 
 class Transitions(Enum):
 	KEY_DIGIT = 0
@@ -102,12 +104,20 @@ class Action(Enum):
 
 State.transitions = {
 	State.MAP_BUILDING  : {
-		Transitions.KEY_DIGIT : (State.MAP_BUILDING, Action.APPEND),
+		Transitions.KEY_DIGIT : (State.MAP_BUILDING_CONFIRM, Action.APPEND),
+		Transitions.KEY_HASH  : (State.MAP_BUILDING, Action.CLEAR)
+	},
+	State.MAP_BUILDING_CONFRIM  : {
+		Transitions.KEY_DIGIT : (State.MAP_BUILDING_CONFIRM, Action.APPEND),
 		Transitions.KEY_HASH  : (State.MAP_BUILDING, Action.CLEAR),
-		Transitions.KEY_STAR : (State.MAP_LEVEL, Action.CONFIRM_BUILDING)
+		Transitions.KEY_STAR  : (State.MAP_LEVEL, Action.CONFIRM_BUILDING)
 	},
 	State.MAP_LEVEL : {
-		Transitions.KEY_DIGIT : (State.MAP_LEVEL, Action.APPEND),
+		Transitions.KEY_DIGIT : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
+		Transitions.KEY_HASH  : (State.MAP_LEVEL, Action.CLEAR)
+	},
+	State.MAP_LEVEL_CONFIRM : {
+		Transitions.KEY_DIGIT : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
 		Transitions.KEY_HASH  : (State.MAP_LEVEL, Action.CLEAR),
 		Transitions.KEY_STAR : (State.START, Action.CONFIRM_LEVEL)
 	},
@@ -172,7 +182,7 @@ AFFIRMS = {
 	Action.DOWNLOAD_MAP : "Downloading new map, please enter building followed by level",
 	Action.GET_INSTR : "",
 	Action.GET_PREV : "",
-	Action.REACHED : "You have forced reached checkpoint"
+	Action.REACHED : "You have shot harem bay"
 }
 
 ALLOWED_BUILDINGS  = [1,2]

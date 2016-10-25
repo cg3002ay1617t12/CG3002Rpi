@@ -1,5 +1,8 @@
 CG3002 Raspberry Pi code
 
+## System dependencies
+python-dev, flite, vim, python-devel
+
 ## Setup pip, virtualenv and virtualenvwrapper for Linux and OS X
 1. pip install -U pip
 2. pip install virtualenv

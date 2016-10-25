@@ -132,7 +132,7 @@ class Localization(object):
 				self.start = time.time()
 				print("Not receiving compass readings")
 				tts("ERROR, Check connection with Arduino... Reset when ready")
-		if direction > 0:
+		if direction >= 0:
 			# Update stabilized bearing
 			self.stabilized_bearing = direction
 		if self.new_data:
