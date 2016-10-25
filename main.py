@@ -314,7 +314,6 @@ def serial_handler(signum, frame, *args, **kwargs):
 				app.StepDetector.az.append(float(a_z))
 			if component_id == 2:
 				heading = readings.strip('\r\n').strip('\0\n\r\t')
-				heading = readings
 				app.Localization.heading.append(float(heading))
 			if component_id == 3:
 				(g_x, g_y, g_z) = map(lambda x: x.strip(' \0\r\n\t'), readings.split(','))
