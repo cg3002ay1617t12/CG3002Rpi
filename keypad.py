@@ -278,7 +278,7 @@ def action_on_transit(val, action):
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.REACHED:
 		tts(AFFIRMS[action])
-		os.write(pipe_out, "CHECKPOINT_REACHED\n")
+		os.write(pipe_out, "USER_CHECKPOINT_REACHED\n")
 		os.kill(int(pid), signal.SIGUSR2)
 	else:
 		raise Exception("Unrecognized action!")

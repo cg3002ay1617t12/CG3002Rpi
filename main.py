@@ -71,16 +71,16 @@ class App(object):
 		signal.signal(signal.SIGUSR2, transition_handler)
 		signal.signal(signal.SIGUSR1, serial_handler)
 
-	def issue_instruction(self, instr, placeholders=()):
+	def issue_instruction(self):
 		""" Only issue instruction after interval"""
-		tts(instr, placeholders)
+		tts(self.instruction)
+		self.instruction = ""
 
-	def wait_for_stable_heading(self):
-		""" Wait for a stable heading from compass to init PathFinder"""
-		while True:
-			reading = self.Localization.get_stabilized_bearing()
-			if reading > 0:
-				return reading
+	def build_instruction(self, instr, placeholders=()):
+		self.instruction += instr % placeholders
+
+	def clear_instruction(self):
+		self.instruction = ""
 
 	def update_steps(self):
 		if self.transition is Transitions.KEY_INCR:
@@ -97,14 +97,13 @@ class App(object):
 			reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 			if reached:
 				self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
-				self.issue_instruction(self.curr_reached_node)
-				# Transit to REACHED state
-				self.event_pipe.write("CHECKPOINT_REACHED\r\n")
-				os.kill(self.pid, signal.SIGUSR2)
+				self.build_instruction(self.curr_reached_node)
 			else:
-				self.issue_instruction(self.PathFinder.get_audio_next_instruction())
+				self.build_instruction(self.PathFinder.get_audio_next_instruction())
 		else:
 			pass
+		self.issue_instruction()
+		self.clear_instruction()
 
 	def run_once_on_transition(self, userinput):
 		""" Run once upon transition to new state"""
@@ -149,8 +148,6 @@ class App(object):
 				self.update_steps()
 			pass
 		elif self.state is State.NAVIGATING:
-			# if self.transition not in [Transitions.KEY_GET_INSTR, Transitions.KEY_INCR, Transitions.KEY_DECR, Transitions.SW_REACHED_NODE]:
-			# 	tts("Entering navigation state")
 			try:
 				self.curr_end_node = int(userinput)
 			except Exception as e:
@@ -175,17 +172,12 @@ class App(object):
 			pass
 		if self.transition is Transitions.KEY_GET_PREV:
 			tts("Your previous visited node is : " + str(self.PathFinder.get_prev_visited_node()))
-		elif self.transition is Transitions.SW_REACHED_NODE:
-			print("User triggered next node!")
+		elif self.transition is Transitions.KEY_REACHED_NODE:
+			# When user press 6
 			new_coord = self.PathFinder.get_next_coordinates()
 			if new_coord[0] is not None and new_coord[1] is not None:
 				self.Localization.update_coordinates(new_coord[0], new_coord[1])
-				reached, reached_node = self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
-				if reached:
-					self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
-					self.issue_instruction(self.curr_reached_node)
-				else:
-					pass
+				self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
 			else:
 				print("Error! Invalid new coordinates for reached node")
 		else:
@@ -220,49 +212,60 @@ class App(object):
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
-					if (self.StepDetector.curr_steps > 0):
-						print((self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing))
-						reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
-						if reached:
-							self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
-							self.issue_instruction(self.curr_reached_node)
-							(x, y) = self.PathFinder.get_coordinates_from_node(reached_node)
-							self.Localization.update_coordinates(x, y)
-							self.StepDetector.curr_steps = 0
-							# Transit to REACHED state
-							self.event_pipe.write("CHECKPOINT_REACHED\r\n")
-							os.kill(self.pid, signal.SIGUSR2)
-						else:
-							self.issue_instruction("Step detected." + self.PathFinder.get_audio_next_instruction())
+					if self.StepDetector.curr_steps > 0:
+						self.build_instruction("Step detected. ")
+					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+					if reached:
+						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
+						self.build_instruction(self.curr_reached_node)
+						(x, y) = self.PathFinder.get_coordinates_from_node(reached_node)
+						self.Localization.update_coordinates(x, y)
+						self.StepDetector.curr_steps = 0
+						# Transit to REACHED state
+						self.event_pipe.write("CHECKPOINT_REACHED\r\n")
+						os.kill(self.pid, signal.SIGUSR2)
+					else:
+						self.build_instruction(self.PathFinder.get_audio_next_instruction())
+					if self.StepDector.curr_steps > 0:
+						self.issue_instruction()
 					self.StepDetector.curr_steps = 0
+					self.clear_instruction()
 					pass
 				elif self.state is State.REACHED:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
+					if self.StepDetector.curr_steps > 0:
+						self.build_instruction("Step detected. ")
+					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+					if reached:
+						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
+						self.build_instruction(self.PathFinder.get_audio_reached(reached_node))
+					else:
+						self.build_instruction("You have arrived ")
+						self.build_instruction(self.curr_reached_node)
+						self.build_instruction(self.PathFinder.get_audio_next_instruction())
 					if (self.StepDetector.curr_steps > 0):
-						print((self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing))
-						reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
-						if reached:
-							self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
-							self.issue_instruction("Step detected. " + self.PathFinder.get_audio_reached(reached_node))
-						else:
-							next_instr = self.PathFinder.get_audio_next_instruction()
-							self.issue_instruction("You have arrived " + self.curr_reached_node + " " + next_instr)
+						self.issue_instruction()
 					self.StepDetector.curr_steps = 0
+					self.clear_instruction()
 					pass
 				elif self.state is State.RESET:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
 					if (self.StepDetector.curr_steps > 0):
-						reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
-						if reached:
-							self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
-							self.issue_instruction("Step detected. " + self.PathFinder.get_audio_reached(reached_node))
-						else:
-							self.issue_instruction("Step detected. " + self.PathFinder.get_audio_next_instruction())
+						self.build_instruction("Step detected. ")	
+					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+					if reached:
+						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
+						self.build_instruction(self.PathFinder.get_audio_reached(reached_node))
+					else:
+						self.build_instruction(self.PathFinder.get_audio_next_instruction())
+					if self.StepDetector.curr_steps > 0:
+						self.issue_instruction()
 					self.StepDetector.curr_steps = 0
+					self.clear_instruction()
 					pass
 				else:
 					pass

@@ -10,12 +10,13 @@ class Transitions(Enum):
 	KEY_INCR         = 4
 	KEY_DECR         = 5
 	SW_REACHED_NODE  = 6
-	SW_READY         = 7
-	KEY_SHUTDOWN     = 8
-	KEY_NAV          = 9
-	KEY_DOWNLOAD     = 10
-	KEY_GET_INSTR    = 11
-	KEY_GET_PREV     = 12
+	KEY_REACHED_NODE = 7
+	SW_READY         = 8
+	KEY_SHUTDOWN     = 9
+	KEY_NAV          = 10
+	KEY_DOWNLOAD     = 11
+	KEY_GET_INSTR    = 12
+	KEY_GET_PREV     = 13
 
 	@classmethod
 	def reverse_mapping(cls, value):
@@ -48,6 +49,8 @@ class Transitions(Enum):
 			return (Transitions.KEY_DOWNLOAD, string)
 		elif string == 'CHECKPOINT_REACHED':
 			return (Transitions.SW_REACHED_NODE, string)
+		elif string == 'USER_CHECKPOINT_REACHED':
+			return (Transitions.KEY_REACHED_NODE, string)
 		elif string == 'NAVIGATE':
 			return (Transitions.KEY_NAV, string)
 		elif string == 'SW_READY':
@@ -109,6 +112,7 @@ State.transitions = {
 	},
 	State.NAVIGATING: {
 		Transitions.SW_REACHED_NODE : State.REACHED,
+		Transitions.KEY_REACHED_NODE : State.REACHED,
 		Transitions.KEY_RESTART : State.ACCEPT_START,
 		Transitions.KEY_RESET : State.RESET,
 		Transitions.KEY_SHUTDOWN : State.END,
