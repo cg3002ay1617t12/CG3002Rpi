@@ -1,10 +1,16 @@
-import json, requests, math, heapq, pprint, math
+import json, requests, math, heapq, pprint, math, os
 
 class PathFinder(object):
 	def __init__(self, building, level):
 		self.__wifi_radius = 150
-		self.__reach_radius = 50
-
+		
+		try:
+			self.__env         = json.loads(open(os.path.join(os.path.dirname(__file__), 'env.json')).read()) 
+			self.__stride_length = self.__env['STRIDE_LENGTH']
+		except Exception as e:
+			print("Environment file not found, using defaults instead")
+			self.__stride_length = 60
+		self.__reach_radius = math.ceil(1.5 * self.__stride_length)
 		self.__node_info = None
 		self.__adjacency_matrix = None
 		self.__num_node = -1
@@ -106,9 +112,9 @@ class PathFinder(object):
 		audio_string = ''
 
 		if right:
-			audio_string += 'Turn Right, %d And Go %d' % (math.floor(angle), distance)
+			audio_string += 'Turn Right %d, Go %d' % (math.floor(angle), math.floor(distance/self.__stride_length))
 		else:
-			audio_string += 'Turn Left, %d And Go %d' % (math.floor(angle), distance)
+			audio_string += 'Turn Left %d, Go %d' % (math.floor(angle), math.floor(distance/self.__stride_length))
 
 		return audio_string
 
@@ -118,7 +124,7 @@ class PathFinder(object):
 
 		reached_name = self.__node_info[reached_index]['name']
 
-		audio_string = 'Reached Node, ' +  str(reached_index) + ',' + str(reached_name)
+		audio_string = 'Reached Node, ' +  str(reached_index) + ' , ' + str(reached_name) + ' '
 
 		return audio_string
 

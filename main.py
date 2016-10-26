@@ -23,6 +23,7 @@ class App(object):
 		self.transit         = False
 		self.userinput       = ''
 		self.transition      = None
+		self.instruction     = ""
 		self.start           = time.time()
 		self.platform_pi = ["Linux-4.4.13-v6+-armv6l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"]
 		# Init submodules
@@ -108,7 +109,7 @@ class App(object):
 	def run_once_on_transition(self, userinput):
 		""" Run once upon transition to new state"""
 		if self.state is State.END:
-			tts("Shutting down now")
+			tts("Shutting down.")
 			pass
 		elif self.state is State.ACCEPT_BUILDING:
 			# tts("Please enter building")
@@ -135,12 +136,14 @@ class App(object):
 			# tts("Please enter end destination")
 			try:
 				self.curr_start_node = int(userinput)
+				print 'AEND userinput ' + str(userinput)
+				print 'AEND self.curr_start_node ' + str(self.curr_start_node)
 			except Exception as e:
 				print e
 			(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
 			if x is None and y is None:
 				print("[ERROR] Invalid start node given, please try again")
-				tts("Error, invalid start node given, please enter again")
+				tts("Error, invalid start, please enter again")
 			else:
 				bearing = self.Localization.stabilized_bearing
 				self.PathFinder.update_coordinate(x, y, bearing)
@@ -153,6 +156,7 @@ class App(object):
 			except Exception as e:
 				pass
 			if self.transition is Transitions.KEY_NODE:
+				print 'NAVI self.curr_start_node ' + str(self.curr_start_node)
 				self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
 				print("Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
 				print("Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
@@ -164,14 +168,14 @@ class App(object):
 			self.get_instruction()
 			pass
 		elif self.state is State.RESET:
-			tts("Resetting step counter and localization module")
+			tts("Resetting. ")
 			self.StepDetector.reset_step()
 			self.Localization.reset()
 			pass
 		else:
 			pass
 		if self.transition is Transitions.KEY_GET_PREV:
-			tts("Your previous visited node is : " + str(self.PathFinder.get_prev_visited_node()))
+			tts("Previous " + str(self.PathFinder.get_prev_visited_node()))
 		elif self.transition is Transitions.KEY_REACHED_NODE:
 			# When user press 6
 			new_coord = self.PathFinder.get_next_coordinates()
@@ -213,7 +217,10 @@ class App(object):
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
 					if self.StepDetector.curr_steps > 0:
-						self.build_instruction("Step detected. ")
+						self.build_instruction("Step")
+					if time.time() - self.start > 2:
+						print("Heading : %.2f" % (self.Localization.stabilized_bearing))
+						self.start = time.time()
 					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
 						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
@@ -226,7 +233,7 @@ class App(object):
 						os.kill(self.pid, signal.SIGUSR2)
 					else:
 						self.build_instruction(self.PathFinder.get_audio_next_instruction())
-					if self.StepDector.curr_steps > 0:
+					if self.StepDetector.curr_steps > 0:
 						self.issue_instruction()
 					self.StepDetector.curr_steps = 0
 					self.clear_instruction()
@@ -236,13 +243,16 @@ class App(object):
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
 					if self.StepDetector.curr_steps > 0:
-						self.build_instruction("Step detected. ")
+						self.build_instruction("Step")
+					if time.time() - self.start > 2:
+						self.start = time.time()
+						print("Heading is : %.2f " % (self.Localization.stabilized_bearing))	
 					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
 						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 						self.build_instruction(self.PathFinder.get_audio_reached(reached_node))
 					else:
-						self.build_instruction("You have arrived ")
+						self.build_instruction("Arrived. ")
 						self.build_instruction(self.curr_reached_node)
 						self.build_instruction(self.PathFinder.get_audio_next_instruction())
 					if (self.StepDetector.curr_steps > 0):
@@ -255,7 +265,7 @@ class App(object):
 					self.StepDetector.run()
 					self.Localization.run(self.StepDetector.curr_steps)
 					if (self.StepDetector.curr_steps > 0):
-						self.build_instruction("Step detected. ")	
+						self.build_instruction("Step. ")	
 					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
 						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
@@ -333,7 +343,7 @@ def serial_handler(signum, frame, *args, **kwargs):
 			app.StepDetector.ax.append(float(x))
 			app.StepDetector.ay.append(float(y))
 			app.StepDetector.az.append(float(z))
-			app.Localization.stabilized_bearing = float(d)
+			app.Localization.heading.append(float(d))
 			app.Localization.rotate_x.append(float(a))
 			app.Localization.rotate_y.append(float(b))
 			app.Localization.rotate_z.append(float(c))
