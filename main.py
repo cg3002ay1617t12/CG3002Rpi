@@ -136,10 +136,12 @@ class App(object):
 		elif self.state is State.ACCEPT_END:
 			# tts("Please enter end destination")
 			try:
+				print '[MAIN] AEND start'
 				self.curr_start_node = int(userinput)
 				print '[MAIN] AEND userinput ' + str(userinput)
 				print '[MAIN] AEND self.curr_start_node ' + str(self.curr_start_node)
 			except Exception as e:
+				print '[MAIN] AEND exception'
 				print e
 			(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
 			if x is None and y is None:
@@ -155,6 +157,7 @@ class App(object):
 			try:
 				self.curr_end_node = int(userinput)
 			except Exception as e:
+				print e
 				pass
 			if self.transition is Transitions.KEY_NODE:
 				print 'NAVI self.curr_start_node ' + str(self.curr_start_node)
