@@ -136,7 +136,7 @@ class PathFinder(object):
 		if self.__next_node == -1:
 			return -1
 
-		next_node = self__next_node
+		next_node = self.__next_node
 
 		if self.__shortest_path == []:
 			return -1
