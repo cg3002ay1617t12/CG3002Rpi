@@ -319,6 +319,7 @@ def transition_handler(signum, frame, *args, **kwargs):
 		app.transition = transition
 		print("[MAIN] " + str(app.state))
 	except KeyError as e:
+		print e
 		pass
 
 def serial_handler(signum, frame, *args, **kwargs):
