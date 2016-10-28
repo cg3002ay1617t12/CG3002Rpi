@@ -118,8 +118,8 @@ State.transitions = {
 	},
 	State.MAP_LEVEL_CONFIRM : {
 		Transitions.KEY_DIGIT : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
-		Transitions.KEY_HASH  : (State.MAP_LEVEL, Action.CLEAR),
-		Transitions.KEY_STAR : (State.START, Action.CONFIRM_LEVEL)
+		Transitions.KEY_STAR : (State.START, Action.CONFIRM_LEVEL),
+		Transitions.KEY_HASH  : (State.MAP_LEVEL, Action.CLEAR)
 	},
 	State.START : {
 		Transitions.KEY_DIGIT : (State.START_1, Action.APPEND),
@@ -131,7 +131,7 @@ State.transitions = {
 	},
 	State.START_2 : {
 		Transitions.KEY_STAR : (State.END, Action.CONFIRM_START),
-		Transitions.KEY_HASH : (State.END, Action.CLEAR)
+		Transitions.KEY_HASH : (State.START, Action.CLEAR)
 	},
 	State.END : {
 		Transitions.KEY_DIGIT : (State.END_1, Action.APPEND),
@@ -142,15 +142,15 @@ State.transitions = {
 		Transitions.KEY_HASH : (State.END, Action.CLEAR)
 	},
 	State.END_2 : {
-		Transitions.KEY_HASH : (State.END, Action.CLEAR),
-		Transitions.KEY_STAR : (State.FFA, Action.CONFIRM_END)
+		Transitions.KEY_STAR : (State.FFA, Action.CONFIRM_END),
+		Transitions.KEY_HASH : (State.END, Action.CLEAR)
 	},
 	State.FFA : {
 		Transitions.KEY_INCR : (State.FFA, Action.INCR),
 		Transitions.KEY_DECR : (State.FFA, Action.DECR),
-		Transitions.KEY_HASH : (State.START, Action.START),
 		Transitions.KEY_NAV  : (State.FFA, Action.NAV),
 		Transitions.KEY_STAR  : (State.MAP_BUILDING, Action.DOWNLOAD_MAP),
+		Transitions.KEY_HASH : (State.START, Action.START),
 		Transitions.KEY_INSTR : (State.FFA, Action.GET_INSTR),
 		Transitions.KEY_PREV : (State.FFA, Action.GET_PREV),
 		Transitions.KEY_REACHED : (State.FFA, Action.REACHED)

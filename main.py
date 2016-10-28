@@ -109,6 +109,7 @@ class App(object):
 
 	def run_once_on_transition(self, userinput):
 		""" Run once upon transition to new state"""
+		print("[MAIN] TRANSITION : " + str(self.state))
 		if self.state is State.END:
 			tts("Shutting down.")
 			pass
