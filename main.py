@@ -96,7 +96,7 @@ class App(object):
 	def get_instruction(self):
 		angle = self.PathFinder.get_angle_to_next_node()
 		if self.transition in [Transitions.KEY_GET_INSTR, Transitions.KEY_DECR, Transitions.KEY_INCR]:
-			reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, angle)
+			reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 			if reached:
 				self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 				self.build_instruction(self.curr_reached_node)
@@ -228,7 +228,7 @@ class App(object):
 					if time.time() - self.start > 2:
 						print("[MAIN] Heading : %.2f" % (self.Localization.stabilized_bearing))
 						self.start = time.time()
-					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, angle)
+					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
 						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 						self.build_instruction(self.curr_reached_node)
@@ -255,7 +255,7 @@ class App(object):
 					if time.time() - self.start > 2:
 						self.start = time.time()
 						print("[MAIN] Heading is : %.2f " % (self.Localization.stabilized_bearing))	
-					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, angle)
+					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
 						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 						self.build_instruction(self.PathFinder.get_audio_reached(reached_node))
@@ -275,7 +275,7 @@ class App(object):
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if (self.StepDetector.curr_steps > 0):
 						self.build_instruction("Step. ")	
-					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, angle)
+					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
 						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 						self.build_instruction(self.PathFinder.get_audio_reached(reached_node))
