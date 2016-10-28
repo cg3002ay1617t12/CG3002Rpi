@@ -1,4 +1,4 @@
-import json, requests, math, heapq, pprint, math, os
+import json, requests, math, heapq, pprint, math, os, time
 
 class PathFinder(object):
 	def __init__(self, building, level):
@@ -31,6 +31,9 @@ class PathFinder(object):
 
 		self.__update_node_info(building, level)
 
+		""""""
+		self.time = time.time()
+
 	""" PUBLIC FUNCTION """
 	# def is_initialized(self):
 	# 	return (self.__node_info != None and self.__adjacency_matrix != None and self.__angle_of_north != -1 and self.__num_node != -1)
@@ -53,12 +56,15 @@ class PathFinder(object):
 		node_reached = -1
 		reached = False
 
-		print 'A: ' + str(self.__next_node)
-		print 'B: ' + str(self.__stride_length)
-		if node_reached != -1:
-			print 'C: ' + str(self.__is_reached(self.__next_node, self.__x_coordinate, self.__y_coordinate))
-			print 'D: ' + str(self.__x_coordinate)
-			print 'E: ' + str(self.__y_coordinate)
+		if time.time() - self.time > 5:
+			self.time = time.time()
+
+			print 'A: ' + str(self.__next_node)
+			print 'B: ' + str(self.__stride_length)
+			if self.__next_node != -1:
+				print 'C: ' + str(self.__is_reached(self.__next_node, self.__x_coordinate, self.__y_coordinate))
+				print 'D: ' + str(self.__x_coordinate)
+				print 'E: ' + str(self.__y_coordinate)
 
 		if self.__next_node != -1:
 			if self.__is_reached(self.__next_node, self.__x_coordinate, self.__y_coordinate):
