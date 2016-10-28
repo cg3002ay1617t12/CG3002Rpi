@@ -115,52 +115,53 @@ class App(object):
 			pass
 		elif self.state is State.ACCEPT_BUILDING:
 			# tts("Please enter building")
+			if self.transition is Transitions.KEY_NODE:
+				try:
+					self.building = int(userinput)
+				except Exception as e:
+					print e
 			pass
 		elif self.state is State.ACCEPT_LEVEL:
 			# tts("Please enter level")
-			try:
-				self.building = int(userinput)
-			except Exception as e:
-				print e
+			if self.transition is Transitions.KEY_NODE:
+				try:
+					self.level = int(userinput)
+					self.PathFinder = PathFinder(building=self.building, level=self.level)
+				except ValueError as e:
+					print("[MAIN] Error! Wrong building and level entered")
+					tts("Please enter a valid building and level")
+				except Exception as e:
+					print(e)
 			pass
 		elif self.state is State.ACCEPT_START:
 			# tts("Please enter start node")
-			try:
-				self.level = int(userinput)
-				self.PathFinder = PathFinder(building=self.building, level=self.level)
-			except ValueError as e:
-				print("[MAIN] Error! Wrong building and level entered")
-				tts("Please enter a valid building and level")
-			except Exception as e:
-				print(e)
+			if self.transition is Transitions.KEY_NODE:
+				try:
+					print '[MAIN] AEND start'
+					self.curr_start_node = int(userinput)
+					print '[MAIN] AEND userinput ' + str(userinput)
+					print '[MAIN] AEND self.curr_start_node ' + str(self.curr_start_node)
+				except Exception as e:
+					print '[MAIN] AEND exception'
+					print e
+				(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
+				if x is None and y is None:
+					print("[MAIN] Error! Invalid start node given, please try again")
+					tts("Error, invalid start, please enter again")
+				else:
+					bearing = self.Localization.stabilized_bearing
+					self.PathFinder.update_coordinate(x, y, bearing)
+					self.Localization.update_coordinates(x, y)
+					self.update_steps()
 			pass
 		elif self.state is State.ACCEPT_END:
 			# tts("Please enter end destination")
-			try:
-				print '[MAIN] AEND start'
-				self.curr_start_node = int(userinput)
-				print '[MAIN] AEND userinput ' + str(userinput)
-				print '[MAIN] AEND self.curr_start_node ' + str(self.curr_start_node)
-			except Exception as e:
-				print '[MAIN] AEND exception'
-				print e
-			(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
-			if x is None and y is None:
-				print("[MAIN] Error! Invalid start node given, please try again")
-				tts("Error, invalid start, please enter again")
-			else:
-				bearing = self.Localization.stabilized_bearing
-				self.PathFinder.update_coordinate(x, y, bearing)
-				self.Localization.update_coordinates(x, y)
-				self.update_steps()
-			pass
-		elif self.state is State.NAVIGATING:
-			try:
-				self.curr_end_node = int(userinput)
-			except Exception as e:
-				print e
-				pass
 			if self.transition is Transitions.KEY_NODE:
+				try:
+					self.curr_end_node = int(userinput)
+				except Exception as e:
+					print e
+					pass
 				print 'NAVI self.curr_start_node ' + str(self.curr_start_node)
 				self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
 				print("[MAIN] Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
@@ -179,9 +180,13 @@ class App(object):
 					os.kill(self.pid, signal.SIGUSR2)
 				else:
 					self.build_instruction(self.PathFinder.get_audio_next_instruction())
+			pass
+		elif self.state is State.NAVIGATING:
+			print("[MAIN] Transition for State.NAVIGATING")
 			self.update_steps()
 			self.get_instruction()
 		elif self.state is State.REACHED:
+			print("[MAIN] Transition for State.REACHED")
 			# self.curr_reached_node = self.PathFinder.get_audio_reached(self.curr_end_node)
 			self.update_steps()
 			self.get_instruction()
@@ -205,6 +210,7 @@ class App(object):
 				print("[MAIN] Error! Invalid new coordinates for reached node")
 		else:
 			pass
+		self.state   = State.transitions[self.state][self.transition]
 		self.transit = False
 
 	def run(self):
@@ -327,7 +333,7 @@ def transition_handler(signum, frame, *args, **kwargs):
 	(transition, userinput) = Transitions.recognize_input(event)
 	print("[MAIN] " + str(transition))
 	try:
-		app.state      = State.transitions[app.state][transition]
+		# app.state      = State.transitions[app.state][transition]
 		app.transit    = True
 		app.userinput  = userinput
 		app.transition = transition
