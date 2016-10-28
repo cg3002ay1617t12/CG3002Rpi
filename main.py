@@ -161,6 +161,8 @@ class App(object):
 				self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
 				print("[MAIN] Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
 				print("[MAIN] Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
+				bearing = self.Localization.stabilized_bearing
+				self.PathFinder.update_coordinate(x, y, bearing)
 			self.update_steps()
 			self.get_instruction()
 		elif self.state is State.REACHED:
@@ -306,13 +308,13 @@ def transition_handler(signum, frame, *args, **kwargs):
 	global app
 	event = app.event_pipe.readline()
 	(transition, userinput) = Transitions.recognize_input(event)
-	print("[MAIN] " + transition)
+	print("[MAIN] " + str(transition))
 	try:
 		app.state      = State.transitions[app.state][transition]
 		app.transit    = True
 		app.userinput  = userinput
 		app.transition = transition
-		print("[MAIN] " + app.state)
+		print("[MAIN] " + str(app.state))
 	except KeyError as e:
 		pass
 
