@@ -165,7 +165,8 @@ class App(object):
 				print("[MAIN] Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
 				print("[MAIN] Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 				bearing = self.Localization.stabilized_bearing
-				self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, bearing)
+				(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
+				self.PathFinder.update_coordinate(x, y, bearing)
 			self.update_steps()
 			self.get_instruction()
 		elif self.state is State.REACHED:
