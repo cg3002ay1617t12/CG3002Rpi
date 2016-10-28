@@ -167,7 +167,18 @@ class App(object):
 				print("[MAIN] Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 				bearing = self.Localization.stabilized_bearing
 				(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
-				self.PathFinder.update_coordinate(x, y, bearing)
+				reached, reached_node = self.PathFinder.update_coordinate(x, y, bearing)
+				if reached:
+					self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
+					self.build_instruction(self.curr_reached_node)
+					(x, y) = self.PathFinder.get_coordinates_from_node(reached_node)
+					self.Localization.update_coordinates(x, y)
+					self.StepDetector.curr_steps = 0
+					# Transit to REACHED state
+					self.event_pipe.write("CHECKPOINT_REACHED\r\n")
+					os.kill(self.pid, signal.SIGUSR2)
+				else:
+					self.build_instruction(self.PathFinder.get_audio_next_instruction())
 			self.update_steps()
 			self.get_instruction()
 		elif self.state is State.REACHED:
