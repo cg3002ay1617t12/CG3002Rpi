@@ -166,25 +166,25 @@ class App(object):
 				self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
 				print("[MAIN] Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
 				print("[MAIN] Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
-				bearing = self.Localization.stabilized_bearing
-				(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
-				reached, reached_node = self.PathFinder.update_coordinate(x, y, bearing)
-				if reached:
-					self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
-					self.build_instruction(self.curr_reached_node)
-					(x, y) = self.PathFinder.get_coordinates_from_node(reached_node)
-					self.Localization.update_coordinates(x, y)
-					self.StepDetector.curr_steps = 0
-					# Transit to REACHED state
-					self.event_pipe.write("CHECKPOINT_REACHED\r\n")
-					os.kill(self.pid, signal.SIGUSR2)
-				else:
-					self.build_instruction(self.PathFinder.get_audio_next_instruction())
 			pass
 		elif self.state is State.NAVIGATING:
 			print("[MAIN] Transition for State.NAVIGATING")
-			self.update_steps()
-			self.get_instruction()
+			bearing = self.Localization.stabilized_bearing
+			(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
+			# reached, reached_node = self.PathFinder.update_coordinate(x, y, bearing)
+			# if reached:
+			# 	self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
+			# 	self.build_instruction(self.curr_reached_node)
+			# 	(x, y) = self.PathFinder.get_coordinates_from_node(reached_node)
+			# 	self.Localization.update_coordinates(x, y)
+			# 	self.StepDetector.curr_steps = 0
+			# 	# Transit to REACHED state
+			# 	self.event_pipe.write("CHECKPOINT_REACHED\r\n")
+			# 	os.kill(self.pid, signal.SIGUSR2)
+			# else:
+			# 	self.build_instruction(self.PathFinder.get_audio_next_instruction())
+			# self.update_steps()
+			# self.get_instruction()
 		elif self.state is State.REACHED:
 			print("[MAIN] Transition for State.REACHED")
 			# self.curr_reached_node = self.PathFinder.get_audio_reached(self.curr_end_node)
@@ -211,6 +211,7 @@ class App(object):
 		else:
 			pass
 		self.state   = State.transitions[self.state][self.transition]
+		print("[MAIN] " + str(self.state))
 		self.transit = False
 
 	def run(self):
@@ -337,7 +338,7 @@ def transition_handler(signum, frame, *args, **kwargs):
 		app.transit    = True
 		app.userinput  = userinput
 		app.transition = transition
-		print("[MAIN] " + str(app.state))
+		# print("[MAIN] " + str(app.state))
 	except KeyError as e:
 		print e
 		pass
