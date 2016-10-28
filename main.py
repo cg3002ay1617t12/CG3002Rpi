@@ -47,20 +47,20 @@ class App(object):
 			App.DATA_PIPE                      = self.ENV['DATA_PIPE']
 			App.EVENT_PIPE                     = self.ENV['EVENT_PIPE']
 		except Exception as e:
-			print("Environment file not found, using defaults instead")
+			print("[MAIN] Environment file not found, using defaults instead")
 		
 	def setup_pipes(self):
 		# Setting up IPC
 		self.master = True
 		self.state = State.START
 		pipe_desc = os.open(App.DATA_PIPE, os.O_RDONLY)
-		print("Starting data pipe...listening for serial comms...")
+		print("[MAIN] Starting data pipe...listening for serial comms...")
 		self.data_pipe = os.fdopen(pipe_desc)
-		print("Serial comms connected!")
+		print("[MAIN] Serial comms connected!")
 		pipe_desc = os.open(App.EVENT_PIPE, os.O_RDWR)
-		print("Starting event pipe...listening for keystrokes...")
+		print("[MAIN] Starting event pipe...listening for keystrokes...")
 		self.event_pipe = os.fdopen(pipe_desc, 'w+')
-		print("Keypad connected!")
+		print("[MAIN] Keypad connected!")
 		fpid = open('./serial_pid', 'r')
 		app.serial_pid = fpid.read()
 		fpid.close()
@@ -94,8 +94,9 @@ class App(object):
 			pass
 
 	def get_instruction(self):
+		angle = self.PathFinder.get_angle_to_next_node()
 		if self.transition in [Transitions.KEY_GET_INSTR, Transitions.KEY_DECR, Transitions.KEY_INCR]:
-			reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+			reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, angle)
 			if reached:
 				self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 				self.build_instruction(self.curr_reached_node)
@@ -127,7 +128,7 @@ class App(object):
 				self.level = int(userinput)
 				self.PathFinder = PathFinder(building=self.building, level=self.level)
 			except ValueError as e:
-				print("[Error] Wrong building and level entered")
+				print("[MAIN] Error! Wrong building and level entered")
 				tts("Please enter a valid building and level")
 			except Exception as e:
 				print(e)
@@ -136,13 +137,13 @@ class App(object):
 			# tts("Please enter end destination")
 			try:
 				self.curr_start_node = int(userinput)
-				print 'AEND userinput ' + str(userinput)
-				print 'AEND self.curr_start_node ' + str(self.curr_start_node)
+				print '[MAIN] AEND userinput ' + str(userinput)
+				print '[MAIN] AEND self.curr_start_node ' + str(self.curr_start_node)
 			except Exception as e:
 				print e
 			(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
 			if x is None and y is None:
-				print("[ERROR] Invalid start node given, please try again")
+				print("[MAIN] Error! Invalid start node given, please try again")
 				tts("Error, invalid start, please enter again")
 			else:
 				bearing = self.Localization.stabilized_bearing
@@ -158,8 +159,8 @@ class App(object):
 			if self.transition is Transitions.KEY_NODE:
 				print 'NAVI self.curr_start_node ' + str(self.curr_start_node)
 				self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
-				print("Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
-				print("Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
+				print("[MAIN] Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
+				print("[MAIN] Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 			self.update_steps()
 			self.get_instruction()
 		elif self.state is State.REACHED:
@@ -183,7 +184,7 @@ class App(object):
 				self.Localization.update_coordinates(new_coord[0], new_coord[1])
 				self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
 			else:
-				print("Error! Invalid new coordinates for reached node")
+				print("[MAIN] Error! Invalid new coordinates for reached node")
 		else:
 			pass
 		self.transit = False
@@ -197,31 +198,32 @@ class App(object):
 				if self.state is State.END:
 					break
 				elif self.state is State.ACCEPT_BUILDING:
-					self.Localization.run(self.StepDetector.curr_steps)
+					# self.Localization.run(self.StepDetector.curr_steps)
 					pass
 				elif self.state is State.ACCEPT_LEVEL:
-					self.Localization.run(self.StepDetector.curr_steps)
+					# self.Localization.run(self.StepDetector.curr_steps)
 					pass
 				elif self.state is State.ACCEPT_START:
 					# Do something, make sure its non-blocking
-					self.Localization.run(self.StepDetector.curr_steps)
+					# self.Localization.run(self.StepDetector.curr_steps)
 					# Cannot do anything because we do not know where the user is
 					pass
 				elif self.state is State.ACCEPT_END:
 					# Do something, make sure its non-blocking
-					self.Localization.run(self.StepDetector.curr_steps)
+					# self.Localization.run(self.StepDetector.curr_steps)
 					# Wait for user to key in destination
 					pass
 				elif self.state is State.NAVIGATING:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
-					self.Localization.run(self.StepDetector.curr_steps)
+					angle = self.PathFinder.get_angle_to_next_node()
+					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if self.StepDetector.curr_steps > 0:
 						self.build_instruction("Step")
 					if time.time() - self.start > 2:
-						print("Heading : %.2f" % (self.Localization.stabilized_bearing))
+						print("[MAIN] Heading : %.2f" % (self.Localization.stabilized_bearing))
 						self.start = time.time()
-					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, angle)
 					if reached:
 						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 						self.build_instruction(self.curr_reached_node)
@@ -241,13 +243,14 @@ class App(object):
 				elif self.state is State.REACHED:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
-					self.Localization.run(self.StepDetector.curr_steps)
+					angle = self.PathFinder.get_angle_to_next_node()
+					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if self.StepDetector.curr_steps > 0:
-						self.build_instruction("Step")
+						self.build_instruction("Step. ")
 					if time.time() - self.start > 2:
 						self.start = time.time()
-						print("Heading is : %.2f " % (self.Localization.stabilized_bearing))	
-					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+						print("[MAIN] Heading is : %.2f " % (self.Localization.stabilized_bearing))	
+					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, angle)
 					if reached:
 						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 						self.build_instruction(self.PathFinder.get_audio_reached(reached_node))
@@ -263,10 +266,11 @@ class App(object):
 				elif self.state is State.RESET:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
-					self.Localization.run(self.StepDetector.curr_steps)
+					angle = self.PathFinder.get_angle_to_next_node()
+					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if (self.StepDetector.curr_steps > 0):
 						self.build_instruction("Step. ")	
-					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, angle)
 					if reached:
 						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
 						self.build_instruction(self.PathFinder.get_audio_reached(reached_node))
@@ -291,7 +295,7 @@ def timeout_handler():
 	global app
 	try:
 		os.kill(int(app.serial_pid), signal.SIGUSR1)
-		print("triggered! %s" % app.serial_pid)
+		print("[MAIN] Killed serial process %s" % app.serial_pid)
 		tts("Error...timeout on serial data. Check Arduino connection and reset when ready")
 	except Exception as e:
 		pass # Process may have terminated already
@@ -302,13 +306,13 @@ def transition_handler(signum, frame, *args, **kwargs):
 	global app
 	event = app.event_pipe.readline()
 	(transition, userinput) = Transitions.recognize_input(event)
-	print transition
+	print("[MAIN] " + transition)
 	try:
 		app.state      = State.transitions[app.state][transition]
 		app.transit    = True
 		app.userinput  = userinput
 		app.transition = transition
-		print(app.state)
+		print("[MAIN] " + app.state)
 	except KeyError as e:
 		pass
 
@@ -366,13 +370,13 @@ def serial_handler(signum, frame, *args, **kwargs):
 		map(process_laptop, buffer_)
 		# map(process_laptop, buffer_)
 	if time.time() - app.start > 5:
-		print("Incoming serial data from Arduino")
+		print("[MAIN] Incoming serial data from Arduino")
 		app.start = time.time()
 	app.StepDetector.new_data = True
 	app.Localization.new_data = True
 
 def connect_keypad(platform=None):
-	print("Connecting with Keypad...")
+	print("[MAIN] Connecting with Keypad...")
 	if platform in ["Linux-4.4.13-v6+-armv6l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"] : # Raspberry Pi
 		cmd     = "python keypad.py"
 	elif platform in ["Darwin-15.2.0-x86_64-i386-64bit", "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty"]:
@@ -381,11 +385,11 @@ def connect_keypad(platform=None):
 		cmd     = "python keyboard_sim.py" # Mac, Windows, Ubuntu with connected keyboard
 	args    = shlex.split(cmd)
 	process = subprocess.Popen(args)
-	print("Connection established!")
+	print("[MAIN] Connection established!")
 	return process
 
 def connect_picomms(platform=None):
-	print("Connecting with Arduino...")
+	print("[MAIN] Connecting with Arduino...")
 	if platform in ["Linux-4.4.13-v6+-armv6l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"] :
 		# cmd     = "python pi_comms.py"
 		cmd     = "python serial_input.py"
@@ -396,7 +400,7 @@ def connect_picomms(platform=None):
 		cmd     = "python serial_input.py"
 	args    = shlex.split(cmd)
 	process = subprocess.Popen(args)
-	print("Connection established!")
+	print("[MAIN] Connection established!")
 	return process
 
 def main():

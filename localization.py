@@ -117,20 +117,21 @@ class Localization(object):
 		elif theta <= -180:
 			theta = 360 + theta
 		else:
-			print("Error calculating theta!")
+			print("[LOCALIZATION] Error calculating theta!")
 		hypo  = Localization.STRIDE_LENGTH * steps_taken
 		self.x = self.x + math.floor(hypo * math.cos(math.pi * theta / 180))
 		self.y = self.y + math.floor(hypo * math.sin(math.pi * theta / 180))
-		print("New position: (%d, %d) Bearing: %.2f" %(int(self.x), int(self.y), direction))
+		print("[LOCALIZATION] New position: (%d, %d) Bearing: %.2f" %(int(self.x), int(self.y), direction))
 		if update_prev:
 			self.prev_step = direction
 
-	def run(self, steps_taken):
+	def run(self, steps_taken, angle=None):
 		direction = self.get_stabilized_bearing()
+		update_direction = angle if angle is not None else direction
 		if direction == -1:
 			if (time.time() - self.start) > 5:
 				self.start = time.time()
-				print("Not receiving compass readings")
+				print("[LOCALIZATION] Not receiving compass readings")
 				tts("ERROR, Check connection with Arduino... Reset when ready")
 		if direction >= 0:
 			# Update stabilized bearing
@@ -139,9 +140,9 @@ class Localization(object):
 			# Update incoming data
 			self.process_new_data()
 		if steps_taken > 0 and direction > 0:
-			print("%d steps taken in %.2f" % (steps_taken, direction))
+			print("[LOCALIZATION] %d steps taken in %.2f" % (steps_taken, direction))
 			# Update x, y
-			self.calculate_new_position(steps_taken, direction)
+			self.calculate_new_position(steps_taken, update_direction)
 		if self.is_plot:
 			# Update plot
 			if (time.time() - self.start) > 1/self.FPS:
