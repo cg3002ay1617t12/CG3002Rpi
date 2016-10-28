@@ -146,14 +146,14 @@ class PathFinder(object):
 
 	def get_angle_to_next_node(self):
 		# return angle_wrt_north
+		print '[PATH_FINDER] __next_node: ' + str(self.__next_node)
 		if self.__next_node == -1:
-			print '[PATH_FINDER] __next_node: ' + str(self.__next_node)
 			return -1
 
 		next_node = self.__next_node
 
+		print '[PATH_FINDER] __shortest_path: ' + str(self.__shortest_path)
 		if self.__shortest_path == []:
-			print '[PATH_FINDER] __shortest_path: ' + str(self.__shortest_path)
 			return -1
 
 		curr_node = 0
