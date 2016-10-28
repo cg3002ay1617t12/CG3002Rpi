@@ -160,7 +160,7 @@ class PathFinder(object):
 
 		for index, node in enumerate(self.__shortest_path):
 			if node == next_node:
-				if index > 1:
+				if index > 0:
 					curr_node = self.__shortest_path[index - 1]
 
 		if curr_node == 0:
