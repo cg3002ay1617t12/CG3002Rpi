@@ -158,14 +158,14 @@ class PathFinder(object):
 
 		curr_node = 0
 
-		for i, node in enumerate(self.__shortest_path):
+		for index, node in enumerate(self.__shortest_path):
 			if node == next_node:
-				if i > 1:
-					curr_node = self.__shortest_path[i - 1]
+				if index > 1:
+					curr_node = self.__shortest_path[index - 1]
 
 		if curr_node == 0:
 			print '[PATH_FINDER] curr_node: ' + str(curr_node)
-			return -1
+			return 0
 
 		curr_node_info = self.__node_info[curr_node]
 		next_node_info = self.__node_info[next_node]
