@@ -138,6 +138,7 @@ class Localization(object):
 				tts("ERROR, Check connection with Arduino... Reset when ready")
 		if direction >= 0:
 			# Update stabilized bearing
+			print("[LOCALIZATION] Updated stabilized bearing %d" % (direction))
 			self.stabilized_bearing = direction
 		if self.new_data:
 			# Update incoming data
