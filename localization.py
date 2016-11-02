@@ -10,7 +10,7 @@ import time
 class Localization(object):
 	"""Class variables default, override in env.json"""
 	NUM_POINTS    = 1000
-	STRIDE_LENGTH = 30 # CM
+	STRIDE_LENGTH = 60 # CM
 	SAMPLES_PER_WINDOW    = 100
 	SAMPLES_PER_PACKET    = 25
 	SAMPLES_PER_SECOND    = 50
