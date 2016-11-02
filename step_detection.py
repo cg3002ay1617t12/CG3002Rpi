@@ -6,7 +6,7 @@ import matplotlib.animation as animation
 
 class StepDetector(object):
 	NUM_POINTS            = 1000
-	SAMPLES_PER_PACKET    = 10
+	SAMPLES_PER_PACKET    = 25
 	SAMPLES_PER_WINDOW    = 100
 	INTERRUPTS_PER_WINDOW = SAMPLES_PER_WINDOW / SAMPLES_PER_PACKET
 	PIPE                  = './data_pipe'
