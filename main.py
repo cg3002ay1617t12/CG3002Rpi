@@ -217,7 +217,7 @@ class App(object):
 				print("[MAIN] unhandled Transition : %s" % str(self.transition))
 				pass
 			elif self.transition is Transitions.KEY_SHUTDOWN:
-				print("[MAIN] %s triggered " % str(self.transition)))
+				print("[MAIN] %s triggered " % str(self.transition))
 				pass
 			else:
 				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
