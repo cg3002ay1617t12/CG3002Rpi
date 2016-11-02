@@ -5,6 +5,7 @@ from collections import deque
 import matplotlib.pyplot as plt
 from audio import tts
 np.seterr(invalid='ignore')
+import time
 
 class Localization(object):
 	"""Class variables default, override in env.json"""
@@ -138,7 +139,9 @@ class Localization(object):
 				tts("ERROR, Check connection with Arduino... Reset when ready")
 		if direction >= 0:
 			# Update stabilized bearing
-			print("[LOCALIZATION] Updated stabilized bearing %d" % (direction))
+			if time.time() - self.start > 5:
+				self.start = time.time()
+				print("[LOCALIZATION] Updated stabilized bearing %d" % (direction))
 			self.stabilized_bearing = direction
 		if self.new_data:
 			# Update incoming data
