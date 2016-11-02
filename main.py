@@ -137,10 +137,7 @@ class App(object):
 			# tts("Please enter start node")
 			if self.transition is Transitions.KEY_NODE:
 				try:
-					print '[MAIN] AEND start'
 					self.curr_start_node = int(userinput)
-					print '[MAIN] AEND userinput ' + str(userinput)
-					print '[MAIN] AEND self.curr_start_node ' + str(self.curr_start_node)
 				except Exception as e:
 					print '[MAIN] AEND exception'
 					print e
@@ -162,7 +159,6 @@ class App(object):
 				except Exception as e:
 					print e
 					pass
-				print 'NAVI self.curr_start_node ' + str(self.curr_start_node)
 				self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
 				print("[MAIN] Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
 				print("[MAIN] Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
@@ -187,21 +183,11 @@ class App(object):
 				self.get_instruction()
 			elif self.transition is Transitions.KEY_DECR or self.transition is Transitions.KEY_INCR:
 				self.update_steps()
+			elif self.transition is Transitions.KEY_RESTART:
+				tts("Restarting. Press building and level")
 			else:
 				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
 				pass
-			# reached, reached_node = self.PathFinder.update_coordinate(x, y, bearing)
-			# if reached:
-			# 	self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
-			# 	self.build_instruction(self.curr_reached_node)
-			# 	(x, y) = self.PathFinder.get_coordinates_from_node(reached_node)
-			# 	self.Localization.update_coordinates(x, y)
-			# 	self.StepDetector.curr_steps = 0
-			# 	# Transit to REACHED state
-			# 	self.event_pipe.write("CHECKPOINT_REACHED\r\n")
-			# 	os.kill(self.pid, signal.SIGUSR2)
-			# else:
-			# 	self.build_instruction(self.PathFinder.get_audio_next_instruction())
 		elif self.state is State.REACHED:
 			print("[MAIN] Transition for State.REACHED")
 			# self.curr_reached_node_instr = self.PathFinder.get_audio_reached(self.curr_end_node)
@@ -219,6 +205,8 @@ class App(object):
 			elif self.transition is Transitions.KEY_SHUTDOWN:
 				print("[MAIN] %s triggered " % str(self.transition))
 				pass
+			elif self.transition is Transitions.KEY_RESTART:
+				tts("Restarting. Press building and level")
 			else:
 				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
 				pass
@@ -269,7 +257,7 @@ class App(object):
 					# print '[MAIN] Angle: ' + str(angle)
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if self.StepDetector.curr_steps > 0:
-						self.build_instruction("Step")
+						self.build_instruction("Step. ")
 					if time.time() - self.start > 2:
 						print("[MAIN] Heading : %.2f" % (self.Localization.stabilized_bearing))
 						self.start = time.time()
@@ -279,6 +267,7 @@ class App(object):
 						self.build_instruction(self.curr_reached_node_instr)
 						(x, y) = self.PathFinder.get_coordinates_from_node(reached_node)
 						self.Localization.update_coordinates(x, y)
+						self.issue_instruction()
 						self.StepDetector.curr_steps = 0
 						# Transit to REACHED state
 						self.event_pipe.write("CHECKPOINT_REACHED\r\n")
@@ -358,11 +347,9 @@ def transition_handler(signum, frame, *args, **kwargs):
 	(transition, userinput) = Transitions.recognize_input(event)
 	print("[MAIN] " + str(transition))
 	try:
-		# app.state      = State.transitions[app.state][transition]
 		app.transit    = True
 		app.userinput  = userinput
 		app.transition = transition
-		# print("[MAIN] " + str(app.state))
 	except KeyError as e:
 		print e
 		pass

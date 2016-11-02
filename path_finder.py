@@ -123,11 +123,10 @@ class PathFinder(object):
 
 		#audio_string = 'From, ' + str(from_name) + ' To Node, ' + str(to_index) + ',' + str(to_name) + ':'
 		audio_string = ''
-
 		if right:
-			audio_string += 'Right %d, Go %d' % (math.floor(angle), math.floor(distance/self.__stride_length))
+			audio_string += ' Right %d, Go %d to %s' % (math.floor(angle), math.floor(distance/self.__stride_length), to_name)
 		else:
-			audio_string += 'Left %d, Go %d' % (math.floor(angle), math.floor(distance/self.__stride_length))
+			audio_string += ' Left %d, Go %d to %s' % (math.floor(angle), math.floor(distance/self.__stride_length), to_name)
 
 		return audio_string
 

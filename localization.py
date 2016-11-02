@@ -141,7 +141,6 @@ class Localization(object):
 			# Update stabilized bearing
 			if time.time() - self.start > 5:
 				self.start = time.time()
-				print("[LOCALIZATION] Updated stabilized bearing %d" % (direction))
 			self.stabilized_bearing = direction
 		if self.new_data:
 			# Update incoming data
