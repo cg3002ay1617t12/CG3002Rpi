@@ -83,10 +83,13 @@ class Localization(object):
 		 	self.bearing.append(self.est[0][0])
 		pass
 
-	def get_stabilized_bearing(self):
+	def get_stabilized_bearing(self, filtered=False):
 		""" Convert values above 350 to x - 360 and calculate variance, only return readings when variance is low enough"""
 		start = Localization.NUM_POINTS - Localization.SAMPLES_PER_PACKET
-		window = list(itertools.islice(self.bearing, start, None))
+		if filtered:
+			window = list(itertools.islice(self.bearing, start, None))
+		else:
+			window = list(itertools.islice(self.heading, start, None))
 		# window = map(lambda x: 360 - x if x > 350 else x, window)
 		# var = np.var(window)
 		# if var < Localization.VARIANCE_THRES:
