@@ -113,7 +113,7 @@ State.transitions = {
 	State.NAVIGATING: {
 		Transitions.SW_REACHED_NODE : State.REACHED,
 		Transitions.KEY_REACHED_NODE : State.REACHED,
-		Transitions.KEY_RESTART : State.ACCEPT_START,
+		Transitions.KEY_RESTART : State.ACCEPT_BUILDING,
 		Transitions.KEY_RESET : State.RESET,
 		Transitions.KEY_SHUTDOWN : State.END,
 		Transitions.KEY_INCR : State.NAVIGATING,
@@ -123,7 +123,7 @@ State.transitions = {
 	},
 	State.REACHED: {
 		Transitions.KEY_SHUTDOWN : State.END,
-		Transitions.KEY_RESTART : State.ACCEPT_START,
+		Transitions.KEY_RESTART : State.ACCEPT_BUILDING,
 		Transitions.KEY_RESET : State.RESET,
 		Transitions.KEY_INCR : State.REACHED,
 		Transitions.KEY_DECR : State.REACHED,
