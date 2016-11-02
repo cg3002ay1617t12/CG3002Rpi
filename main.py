@@ -98,8 +98,8 @@ class App(object):
 		if self.transition in [Transitions.KEY_GET_INSTR, Transitions.KEY_DECR, Transitions.KEY_INCR]:
 			reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 			if reached:
-				self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
-				self.build_instruction(self.curr_reached_node)
+				self.curr_reached_node_instr = self.PathFinder.get_audio_reached(reached_node)
+				self.build_instruction(self.curr_reached_node_instr)
 			else:
 				self.build_instruction(self.PathFinder.get_audio_next_instruction())
 		else:
@@ -171,6 +171,25 @@ class App(object):
 			print("[MAIN] Transition for State.NAVIGATING")
 			bearing = self.Localization.stabilized_bearing
 			(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
+			if self.transition is Transitions.KEY_GET_PREV:
+				tts("Previous " + str(self.PathFinder.get_prev_visited_node()))
+			elif self.transition is Transitions.SW_REACHED_NODE:
+				print("[MAIN] %s triggered " % (str(self.transition)))
+			elif self.transition is Transitions.KEY_REACHED_NODE:
+				# When user press 6
+				new_coord = self.PathFinder.get_next_coordinates()
+				if new_coord[0] is not None and new_coord[1] is not None:
+					self.Localization.update_coordinates(new_coord[0], new_coord[1])
+					self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
+				else:
+					print("[MAIN] Error! Invalid new coordinates for reached node")
+			elif self.transition is Transitions.KEY_GET_INSTR:
+				self.get_instruction()
+			elif self.transition is Transitions.KEY_DECR or self.transition is Transitions.KEY_INCR:
+				self.update_steps()
+			else:
+				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
+				pass
 			# reached, reached_node = self.PathFinder.update_coordinate(x, y, bearing)
 			# if reached:
 			# 	self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
@@ -183,31 +202,31 @@ class App(object):
 			# 	os.kill(self.pid, signal.SIGUSR2)
 			# else:
 			# 	self.build_instruction(self.PathFinder.get_audio_next_instruction())
-			# self.update_steps()
-			# self.get_instruction()
 		elif self.state is State.REACHED:
 			print("[MAIN] Transition for State.REACHED")
-			# self.curr_reached_node = self.PathFinder.get_audio_reached(self.curr_end_node)
-			self.update_steps()
-			self.get_instruction()
-			pass
+			# self.curr_reached_node_instr = self.PathFinder.get_audio_reached(self.curr_end_node)
+			if self.transition is Transitions.KEY_GET_PREV:
+				tts("Previous " + str(self.PathFinder.get_prev_visited_node()))
+			elif self.transition is Transitions.KEY_GET_INSTR:
+				self.get_instruction()
+			elif self.transition is Transitions.KEY_DECR or self.transition is Transitions.KEY_INCR:
+				self.update_steps()
+			elif self.transition is Transitions.KEY_NAV:
+				print("[MAIN] %s triggered " % (str(self.transition)))
+			elif self.transition is Transitions.KEY_RESTART:
+				print("[MAIN] unhandled Transition : %s" % str(self.transition))
+				pass
+			elif self.transition is Transitions.KEY_SHUTDOWN:
+				print("[MAIN] %s triggered " % str(self.transition)))
+				pass
+			else:
+				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
+				pass
 		elif self.state is State.RESET:
 			tts("Resetting. ")
 			self.StepDetector.reset_step()
 			self.Localization.reset()
 			pass
-		else:
-			pass
-		if self.transition is Transitions.KEY_GET_PREV:
-			tts("Previous " + str(self.PathFinder.get_prev_visited_node()))
-		elif self.transition is Transitions.KEY_REACHED_NODE:
-			# When user press 6
-			new_coord = self.PathFinder.get_next_coordinates()
-			if new_coord[0] is not None and new_coord[1] is not None:
-				self.Localization.update_coordinates(new_coord[0], new_coord[1])
-				self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
-			else:
-				print("[MAIN] Error! Invalid new coordinates for reached node")
 		else:
 			pass
 		self.state   = State.transitions[self.state][self.transition]
@@ -251,8 +270,8 @@ class App(object):
 						self.start = time.time()
 					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
-						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
-						self.build_instruction(self.curr_reached_node)
+						self.curr_reached_node_instr = self.PathFinder.get_audio_reached(reached_node)
+						self.build_instruction(self.curr_reached_node_instr)
 						(x, y) = self.PathFinder.get_coordinates_from_node(reached_node)
 						self.Localization.update_coordinates(x, y)
 						self.StepDetector.curr_steps = 0
@@ -278,11 +297,11 @@ class App(object):
 						print("[MAIN] Heading is : %.2f " % (self.Localization.stabilized_bearing))	
 					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
-						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
+						self.curr_reached_node_instr = self.PathFinder.get_audio_reached(reached_node)
 						self.build_instruction(self.PathFinder.get_audio_reached(reached_node))
 					else:
 						self.build_instruction("Arrived. ")
-						self.build_instruction(self.curr_reached_node)
+						self.build_instruction(self.curr_reached_node_instr)
 						self.build_instruction(self.PathFinder.get_audio_next_instruction())
 					if (self.StepDetector.curr_steps > 0):
 						self.issue_instruction()
@@ -298,7 +317,7 @@ class App(object):
 						self.build_instruction("Step. ")	
 					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
-						self.curr_reached_node = self.PathFinder.get_audio_reached(reached_node)
+						self.curr_reached_node_instr = self.PathFinder.get_audio_reached(reached_node)
 						self.build_instruction(self.PathFinder.get_audio_reached(reached_node))
 					else:
 						self.build_instruction(self.PathFinder.get_audio_next_instruction())
