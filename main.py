@@ -229,7 +229,12 @@ class App(object):
 			pass
 		else:
 			pass
-		self.state   = State.transitions[self.state][self.transition]
+		try:
+			self.state   = State.transitions[self.state][self.transition]
+		except KeyError as e:
+			print("[MAIN] Ignoring state %s -> transition %s " % (str(self.state), str(self.transition)))
+			print e
+
 		print("[MAIN] " + str(self.state))
 		self.transit = False
 
