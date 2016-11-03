@@ -59,13 +59,6 @@ class PathFinder(object):
 		if time.time() - self.time > 5:
 			self.time = time.time()
 
-			print 'A: ' + str(self.__next_node)
-			print 'B: ' + str(self.__stride_length)
-			if self.__next_node != -1:
-				print 'C: ' + str(self.__is_reached(self.__next_node, self.__x_coordinate, self.__y_coordinate))
-				print 'D: ' + str(self.__x_coordinate)
-				print 'E: ' + str(self.__y_coordinate)
-
 		if self.__next_node != -1:
 			if self.__is_reached(self.__next_node, self.__x_coordinate, self.__y_coordinate):
 				node_reached = self.__next_node
