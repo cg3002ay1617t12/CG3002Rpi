@@ -18,13 +18,15 @@ class App(object):
 		fpid.write(str(self.pid))
 		fpid.close()
 		
-		self.curr_start_node = -1
-		self.curr_end_node   = -1
-		self.transit         = False
-		self.userinput       = ''
-		self.transition      = None
-		self.instruction     = ""
-		self.start           = time.time()
+		# Private variables
+		self.curr_start_node   = -1
+		self.curr_end_node     = -1
+		self.transit           = False
+		self.userinput         = ''
+		self.transition        = None
+		self.instruction       = ""
+		self.start             = time.time()
+		self.is_stepcounter_on = True
 		self.platform_pi = ["Linux-4.4.13-v6+-armv6l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"]
 		# Init submodules
 		if self.platform_ in self.platform_pi:
@@ -185,6 +187,10 @@ class App(object):
 				self.update_steps()
 			elif self.transition is Transitions.KEY_RESTART:
 				tts("Restarting. Press building and level")
+			elif self.transition is Transitions.KEY_STEP_ON:
+				self.is_stepcounter_on = True
+			elif self.transition is Transitions.KEY_STEP_OFF:
+				self.is_stepcounter_on = False
 			else:
 				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
 				pass
@@ -207,6 +213,10 @@ class App(object):
 				pass
 			elif self.transition is Transitions.KEY_RESTART:
 				tts("Restarting. Press building and level")
+			elif self.transition is Transitions.KEY_STEP_ON:
+				self.is_stepcounter_on = True
+			elif self.transition is Transitions.KEY_STEP_OFF:
+				self.is_stepcounter_on = False				
 			else:
 				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
 				pass
@@ -252,7 +262,7 @@ class App(object):
 					pass
 				elif self.state is State.NAVIGATING:
 					# Do something, make sure its non-blocking
-					self.StepDetector.run()
+					if self.is_stepcounter_on: self.StepDetector.run()
 					angle = self.PathFinder.get_angle_to_next_node()
 					# print '[MAIN] Angle: ' + str(angle)
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
@@ -281,7 +291,7 @@ class App(object):
 					pass
 				elif self.state is State.REACHED:
 					# Do something, make sure its non-blocking
-					self.StepDetector.run()
+					if self.is_stepcounter_on: self.StepDetector.run()
 					angle = self.PathFinder.get_angle_to_next_node()
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if self.StepDetector.curr_steps > 0:
@@ -304,7 +314,7 @@ class App(object):
 					pass
 				elif self.state is State.RESET:
 					# Do something, make sure its non-blocking
-					self.StepDetector.run()
+					if self.is_stepcounter_on: self.StepDetector.run()
 					angle = self.PathFinder.get_angle_to_next_node()
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if (self.StepDetector.curr_steps > 0):

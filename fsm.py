@@ -17,6 +17,8 @@ class Transitions(Enum):
 	KEY_DOWNLOAD     = 11
 	KEY_GET_INSTR    = 12
 	KEY_GET_PREV     = 13
+	KEY_STEP_OFF     = 14
+	KEY_STEP_ON      = 15
 
 	@classmethod
 	def reverse_mapping(cls, value):
@@ -59,6 +61,10 @@ class Transitions(Enum):
 			return (Transitions.KEY_GET_INSTR, string)
 		elif string == 'GET_PREV':
 			return (Transitions.KEY_GET_PREV, string)
+		elif string == 'STEP_OFF':
+			return (Transitions.KEY_STEP_OFF, string)
+		elif string == 'STEP_ON':
+			return (Transitions.KEY_STEP_ON, string)
 		else:
 			return None
 
@@ -119,7 +125,9 @@ State.transitions = {
 		Transitions.KEY_INCR : State.NAVIGATING,
 		Transitions.KEY_DECR : State.NAVIGATING,
 		Transitions.KEY_GET_INSTR : State.NAVIGATING,
-		Transitions.KEY_GET_PREV : State.NAVIGATING
+		Transitions.KEY_GET_PREV : State.NAVIGATING,
+		Transitions.KEY_STEP_OFF : State.NAVIGATING,
+		Transitions.KEY_STEP_ON : State.NAVIGATING
 	},
 	State.REACHED: {
 		Transitions.KEY_SHUTDOWN : State.END,
@@ -129,7 +137,9 @@ State.transitions = {
 		Transitions.KEY_DECR : State.REACHED,
 		Transitions.KEY_NAV : State.NAVIGATING,
 		Transitions.KEY_GET_INSTR : State.REACHED,
-		Transitions.KEY_GET_PREV : State.REACHED
+		Transitions.KEY_GET_PREV : State.REACHED,
+		Transitions.KEY_STEP_OFF : State.REACHED,
+		Transitions.KEY_STEP_ON : State.REACHED
 	},
 	State.RESET: {
 		Transitions.KEY_SHUTDOWN : State.END,

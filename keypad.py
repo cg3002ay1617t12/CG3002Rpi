@@ -33,6 +33,8 @@ class Transitions(Enum):
 	KEY_INSTR = 8
 	KEY_PREV  = 9
 	KEY_REACHED   = 10
+	KEY_STEP_OFF = 11
+	KEY_STEP_ON  = 12
 
 # MATRIX = [
 # 	[1,2,3],    (25,22), (25,17), (25,4)
@@ -82,6 +84,10 @@ class KEY(object):
 			self.types.append(Transitions.KEY_PREV)
 		if self.value == 6:
 			self.types.append(Transitions.KEY_REACHED)
+		if self.value == 1:
+			self.types.append(Transitions.KEY_STEP_OFF)
+		if self.value == 3:
+			self.types.append(Transitions.KEY_STEP_ON)
 
 class Action(Enum):
 	START            = 1
@@ -101,6 +107,8 @@ class Action(Enum):
 	GET_INSTR        = 15
 	GET_PREV         = 16
 	REACHED          = 17
+	STEP_OFF         = 18
+	STEP_ON          = 19
 
 State.transitions = {
 	State.MAP_BUILDING  : {
@@ -153,7 +161,9 @@ State.transitions = {
 		Transitions.KEY_HASH : (State.START, Action.START),
 		Transitions.KEY_INSTR : (State.FFA, Action.GET_INSTR),
 		Transitions.KEY_PREV : (State.FFA, Action.GET_PREV),
-		Transitions.KEY_REACHED : (State.FFA, Action.REACHED)
+		Transitions.KEY_REACHED : (State.FFA, Action.REACHED),
+		Transitions.KEY_STEP_ON : (State.FFA, Action.STEP_ON),
+		Transitions.KEY_STEP_OFF : (State.FFA, Action.STEP_OFF)
 		# Transitions.KEY_STAR : (State.FFA, Action.QUIT)
 		# Transitions.KEY_MUSIC : (State.FFA, Action.PLAY_MUSIC)
 	}
@@ -182,7 +192,9 @@ AFFIRMS = {
 	Action.DOWNLOAD_MAP : "Downloading new map, please enter building followed by level",
 	Action.GET_INSTR : "",
 	Action.GET_PREV : "",
-	Action.REACHED : "You have shot harem bay"
+	Action.REACHED : "You have shot harem bay",
+	Action.STEP_OFF : "You have turned off step counter",
+	Action.STEP_ON : "You have turned on step counter"
 }
 
 ALLOWED_BUILDINGS  = [1,2]
@@ -276,10 +288,22 @@ def action_on_transit(val, action):
 	elif action is Action.GET_PREV:
 		os.write(pipe_out, "GET_PREV\n")
 		os.kill(int(pid), signal.SIGUSR2)
+		pass
 	elif action is Action.REACHED:
 		tts(AFFIRMS[action])
 		os.write(pipe_out, "USER_CHECKPOINT_REACHED\n")
 		os.kill(int(pid), signal.SIGUSR2)
+		pass
+	elif action is Action.STEP_OFF:
+		tts(AFFIRMS[action])
+		os.write(pipe_out, "STEP_OFF\n")
+		os.kill(int(pid, signal.SIGUSR2))
+		pass
+	elif action is Action.STEP_ON:
+		tts(AFFIRMS[action])
+		os.write(pipe_out, "STEP_ON\n")
+		os.kill(int(pid, signal.SIGUSR2))
+		pass
 	else:
 		raise Exception("Unrecognized action!")
 
