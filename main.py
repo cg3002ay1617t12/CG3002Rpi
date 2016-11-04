@@ -172,7 +172,7 @@ class App(object):
 			if self.transition is Transitions.KEY_GET_PREV:
 				tts("Previous " + str(self.PathFinder.get_prev_visited_node()))
 			elif self.transition is Transitions.SW_REACHED_NODE:
-				print("[MAIN] %s triggered " % (str(self.transition)))
+				pass
 			elif self.transition is Transitions.KEY_REACHED_NODE:
 				# When user press 6
 				new_coord = self.PathFinder.get_next_coordinates()
@@ -204,12 +204,8 @@ class App(object):
 			elif self.transition is Transitions.KEY_DECR or self.transition is Transitions.KEY_INCR:
 				self.update_steps()
 			elif self.transition is Transitions.KEY_NAV:
-				print("[MAIN] %s triggered " % (str(self.transition)))
-			elif self.transition is Transitions.KEY_RESTART:
-				print("[MAIN] unhandled Transition : %s" % str(self.transition))
 				pass
 			elif self.transition is Transitions.KEY_SHUTDOWN:
-				print("[MAIN] %s triggered " % str(self.transition))
 				pass
 			elif self.transition is Transitions.KEY_RESTART:
 				tts("Restarting. Press building and level")
