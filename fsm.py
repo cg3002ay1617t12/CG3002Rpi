@@ -100,7 +100,7 @@ State.transitions = {
 	},
 	State.ACCEPT_START: {
 		Transitions.KEY_SHUTDOWN : State.END,
-		Transitions.KEY_NODE : State.ACCEPT_END,
+		Transitions.KEY_NODE : State.ACCEPT_END_BUILDING,
 		Transitions.KEY_RESET : State.RESET,
 		Transitions.KEY_INCR : State.ACCEPT_START,
 		Transitions.KEY_DECR : State.ACCEPT_START
