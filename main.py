@@ -109,27 +109,27 @@ class App(object):
 
 	def combine_node_from_building_and_level(self):
 		""" Only call this once user has keyed in start and end node """
-		start_prefix = -100
-		end_prefix = -100
+		self.start_prefix = -100
+		self.end_prefix = -100
 		if self.start_building == 1 and self.start_level == 1:
-			start_prefix = 0
+			self.start_prefix = 0
 		elif self.start_building == 1 and self.start_level == 2:
-			start_prefix = 100
+			self.start_prefix = 100
 		elif self.start_building == 2 and self.start_level == 2:
-			start_prefix = 200
+			self.start_prefix = 200
 		elif self.start_building == 2 and self.start_level == 3:
-			start_prefix = 300
+			self.start_prefix = 300
 		else:
 			print("[MAIN] Error invalid start building and level given!")
 
 		if self.end_building == 1 and self.end_level == 1:
-			end_prefix = 0
+			self.end_prefix = 0
 		elif self.end_building == 1 and self.end_level == 2:
-			end_prefix = 100
+			self.end_prefix = 100
 		elif self.end_building == 2 and self.end_level == 2:
-			end_prefix = 200
+			self.end_prefix = 200
 		elif self.end_building == 2 and self.end_level == 3:
-			end_prefix = 300
+			self.end_prefix = 300
 		else:
 			print("[MAIN] Error invalid end building and level given!")
 		return (int(self.start_prefix + self.curr_start_node), int(self.end_prefix + self.curr_end_node)) # Start node , end node
