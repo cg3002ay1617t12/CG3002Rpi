@@ -169,15 +169,6 @@ class App(object):
 				except Exception as e:
 					print '[MAIN] AEND exception'
 					print e
-				(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
-				if x is None and y is None:
-					print("[MAIN] Error! Invalid start node given, please try again")
-					tts("Error, invalid start, please enter again")
-				else:
-					bearing = self.Localization.stabilized_bearing
-					self.PathFinder.update_coordinate(x, y, bearing)
-					self.Localization.update_coordinates(x, y)
-					self.update_steps()
 			pass
 		elif self.state is State.ACCEPT_END_BUILDING:
 			# tts("Please enter building")
@@ -204,9 +195,18 @@ class App(object):
 			if self.transition is Transitions.KEY_NODE:
 				try:
 					self.curr_end_node = int(userinput)
-					(start_node, end_node) = self.combine_node_from_building_and_level()
-					self.PathFinder.update_source_and_target(start_node, end_node)
-					print("[MAIN] Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
+					(self.combined_start_node, self.combined_end_node) = self.combine_node_from_building_and_level()
+					(x, y)  = self.PathFinder.get_coordinates_from_node(self.combined_start_node)
+					if x is None and y is None:
+						print("[MAIN] Error! Invalid start node given, please try again")
+						tts("Error, invalid start, please enter again")
+					else:
+						bearing = self.Localization.stabilized_bearing
+						self.PathFinder.update_coordinate(x, y, bearing)
+						self.Localization.update_coordinates(x, y)
+						self.update_steps()
+					self.PathFinder.update_source_and_target(self.combined_start_node, self.combined_end_node)
+					print("[MAIN] Source : %d, Dest: %d" % (start_node, end_node))
 					print("[MAIN] Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 				except Exception as e:
 					print e
