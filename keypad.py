@@ -373,6 +373,8 @@ def main():
 							time.sleep(0.1)
 							key = KEY((i, j))
 							handler(key)
+							while(GPIO.input(i) == 0):
+								pass
 						else:
 							# Key is already pressed
 							pass
