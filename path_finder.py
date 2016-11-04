@@ -184,7 +184,7 @@ class PathFinder(object):
 
 	def get_prev_visited_node(self):
 		if self.__visited_nodes:
-			return self.__visited_nodes[-1]
+			return self.__node_info[self.__visited_nodes[-1]]['name']
 		else:
 			return "None"
 
