@@ -37,6 +37,7 @@ class Localization(object):
 		self.start              = time.time()
 		self.new_data           = False
 		self.prev_step          = -1 # Bearing of last step taken
+		self.is_updating        = True
 		if self.is_plot:
 			self.init_plot()
 		# Variables for kalman filter
@@ -99,6 +100,20 @@ class Localization(object):
 	#		# special value to indicate unstable readings
 	#		return -1.0
 
+	def is_bearing_updating(self, filtered=False):
+		""" Check if bearing is being updated"""
+		tol = 0.01
+		start = 950
+		if filtered:
+			window = list(itertools.islice(self.bearing, start, None))
+		else:
+			window = list(itertools.islice(self.heading, start, None))
+		for (index,reading) in window[0,-1]:
+			if abs(reading - window[index+1]) > tol:
+				self.is_updating = True
+			else:
+				self.is_updating = False
+
 	def convert_to_positive(self, deg):
 		""" Deg must be negative"""
 		return (deg + 360) if deg < 0 else deg
@@ -132,7 +147,13 @@ class Localization(object):
 	def run(self, steps_taken, angle=None):
 		direction = self.get_stabilized_bearing()
 		update_direction = angle if angle is not None else direction
+		self.is_updating(filtered=False)
 		if direction == -1:
+			if (time.time() - self.start) > 5:
+				self.start = time.time()
+				print("[LOCALIZATION] Not receiving compass readings")
+				tts("ERROR, Check connection with Arduino... Reset when ready")
+		if not self.is_updating:
 			if (time.time() - self.start) > 5:
 				self.start = time.time()
 				print("[LOCALIZATION] Not receiving compass readings")
