@@ -189,7 +189,7 @@ AFFIRMS = {
 	Action.NULL : "",
 	Action.QUIT : "Shutting down",
 	Action.NAV : "",
-	Action.DOWNLOAD_MAP : "Downloading new map, please enter building followed by level",
+	Action.DOWNLOAD_MAP : "",
 	Action.GET_INSTR : "",
 	Action.GET_PREV : "",
 	Action.REACHED : "You have shot harem bay",
