@@ -147,7 +147,7 @@ class Localization(object):
 	def run(self, steps_taken, angle=None):
 		direction = self.get_stabilized_bearing()
 		update_direction = angle if angle is not None else direction
-		self.is_updating(filtered=False)
+		self.is_bearing_updating(filtered=False)
 		if direction == -1:
 			if (time.time() - self.start) > 5:
 				self.start = time.time()
