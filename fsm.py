@@ -63,15 +63,17 @@ class Transitions(Enum):
 			return None
 
 class State(Enum):
-	START           = 0
-	ACCEPT_BUILDING = 1
-	ACCEPT_LEVEL    = 2
-	ACCEPT_START    = 3
-	ACCEPT_END      = 4
-	NAVIGATING      = 5
-	REACHED         = 6
-	RESET           = 7
-	END             = 8
+	START                 = 0
+	ACCEPT_START_BUILDING = 1
+	ACCEPT_START_LEVEL    = 2
+	ACCEPT_START          = 3
+	ACCEPT_END_BUILDING   = 4
+	ACCEPT_END_LEVEL      = 5
+	ACCEPT_END            = 6
+	NAVIGATING            = 7
+	REACHED               = 8
+	RESET                 = 9
+	END                   = 10
 
 	@classmethod
 	def reverse_mapping(cls, value):
@@ -82,17 +84,17 @@ class State(Enum):
 
 State.transitions = {
 	State.START: {
-		Transitions.SW_READY : State.ACCEPT_BUILDING
+		Transitions.SW_READY : State.ACCEPT_START_BUILDING
 	},
-	State.ACCEPT_BUILDING : {
-		Transitions.KEY_NODE : State.ACCEPT_LEVEL,
-		Transitions.KEY_DECR : State.ACCEPT_BUILDING,
-		Transitions.KEY_INCR : State.ACCEPT_BUILDING,
+	State.ACCEPT_START_BUILDING : {
+		Transitions.KEY_NODE : State.ACCEPT_START_LEVEL,
+		Transitions.KEY_DECR : State.ACCEPT_START_BUILDING,
+		Transitions.KEY_INCR : State.ACCEPT_START_BUILDING,
 		Transitions.KEY_SHUTDOWN : State.END
 	},
-	State.ACCEPT_LEVEL : {
-		Transitions.KEY_INCR : State.ACCEPT_LEVEL,
-		Transitions.KEY_DECR : State.ACCEPT_LEVEL,
+	State.ACCEPT_START_LEVEL : {
+		Transitions.KEY_INCR : State.ACCEPT_START_LEVEL,
+		Transitions.KEY_DECR : State.ACCEPT_START_LEVEL,
 		Transitions.KEY_NODE : State.ACCEPT_START,
 		Transitions.KEY_SHUTDOWN : State.END
 	},
@@ -102,6 +104,18 @@ State.transitions = {
 		Transitions.KEY_RESET : State.RESET,
 		Transitions.KEY_INCR : State.ACCEPT_START,
 		Transitions.KEY_DECR : State.ACCEPT_START
+	},
+	State.ACCEPT_END_BUILDING : {
+		Transitions.KEY_NODE : State.ACCEPT_END_LEVEL,
+		Transitions.KEY_DECR : State.ACCEPT_END_BUILDING,
+		Transitions.KEY_INCR : State.ACCEPT_END_BUILDING,
+		Transitions.KEY_SHUTDOWN : State.END
+	},
+	State.ACCEPT_END_LEVEL : {
+		Transitions.KEY_INCR : State.ACCEPT_END_LEVEL,
+		Transitions.KEY_DECR : State.ACCEPT_END_LEVEL,
+		Transitions.KEY_NODE : State.ACCEPT_END,
+		Transitions.KEY_SHUTDOWN : State.END
 	},
 	State.ACCEPT_END : {
 		Transitions.KEY_NODE : State.NAVIGATING,
@@ -113,7 +127,7 @@ State.transitions = {
 	State.NAVIGATING: {
 		Transitions.SW_REACHED_NODE : State.REACHED,
 		Transitions.KEY_REACHED_NODE : State.REACHED,
-		Transitions.KEY_RESTART : State.ACCEPT_BUILDING,
+		Transitions.KEY_RESTART : State.ACCEPT_START_BUILDING,
 		Transitions.KEY_RESET : State.RESET,
 		Transitions.KEY_SHUTDOWN : State.END,
 		Transitions.KEY_INCR : State.NAVIGATING,
@@ -123,7 +137,7 @@ State.transitions = {
 	},
 	State.REACHED: {
 		Transitions.KEY_SHUTDOWN : State.END,
-		Transitions.KEY_RESTART : State.ACCEPT_BUILDING,
+		Transitions.KEY_RESTART : State.ACCEPT_START_BUILDING,
 		Transitions.KEY_RESET : State.RESET,
 		Transitions.KEY_INCR : State.REACHED,
 		Transitions.KEY_DECR : State.REACHED,
@@ -133,6 +147,6 @@ State.transitions = {
 	},
 	State.RESET: {
 		Transitions.KEY_SHUTDOWN : State.END,
-		Transitions.KEY_RESTART: State.ACCEPT_START
+		Transitions.KEY_RESTART: State.ACCEPT_START_BUILDING
 	}
 }
