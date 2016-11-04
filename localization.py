@@ -108,7 +108,7 @@ class Localization(object):
 			window = list(itertools.islice(self.bearing, start, None))
 		else:
 			window = list(itertools.islice(self.heading, start, None))
-		for (index,reading) in window[0,-1]:
+		for (index,reading) in enumerate(window[0,-1]):
 			if abs(reading - window[index+1]) > tol:
 				self.is_updating = True
 			else:
