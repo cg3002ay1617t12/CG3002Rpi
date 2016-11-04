@@ -1,8 +1,8 @@
-import json, requests, math, heapq, pprint, math, os, time
+import json, heapq, pprint, math, os, time
 
 class PathFinder(object):
 	def __init__(self):
-		self.__wifi_radius = 150
+		# self.__wifi_radius = 150
 		
 		try:
 			self.__env         = json.loads(open(os.path.join(os.path.dirname(__file__), 'env.json')).read()) 
@@ -11,15 +11,15 @@ class PathFinder(object):
 			print("[PATH FINDER] Environment file not found, using defaults instead")
 			self.__stride_length = 60
 
+		self.__x_coordinate = -1
+		self.__y_coordinate = -1
+		self.__angle = -1
+
 		self.__reach_radius = math.ceil(1.5 * self.__stride_length)
 		self.__node_info = None
 		self.__adjacency_matrix = None
 		self.__num_node = -1
-		self.__angle_of_north = -1
-
-		self.__x_coordinate = -1
-		self.__y_coordinate = -1
-		self.__angle = -1
+		self.__angle_of_north = self.__set_angle_of_north()
 
 		self.__source = -1
 		self.__target = -1
@@ -74,7 +74,10 @@ class PathFinder(object):
 		if not self.is_ready():
 			return False
 
-		if source < 1 or target < 1 or source > self.__num_node or target > self.__num_node:
+		if (source <= 100) or (source >= 141 and source <= 200) or (source >= 221 and source <= 300) or (source >= 317):
+			return False
+
+		if (target <= 100) or (target >= 141 and target <= 200) or (target >= 221 and target <= 300) or (target >= 317):
 			return False
 
 		self.__source = source
@@ -138,6 +141,12 @@ class PathFinder(object):
 
 	def get_angle_of_north(self):
 		return self.__angle_of_north
+
+	def __set_angle_of_north(self):
+		if self.__x_coordinate < 100000:
+			return 315
+		else:
+			return 305
 
 	def get_angle_to_next_node(self):
 		# return angle_wrt_north
@@ -267,6 +276,17 @@ class PathFinder(object):
 		# 		print '[PATH FINDER] Error >> PathFinder::__update_node_info: Unexpected combination of building and level input.'
 		# 		raise ValueError()
 
+		# COM1L2 
+		# request_info = json.dumps({u'info': {u'northAt': u'315'}, u'map': [{u'y': u'102436', u'x': u'100000', u'nodeId': u'101', u'nodeName': u'TO LT15', u'linkTo': u'102'}, {u'y': u'102436', u'x': u'102152', u'nodeId': u'102', u'nodeName': u'P2', u'linkTo': u'101, 103, 104'}, {u'y': u'100731', u'x': u'102152', u'nodeId': u'103', u'nodeName': u'Linkway', u'linkTo': u'102'}, {u'y': u'102436', u'x': u'102883', u'nodeId': u'104', u'nodeName': u'P4', u'linkTo': u'102, 105, 106, 107'}, {u'y': u'101787', u'x': u'102883', u'nodeId': u'105', u'nodeName': u'P5', u'linkTo': u'104, 108'}, {u'y': u'102924', u'x': u'102883', u'nodeId': u'106', u'nodeName': u'Seminar Room 6', u'linkTo': u'104'}, {u'y': u'102436', u'x': u'103776', u'nodeId': u'107', u'nodeName': u'Lobby ', u'linkTo': u'104, 110'}, {u'y': u'101787', u'x': u'103330', u'nodeId': u'108', u'nodeName': u'P8', u'linkTo': u'105, 109, 110'}, {u'y': u'100934', u'x': u'103330', u'nodeId': u'109', u'nodeName': u'Seminar Room 2', u'linkTo': u'108'}, {u'y': u'101787', u'x': u'103776', u'nodeId': u'110', u'nodeName': u'P10', u'linkTo': u'107, 108, 111'}, {u'y': u'101787', u'x': u'105603', u'nodeId': u'111', u'nodeName': u'Student Area', u'linkTo': u'110, 112, 113, 114'}, {u'y': u'102924', u'x': u'105603', u'nodeId': u'112', u'nodeName': u'Seminar Room 1', u'linkTo': u'111'}, {u'y': u'100609', u'x': u'105603', u'nodeId': u'113', u'nodeName': u'P13', u'linkTo': u'111, 136'}, {u'y': u'101787', u'x': u'107065', u'nodeId': u'114', u'nodeName': u'P14', u'linkTo': u'111, 115, 137'}, {u'y': u'102802', u'x': u'107065', u'nodeId': u'115', u'nodeName': u'P15', u'linkTo': u'114, 132'}, {u'y': u'100731', u'x': u'107065', u'nodeId': u'116', u'nodeName': u'P16', u'linkTo': u'118, 137'}, {u'y': u'102802', u'x': u'109014', u'nodeId': u'117', u'nodeName': u'P17', u'linkTo': u'139, 119, 121'}, {u'y': u'100731', u'x': u'108283', u'nodeId': u'118', u'nodeName': u'P18', u'linkTo': u'116, 120, 122'}, {u'y': u'102193', u'x': u'109014', u'nodeId': u'119', u'nodeName': u'Executive Classroom', u'linkTo': u'117'}, {u'y': u'101056', u'x': u'108283', u'nodeId': u'120', u'nodeName': u'Tutorial Room 11', u'linkTo': u'118'}, {u'y': u'102802', u'x': u'109460', u'nodeId': u'121', u'nodeName': u'P21', u'linkTo': u'117, 123, 124'}, {u'y': u'100731', u'x': u'109744', u'nodeId': u'122', u'nodeName': u'P22', u'linkTo': u'118, 125, 134'}, {u'y': u'103248', u'x': u'109460', u'nodeId': u'123', u'nodeName': u'Seminar Room 9', u'linkTo': u'121'}, {u'y': u'102802', u'x': u'111003', u'nodeId': u'124', u'nodeName': u'P24', u'linkTo': u'121, 127, 128'}, {u'y': u'101056', u'x': u'109744', u'nodeId': u'125', u'nodeName': u"NUS Hacker's Room", u'linkTo': u'122'}, {u'y': u'100691', u'x': u'111003', u'nodeId': u'126', u'nodeName': u'P26', u'linkTo': u'134, 128, 129'}, {u'y': u'103248', u'x': u'111003', u'nodeId': u'127', u'nodeName': u'Seminar Room 11', u'linkTo': u'124'}, {u'y': u'101259', u'x': u'111003', u'nodeId': u'128', u'nodeName': u'P28', u'linkTo': u'124, 126, 130'}, {u'y': u'100691', u'x': u'111571', u'nodeId': u'129', u'nodeName': u'P29', u'linkTo': u'126, 131'}, {u'y': u'100731', u'x': u'112180', u'nodeId': u'130', u'nodeName': u'TO Canteen', u'linkTo': u'128'}, {u'y': u'100406', u'x': u'111815', u'nodeId': u'131', u'nodeName': u'TO 2-2-1', u'linkTo': u'129, 201'}, {u'y': u'102802', u'x': u'107552', u'nodeId': u'132', u'nodeName': u'P32', u'linkTo': u'115, 133, 139'}, {u'y': u'103086', u'x': u'107552', u'nodeId': u'133', u'nodeName': u'Seminar Room 7', u'linkTo': u'132'}, {u'y': u'100731', u'x': u'110272', u'nodeId': u'134', u'nodeName': u'P34', u'linkTo': u'122, 126, 135'}, {u'y': u'100447', u'x': u'110272', u'nodeId': u'135', u'nodeName': u'Tutorial Room 5', u'linkTo': u'134'}, {u'y': u'100609', u'x': u'104263', u'nodeId': u'136', u'nodeName': u'Cerebro', u'linkTo': u'113'}, {u'y': u'101543', u'x': u'107065', u'nodeId': u'137', u'nodeName': u'P37', u'linkTo': u'114, 116, 138'}, {u'y': u'101543', u'x': u'107552', u'nodeId': u'138', u'nodeName': u'SR3 Front', u'linkTo': u'137'}, {u'y': u'102802', u'x': u'108811', u'nodeId': u'139', u'nodeName': u'P39', u'linkTo': u'117, 132, 140'}, {u'y': u'102436', u'x': u'108811', u'nodeId': u'140', u'nodeName': u'SR3 Back', u'linkTo': u'139'}]})
+		# COM2L2
+		# request_info = json.dumps({u'info': {u'northAt': u'305'}, u'map': [{u'y': u'204024', u'x': u'200061', u'nodeId': u'201', u'nodeName': u'TO 1-2-31', u'linkTo': u'217'}, {u'y': u'202561', u'x': u'201585', u'nodeId': u'202', u'nodeName': u'P2', u'linkTo': u'203, 205, 217'}, {u'y': u'202378', u'x': u'201342', u'nodeId': u'203', u'nodeName': u"Uncle Soo's Office", u'linkTo': u'202'}, {u'y': u'202317', u'x': u'202134', u'nodeId': u'204', u'nodeName': u"Colin's Office", u'linkTo': u'205'}, {u'y': u'202195', u'x': u'201951', u'nodeId': u'205', u'nodeName': u'P5', u'linkTo': u'202, 204, 219'}, {u'y': u'201098', u'x': u'202988', u'nodeId': u'206', u'nodeName': u'P6', u'linkTo': u'207, 211, 219'}, {u'y': u'200732', u'x': u'203353', u'nodeId': u'207', u'nodeName': u'P7', u'linkTo': u'206, 208'}, {u'y': u'200732', u'x': u'204085', u'nodeId': u'208', u'nodeName': u'P8', u'linkTo': u'207, 209, 210'}, {u'y': u'200976', u'x': u'204085', u'nodeId': u'209', u'nodeName': u'Discussion Room 6', u'linkTo': u'208'}, {u'y': u'200732', u'x': u'208047', u'nodeId': u'210', u'nodeName': u'End of Corridor', u'linkTo': u'208'}, {u'y': u'201646', u'x': u'203475', u'nodeId': u'211', u'nodeName': u'Glass Door', u'linkTo': u'206, 212'}, {u'y': u'201829', u'x': u'203780', u'nodeId': u'212', u'nodeName': u'Wooden Door', u'linkTo': u'211, 213'}, {u'y': u'202012', u'x': u'204146', u'nodeId': u'213', u'nodeName': u'Another Door', u'linkTo': u'212, 214'}, {u'y': u'202317', u'x': u'204329', u'nodeId': u'214', u'nodeName': u'Stairwell', u'linkTo': u'213, 215'}, {u'y': u'202744', u'x': u'203841', u'nodeId': u'215', u'nodeName': u'Halfway', u'linkTo': u'214, 216'}, {u'y': u'202622', u'x': u'203719', u'nodeId': u'216', u'nodeName': u'TO 2-3-11', u'linkTo': u'215, 311'}, {u'y': u'202927', u'x': u'201159', u'nodeId': u'217', u'nodeName': u'P17', u'linkTo': u'201, 202, 218'}, {u'y': u'202805', u'x': u'200915', u'nodeId': u'218', u'nodeName': u"Bimlesh's Office", u'linkTo': u'217'}, {u'y': u'201464', u'x': u'202622', u'nodeId': u'219', u'nodeName': u'P19', u'linkTo': u'205, 206, 220'}, {u'y': u'201342', u'x': u'202378', u'nodeId': u'220', u'nodeName': u"Damith's Office", u'linkTo': u'219'}]})
+		# COM2L3
+		# request_info = json.dumps({u'info': {u'northAt': u'305'}, u'map': [{u'y': u'304024', u'x': u'300061', u'nodeName': u'TO 1-3-18', u'nodeId': u'301', u'linkTo': u'316'}, {u'y': u'301098', u'x': u'302988', u'nodeName': u'P2', u'nodeId': u'302', u'linkTo': u'303, 307, 314'}, {u'y': u'300732', u'x': u'303353', u'nodeName': u'P3', u'nodeId': u'303', u'linkTo': u'302, 304'}, {u'y': u'300732', u'x': u'303902', u'nodeName': u'P4', u'nodeId': u'304', u'linkTo': u'303, 305, 312'}, {u'y': u'300976', u'x': u'303902', u'nodeName': u'Discussion Room 7', u'nodeId': u'305', u'linkTo': u'304'}, {u'y': u'300732', u'x': u'308047', u'nodeName': u'End of Corridor', u'nodeId': u'306', u'linkTo': u'312'}, {u'y': u'301646', u'x': u'303475', u'nodeName': u'Glass Door', u'nodeId': u'307', u'linkTo': u'302, 308'}, {u'y': u'301829', u'x': u'303780', u'nodeName': u'Wooden Door', u'nodeId': u'308', u'linkTo': u'307, 309'}, {u'y': u'302012', u'x': u'304146', u'nodeName': u'Another Door', u'nodeId': u'309', u'linkTo': u'308, 310'}, {u'y': u'302134', u'x': u'304207', u'nodeName': u'Stairwell', u'nodeId': u'310', u'linkTo': u'309, 311'}, {u'y': u'302622', u'x': u'303719', u'nodeName': u'TO 2-2-16', u'nodeId': u'311', u'linkTo': u'216, 310'}, {u'y': u'300732', u'x': u'304085', u'nodeName': u'P12', u'nodeId': u'312', u'linkTo': u'304, 306, 313'}, {u'y': u'300976', u'x': u'304085', u'nodeName': u'Discussion Room 8', u'nodeId': u'313', u'linkTo': u'312'}, {u'y': u'301951', u'x': u'302134', u'nodeName': u'P14', u'nodeId': u'314', u'linkTo': u'302, 315, 316'}, {u'y': u'302012', u'x': u'302317', u'nodeName': u"Henry's Room", u'nodeId': u'315', u'linkTo': u'314'}, {u'y': u'302500', u'x': u'301524', u'nodeName': u'Mysterious Pt', u'nodeId': u'316', u'linkTo': u'301, 314'}]})
+		# Merged
+		# request_info = json.dumps({u'info': {u'northAt': u'305'}, u'map': [{u'y': u'102436', u'x': u'100000', u'nodeId': u'101', u'nodeName': u'TO LT15', u'linkTo': u'102'}, {u'y': u'102436', u'x': u'102152', u'nodeId': u'102', u'nodeName': u'P2', u'linkTo': u'101, 103, 104'}, {u'y': u'100731', u'x': u'102152', u'nodeId': u'103', u'nodeName': u'Linkway', u'linkTo': u'102'}, {u'y': u'102436', u'x': u'102883', u'nodeId': u'104', u'nodeName': u'P4', u'linkTo': u'102, 105, 106, 107'}, {u'y': u'101787', u'x': u'102883', u'nodeId': u'105', u'nodeName': u'P5', u'linkTo': u'104, 108'}, {u'y': u'102924', u'x': u'102883', u'nodeId': u'106', u'nodeName': u'Seminar Room 6', u'linkTo': u'104'}, {u'y': u'102436', u'x': u'103776', u'nodeId': u'107', u'nodeName': u'Lobby ', u'linkTo': u'104, 110'}, {u'y': u'101787', u'x': u'103330', u'nodeId': u'108', u'nodeName': u'P8', u'linkTo': u'105, 109, 110'}, {u'y': u'100934', u'x': u'103330', u'nodeId': u'109', u'nodeName': u'Seminar Room 2', u'linkTo': u'108'}, {u'y': u'101787', u'x': u'103776', u'nodeId': u'110', u'nodeName': u'P10', u'linkTo': u'107, 108, 111'}, {u'y': u'101787', u'x': u'105603', u'nodeId': u'111', u'nodeName': u'Student Area', u'linkTo': u'110, 112, 113, 114'}, {u'y': u'102924', u'x': u'105603', u'nodeId': u'112', u'nodeName': u'Seminar Room 1', u'linkTo': u'111'}, {u'y': u'100609', u'x': u'105603', u'nodeId': u'113', u'nodeName': u'P13', u'linkTo': u'111, 136'}, {u'y': u'101787', u'x': u'107065', u'nodeId': u'114', u'nodeName': u'P14', u'linkTo': u'111, 115, 137'}, {u'y': u'102802', u'x': u'107065', u'nodeId': u'115', u'nodeName': u'P15', u'linkTo': u'114, 132'}, {u'y': u'100731', u'x': u'107065', u'nodeId': u'116', u'nodeName': u'P16', u'linkTo': u'118, 137'}, {u'y': u'102802', u'x': u'109014', u'nodeId': u'117', u'nodeName': u'P17', u'linkTo': u'139, 119, 121'}, {u'y': u'100731', u'x': u'108283', u'nodeId': u'118', u'nodeName': u'P18', u'linkTo': u'116, 120, 122'}, {u'y': u'102193', u'x': u'109014', u'nodeId': u'119', u'nodeName': u'Executive Classroom', u'linkTo': u'117'}, {u'y': u'101056', u'x': u'108283', u'nodeId': u'120', u'nodeName': u'Tutorial Room 11', u'linkTo': u'118'}, {u'y': u'102802', u'x': u'109460', u'nodeId': u'121', u'nodeName': u'P21', u'linkTo': u'117, 123, 124'}, {u'y': u'100731', u'x': u'109744', u'nodeId': u'122', u'nodeName': u'P22', u'linkTo': u'118, 125, 134'}, {u'y': u'103248', u'x': u'109460', u'nodeId': u'123', u'nodeName': u'Seminar Room 9', u'linkTo': u'121'}, {u'y': u'102802', u'x': u'111003', u'nodeId': u'124', u'nodeName': u'P24', u'linkTo': u'121, 127, 128'}, {u'y': u'101056', u'x': u'109744', u'nodeId': u'125', u'nodeName': u"NUS Hacker's Room", u'linkTo': u'122'}, {u'y': u'100691', u'x': u'111003', u'nodeId': u'126', u'nodeName': u'P26', u'linkTo': u'134, 128, 129'}, {u'y': u'103248', u'x': u'111003', u'nodeId': u'127', u'nodeName': u'Seminar Room 11', u'linkTo': u'124'}, {u'y': u'101259', u'x': u'111003', u'nodeId': u'128', u'nodeName': u'P28', u'linkTo': u'124, 126, 130'}, {u'y': u'100691', u'x': u'111571', u'nodeId': u'129', u'nodeName': u'P29', u'linkTo': u'126, 131'}, {u'y': u'100731', u'x': u'112180', u'nodeId': u'130', u'nodeName': u'TO Canteen', u'linkTo': u'128'}, {u'y': u'100406', u'x': u'111815', u'nodeId': u'131', u'nodeName': u'TO 2-2-1', u'linkTo': u'129, 201'}, {u'y': u'102802', u'x': u'107552', u'nodeId': u'132', u'nodeName': u'P32', u'linkTo': u'115, 133, 139'}, {u'y': u'103086', u'x': u'107552', u'nodeId': u'133', u'nodeName': u'Seminar Room 7', u'linkTo': u'132'}, {u'y': u'100731', u'x': u'110272', u'nodeId': u'134', u'nodeName': u'P34', u'linkTo': u'122, 126, 135'}, {u'y': u'100447', u'x': u'110272', u'nodeId': u'135', u'nodeName': u'Tutorial Room 5', u'linkTo': u'134'}, {u'y': u'100609', u'x': u'104263', u'nodeId': u'136', u'nodeName': u'Cerebro', u'linkTo': u'113'}, {u'y': u'101543', u'x': u'107065', u'nodeId': u'137', u'nodeName': u'P37', u'linkTo': u'114, 116, 138'}, {u'y': u'101543', u'x': u'107552', u'nodeId': u'138', u'nodeName': u'SR3 Front', u'linkTo': u'137'}, {u'y': u'102802', u'x': u'108811', u'nodeId': u'139', u'nodeName': u'P39', u'linkTo': u'117, 132, 140'}, {u'y': u'102436', u'x': u'108811', u'nodeId': u'140', u'nodeName': u'SR3 Back', u'linkTo': u'139'}, {u'y': u'204024', u'x': u'200061', u'nodeId': u'201', u'nodeName': u'TO 1-2-31', u'linkTo': u'131, 217'}, {u'y': u'202561', u'x': u'201585', u'nodeId': u'202', u'nodeName': u'P2', u'linkTo': u'203, 205, 217'}, {u'y': u'202378', u'x': u'201342', u'nodeId': u'203', u'nodeName': u"Uncle Soo's Office", u'linkTo': u'202'}, {u'y': u'202317', u'x': u'202134', u'nodeId': u'204', u'nodeName': u"Colin's Office", u'linkTo': u'205'}, {u'y': u'202195', u'x': u'201951', u'nodeId': u'205', u'nodeName': u'P5', u'linkTo': u'202, 204, 219'}, {u'y': u'201098', u'x': u'202988', u'nodeId': u'206', u'nodeName': u'P6', u'linkTo': u'207, 211, 219'}, {u'y': u'200732', u'x': u'203353', u'nodeId': u'207', u'nodeName': u'P7', u'linkTo': u'206, 208'}, {u'y': u'200732', u'x': u'204085', u'nodeId': u'208', u'nodeName': u'P8', u'linkTo': u'207, 209, 210'}, {u'y': u'200976', u'x': u'204085', u'nodeId': u'209', u'nodeName': u'Discussion Room 6', u'linkTo': u'208'}, {u'y': u'200732', u'x': u'208047', u'nodeId': u'210', u'nodeName': u'End of Corridor', u'linkTo': u'208'}, {u'y': u'201646', u'x': u'203475', u'nodeId': u'211', u'nodeName': u'Glass Door', u'linkTo': u'206, 212'}, {u'y': u'201829', u'x': u'203780', u'nodeId': u'212', u'nodeName': u'Wooden Door', u'linkTo': u'211, 213'}, {u'y': u'202012', u'x': u'204146', u'nodeId': u'213', u'nodeName': u'Another Door', u'linkTo': u'212, 214'}, {u'y': u'202317', u'x': u'204329', u'nodeId': u'214', u'nodeName': u'Stairwell', u'linkTo': u'213, 215'}, {u'y': u'202744', u'x': u'203841', u'nodeId': u'215', u'nodeName': u'Halfway', u'linkTo': u'214, 216'}, {u'y': u'202622', u'x': u'203719', u'nodeId': u'216', u'nodeName': u'TO 2-3-11', u'linkTo': u'215, 311'}, {u'y': u'202927', u'x': u'201159', u'nodeId': u'217', u'nodeName': u'P17', u'linkTo': u'201, 202, 218'}, {u'y': u'202805', u'x': u'200915', u'nodeId': u'218', u'nodeName': u"Bimlesh's Office", u'linkTo': u'217'}, {u'y': u'201464', u'x': u'202622', u'nodeId': u'219', u'nodeName': u'P19', u'linkTo': u'205, 206, 220'}, {u'y': u'201342', u'x': u'202378', u'nodeId': u'220', u'nodeName': u"Damith's Office", u'linkTo': u'219'}, {u'y': u'304024', u'x': u'300061', u'nodeName': u'TO 1-3-18', u'nodeId': u'301', u'linkTo': u'316'}, {u'y': u'301098', u'x': u'302988', u'nodeName': u'P2', u'nodeId': u'302', u'linkTo': u'303, 307, 314'}, {u'y': u'300732', u'x': u'303353', u'nodeName': u'P3', u'nodeId': u'303', u'linkTo': u'302, 304'}, {u'y': u'300732', u'x': u'303902', u'nodeName': u'P4', u'nodeId': u'304', u'linkTo': u'303, 305, 312'}, {u'y': u'300976', u'x': u'303902', u'nodeName': u'Discussion Room 7', u'nodeId': u'305', u'linkTo': u'304'}, {u'y': u'300732', u'x': u'308047', u'nodeName': u'End of Corridor', u'nodeId': u'306', u'linkTo': u'312'}, {u'y': u'301646', u'x': u'303475', u'nodeName': u'Glass Door', u'nodeId': u'307', u'linkTo': u'302, 308'}, {u'y': u'301829', u'x': u'303780', u'nodeName': u'Wooden Door', u'nodeId': u'308', u'linkTo': u'307, 309'}, {u'y': u'302012', u'x': u'304146', u'nodeName': u'Another Door', u'nodeId': u'309', u'linkTo': u'308, 310'}, {u'y': u'302134', u'x': u'304207', u'nodeName': u'Stairwell', u'nodeId': u'310', u'linkTo': u'309, 311'}, {u'y': u'302622', u'x': u'303719', u'nodeName': u'TO 2-2-16', u'nodeId': u'311', u'linkTo': u'216, 310'}, {u'y': u'300732', u'x': u'304085', u'nodeName': u'P12', u'nodeId': u'312', u'linkTo': u'304, 306, 313'}, {u'y': u'300976', u'x': u'304085', u'nodeName': u'Discussion Room 8', u'nodeId': u'313', u'linkTo': u'312'}, {u'y': u'301951', u'x': u'302134', u'nodeName': u'P14', u'nodeId': u'314', u'linkTo': u'302, 315, 316'}, {u'y': u'302012', u'x': u'302317', u'nodeName': u"Henry's Room", u'nodeId': u'315', u'linkTo': u'314'}, {u'y': u'302500', u'x': u'301524', u'nodeName': u'Mysterious Pt', u'nodeId': u'316', u'linkTo': u'301, 314'}]})
+
+		request_info = json.dumps({u'info': {u'northAt': u'305'}, u'map': [{u'y': u'102436', u'x': u'100000', u'nodeId': u'101', u'nodeName': u'TO LT15', u'linkTo': u'102'}, {u'y': u'102436', u'x': u'102152', u'nodeId': u'102', u'nodeName': u'P2', u'linkTo': u'101, 103, 104'}, {u'y': u'100731', u'x': u'102152', u'nodeId': u'103', u'nodeName': u'Linkway', u'linkTo': u'102'}, {u'y': u'102436', u'x': u'102883', u'nodeId': u'104', u'nodeName': u'P4', u'linkTo': u'102, 105, 106, 107'}, {u'y': u'101787', u'x': u'102883', u'nodeId': u'105', u'nodeName': u'P5', u'linkTo': u'104, 108'}, {u'y': u'102924', u'x': u'102883', u'nodeId': u'106', u'nodeName': u'Seminar Room 6', u'linkTo': u'104'}, {u'y': u'102436', u'x': u'103776', u'nodeId': u'107', u'nodeName': u'Lobby ', u'linkTo': u'104, 110'}, {u'y': u'101787', u'x': u'103330', u'nodeId': u'108', u'nodeName': u'P8', u'linkTo': u'105, 109, 110'}, {u'y': u'100934', u'x': u'103330', u'nodeId': u'109', u'nodeName': u'Seminar Room 2', u'linkTo': u'108'}, {u'y': u'101787', u'x': u'103776', u'nodeId': u'110', u'nodeName': u'P10', u'linkTo': u'107, 108, 111'}, {u'y': u'101787', u'x': u'105603', u'nodeId': u'111', u'nodeName': u'Student Area', u'linkTo': u'110, 112, 113, 114'}, {u'y': u'102924', u'x': u'105603', u'nodeId': u'112', u'nodeName': u'Seminar Room 1', u'linkTo': u'111'}, {u'y': u'100609', u'x': u'105603', u'nodeId': u'113', u'nodeName': u'P13', u'linkTo': u'111, 136'}, {u'y': u'101787', u'x': u'107065', u'nodeId': u'114', u'nodeName': u'P14', u'linkTo': u'111, 115, 137'}, {u'y': u'102802', u'x': u'107065', u'nodeId': u'115', u'nodeName': u'P15', u'linkTo': u'114, 132'}, {u'y': u'100731', u'x': u'107065', u'nodeId': u'116', u'nodeName': u'P16', u'linkTo': u'118, 137'}, {u'y': u'102802', u'x': u'109014', u'nodeId': u'117', u'nodeName': u'P17', u'linkTo': u'139, 119, 121'}, {u'y': u'100731', u'x': u'108283', u'nodeId': u'118', u'nodeName': u'P18', u'linkTo': u'116, 120, 122'}, {u'y': u'102193', u'x': u'109014', u'nodeId': u'119', u'nodeName': u'Executive Classroom', u'linkTo': u'117'}, {u'y': u'101056', u'x': u'108283', u'nodeId': u'120', u'nodeName': u'Tutorial Room 11', u'linkTo': u'118'}, {u'y': u'102802', u'x': u'109460', u'nodeId': u'121', u'nodeName': u'P21', u'linkTo': u'117, 123, 124'}, {u'y': u'100731', u'x': u'109744', u'nodeId': u'122', u'nodeName': u'P22', u'linkTo': u'118, 125, 134'}, {u'y': u'103248', u'x': u'109460', u'nodeId': u'123', u'nodeName': u'Seminar Room 9', u'linkTo': u'121'}, {u'y': u'102802', u'x': u'111003', u'nodeId': u'124', u'nodeName': u'P24', u'linkTo': u'121, 127, 128'}, {u'y': u'101056', u'x': u'109744', u'nodeId': u'125', u'nodeName': u"NUS Hacker's Room", u'linkTo': u'122'}, {u'y': u'100691', u'x': u'111003', u'nodeId': u'126', u'nodeName': u'P26', u'linkTo': u'134, 128, 129'}, {u'y': u'103248', u'x': u'111003', u'nodeId': u'127', u'nodeName': u'Seminar Room 11', u'linkTo': u'124'}, {u'y': u'101259', u'x': u'111003', u'nodeId': u'128', u'nodeName': u'P28', u'linkTo': u'124, 126, 130'}, {u'y': u'100691', u'x': u'111571', u'nodeId': u'129', u'nodeName': u'P29', u'linkTo': u'126, 131'}, {u'y': u'100731', u'x': u'112180', u'nodeId': u'130', u'nodeName': u'TO Canteen', u'linkTo': u'128'}, {u'y': u'100406', u'x': u'111815', u'nodeId': u'131', u'nodeName': u'TO 2-2-1', u'linkTo': u'129, 201'}, {u'y': u'102802', u'x': u'107552', u'nodeId': u'132', u'nodeName': u'P32', u'linkTo': u'115, 133, 139'}, {u'y': u'103086', u'x': u'107552', u'nodeId': u'133', u'nodeName': u'Seminar Room 7', u'linkTo': u'132'}, {u'y': u'100731', u'x': u'110272', u'nodeId': u'134', u'nodeName': u'P34', u'linkTo': u'122, 126, 135'}, {u'y': u'100447', u'x': u'110272', u'nodeId': u'135', u'nodeName': u'Tutorial Room 5', u'linkTo': u'134'}, {u'y': u'100609', u'x': u'104263', u'nodeId': u'136', u'nodeName': u'Cerebro', u'linkTo': u'113'}, {u'y': u'101543', u'x': u'107065', u'nodeId': u'137', u'nodeName': u'P37', u'linkTo': u'114, 116, 138'}, {u'y': u'101543', u'x': u'107552', u'nodeId': u'138', u'nodeName': u'SR3 Front', u'linkTo': u'137'}, {u'y': u'102802', u'x': u'108811', u'nodeId': u'139', u'nodeName': u'P39', u'linkTo': u'117, 132, 140'}, {u'y': u'102436', u'x': u'108811', u'nodeId': u'140', u'nodeName': u'SR3 Back', u'linkTo': u'139'}, {u'y': u'204024', u'x': u'200061', u'nodeId': u'201', u'nodeName': u'TO 1-2-31', u'linkTo': u'131, 217'}, {u'y': u'202561', u'x': u'201585', u'nodeId': u'202', u'nodeName': u'P2', u'linkTo': u'203, 205, 217'}, {u'y': u'202378', u'x': u'201342', u'nodeId': u'203', u'nodeName': u"Uncle Soo's Office", u'linkTo': u'202'}, {u'y': u'202317', u'x': u'202134', u'nodeId': u'204', u'nodeName': u"Colin's Office", u'linkTo': u'205'}, {u'y': u'202195', u'x': u'201951', u'nodeId': u'205', u'nodeName': u'P5', u'linkTo': u'202, 204, 219'}, {u'y': u'201098', u'x': u'202988', u'nodeId': u'206', u'nodeName': u'P6', u'linkTo': u'207, 211, 219'}, {u'y': u'200732', u'x': u'203353', u'nodeId': u'207', u'nodeName': u'P7', u'linkTo': u'206, 208'}, {u'y': u'200732', u'x': u'204085', u'nodeId': u'208', u'nodeName': u'P8', u'linkTo': u'207, 209, 210'}, {u'y': u'200976', u'x': u'204085', u'nodeId': u'209', u'nodeName': u'Discussion Room 6', u'linkTo': u'208'}, {u'y': u'200732', u'x': u'208047', u'nodeId': u'210', u'nodeName': u'End of Corridor', u'linkTo': u'208'}, {u'y': u'201646', u'x': u'203475', u'nodeId': u'211', u'nodeName': u'Glass Door', u'linkTo': u'206, 212'}, {u'y': u'201829', u'x': u'203780', u'nodeId': u'212', u'nodeName': u'Wooden Door', u'linkTo': u'211, 213'}, {u'y': u'202012', u'x': u'204146', u'nodeId': u'213', u'nodeName': u'Another Door', u'linkTo': u'212, 214'}, {u'y': u'202317', u'x': u'204329', u'nodeId': u'214', u'nodeName': u'Stairwell', u'linkTo': u'213, 215'}, {u'y': u'202744', u'x': u'203841', u'nodeId': u'215', u'nodeName': u'Halfway', u'linkTo': u'214, 216'}, {u'y': u'202622', u'x': u'203719', u'nodeId': u'216', u'nodeName': u'TO 2-3-11', u'linkTo': u'215, 311'}, {u'y': u'202927', u'x': u'201159', u'nodeId': u'217', u'nodeName': u'P17', u'linkTo': u'201, 202, 218'}, {u'y': u'202805', u'x': u'200915', u'nodeId': u'218', u'nodeName': u"Bimlesh's Office", u'linkTo': u'217'}, {u'y': u'201464', u'x': u'202622', u'nodeId': u'219', u'nodeName': u'P19', u'linkTo': u'205, 206, 220'}, {u'y': u'201342', u'x': u'202378', u'nodeId': u'220', u'nodeName': u"Damith's Office", u'linkTo': u'219'}, {u'y': u'304024', u'x': u'300061', u'nodeName': u'TO 1-3-18', u'nodeId': u'301', u'linkTo': u'316'}, {u'y': u'301098', u'x': u'302988', u'nodeName': u'P2', u'nodeId': u'302', u'linkTo': u'303, 307, 314'}, {u'y': u'300732', u'x': u'303353', u'nodeName': u'P3', u'nodeId': u'303', u'linkTo': u'302, 304'}, {u'y': u'300732', u'x': u'303902', u'nodeName': u'P4', u'nodeId': u'304', u'linkTo': u'303, 305, 312'}, {u'y': u'300976', u'x': u'303902', u'nodeName': u'Discussion Room 7', u'nodeId': u'305', u'linkTo': u'304'}, {u'y': u'300732', u'x': u'308047', u'nodeName': u'End of Corridor', u'nodeId': u'306', u'linkTo': u'312'}, {u'y': u'301646', u'x': u'303475', u'nodeName': u'Glass Door', u'nodeId': u'307', u'linkTo': u'302, 308'}, {u'y': u'301829', u'x': u'303780', u'nodeName': u'Wooden Door', u'nodeId': u'308', u'linkTo': u'307, 309'}, {u'y': u'302012', u'x': u'304146', u'nodeName': u'Another Door', u'nodeId': u'309', u'linkTo': u'308, 310'}, {u'y': u'302134', u'x': u'304207', u'nodeName': u'Stairwell', u'nodeId': u'310', u'linkTo': u'309, 311'}, {u'y': u'302622', u'x': u'303719', u'nodeName': u'TO 2-2-16', u'nodeId': u'311', u'linkTo': u'216, 310'}, {u'y': u'300732', u'x': u'304085', u'nodeName': u'P12', u'nodeId': u'312', u'linkTo': u'304, 306, 313'}, {u'y': u'300976', u'x': u'304085', u'nodeName': u'Discussion Room 8', u'nodeId': u'313', u'linkTo': u'312'}, {u'y': u'301951', u'x': u'302134', u'nodeName': u'P14', u'nodeId': u'314', u'linkTo': u'302, 315, 316'}, {u'y': u'302012', u'x': u'302317', u'nodeName': u"Henry's Room", u'nodeId': u'315', u'linkTo': u'314'}, {u'y': u'302500', u'x': u'301524', u'nodeName': u'Mysterious Pt', u'nodeId': u'316', u'linkTo': u'301, 314'}]})
+
 		try:
 			json_request_info = json.loads(request_info)
 		except:
@@ -294,8 +314,8 @@ class PathFinder(object):
 			'name': node['nodeName'],
 			'neighbour' : [int(node_index.strip()) for node_index in str(node['linkTo']).split(',')],
 			'x': int(node['x']),
-			'y': int(node['y']),
-			'wifi': []
+			'y': int(node['y'])
+			# 'wifi': []
 			}
 
 		# for node_id, node in self.__node_info.items():
@@ -321,7 +341,7 @@ class PathFinder(object):
 	def __update_adjacency_matrix(self):
 		self.__num_node = len(self.__node_info)
 
-		self.__adjacency_matrix = [[-1 for row in range(self.__num_node + 1)] for col in range(self.__num_node + 1)]
+		self.__adjacency_matrix = [[-1 for row in range(400)] for col in range(400)]
 
 		for index, node in self.__node_info.iteritems():
 			current_index = index
@@ -345,9 +365,9 @@ class PathFinder(object):
 		end_index = self.__target
 
 		priority_queue = []
-		visited = [False] * (self.__num_node + 1)
+		visited = [False] * (400 + 1)
 		# distance = [0 for i in range(self.__num_node + 1)]
-		predecesor = [-1 for i in range(self.__num_node + 1)]
+		predecesor = [-1 for i in range(400)]
 
 		init_weight = 0
 		init_index = start_index
@@ -493,8 +513,8 @@ if __name__ == "__main__":
 
 		pf = PathFinder()
 
-		source = 1
-		target = pf._PathFinder__num_node
+		source = 101
+		target = 316
 
 		pf.update_coordinate(0, 0, 0)
 		pf.update_source_and_target(source, target)
@@ -502,6 +522,9 @@ if __name__ == "__main__":
 		shortest_path = pf._PathFinder__shortest_path
 
 		for i in range(source, target + 1):
+			if (i <= 100) or (i >= 141 and i <= 200) or (i >= 221 and i <= 300) or (i >= 317):
+				continue
+
 			reached, node_reached = pf.update_coordinate(pf._PathFinder__node_info[i]['x'], pf._PathFinder__node_info[i]['y'], 0)
 			if reached:
 				if node_reached not in shortest_path:
@@ -518,8 +541,8 @@ if __name__ == "__main__":
 
 		pf = PathFinder()
 
-		source = 1
-		target = 1
+		source = 101
+		target = 102
 
 		pf.update_coordinate(0, 0, 0)
 		pf.update_source_and_target(source, target)
@@ -527,20 +550,21 @@ if __name__ == "__main__":
 		sign_y = [1, 1, 0, -1, -1, -1, 0, 1]
 
 		for i in range(0, 8):
-			x_coordinate = pf._PathFinder__node_info[1]['x'] + (100 * sign_x[i])
-			y_coordinate = pf._PathFinder__node_info[1]['y'] + (100 * sign_y[i])
+			x_coordinate = pf._PathFinder__node_info[source]['x'] + (500 * sign_x[i])
+			y_coordinate = pf._PathFinder__node_info[source]['y'] + (500 * sign_y[i])
 			angle_of_user_from_north = 0
 			expected_angle = pf._PathFinder__convert_angle_to_convention((360 - pf._PathFinder__angle_of_north) + 180 + (i * 45))
 
 			for j in range(0, 8):
 				pf.update_coordinate(x_coordinate, y_coordinate, angle_of_user_from_north + (j * 45))
+
 				if pf._PathFinder__instruction[0]['angle'] != pf._PathFinder__convert_angle_to_convention(expected_angle - (j * 45)):
 					print 'Error'
 					print 'user x: ' + str(x_coordinate)
 					print 'user y: ' + str(y_coordinate)
 					print 'user angle from north: ' + str(pf._PathFinder__convert_angle_to_convention(angle_of_user_from_north))
-					print 'next x: ' + str(pf._PathFinder__node_info[1]['x'])
-					print 'next y: ' + str(pf._PathFinder__node_info[1]['y'])
+					print 'next x: ' + str(pf._PathFinder__node_info[source]['x'])
+					print 'next y: ' + str(pf._PathFinder__node_info[source]['y'])
 					print 'next angle: ' + str(pf._PathFinder__instruction[0]['angle'])
 					print 'expected angle: ' + str(pf._PathFinder__convert_angle_to_convention(expected_angle))
 
@@ -581,13 +605,13 @@ if __name__ == "__main__":
 
 		pf = PathFinder()
 
-		source = 1
-		target = 1
+		source = 101
+		target = 101
 
-		pf.update_coordinate(pf._PathFinder__node_info[1]['x'], pf._PathFinder__node_info[1]['y'], 0)
+		pf.update_coordinate(pf._PathFinder__node_info[101]['x'], pf._PathFinder__node_info[101]['y'], 0)
 		pf.update_source_and_target(source, target)
 
-		pf.update_coordinate(pf._PathFinder__node_info[1]['x'], pf._PathFinder__node_info[1]['y'], 0)
+		pf.update_coordinate(pf._PathFinder__node_info[101]['x'], pf._PathFinder__node_info[101]['y'], 0)
 
 		instruction = pf._PathFinder__instruction
 
