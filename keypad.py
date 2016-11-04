@@ -230,7 +230,7 @@ def action_on_transit(val, action):
 	elif action is Action.DOWNLOAD_MAP:
 		tts(AFFIRMS[action])
 		print(send)
-		os.write(pipe_out, "DOWNLOAD_MAP" + "\n")
+		os.write(pipe_out, "*" + "\n")
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.CONFIRM_BUILDING:
 		tts(AFFIRMS[action], (send,))
@@ -297,12 +297,12 @@ def action_on_transit(val, action):
 	elif action is Action.STEP_OFF:
 		tts(AFFIRMS[action])
 		os.write(pipe_out, "STEP_OFF\n")
-		os.kill(int(pid, signal.SIGUSR2))
+		os.kill(int(pid), signal.SIGUSR2))
 		pass
 	elif action is Action.STEP_ON:
 		tts(AFFIRMS[action])
 		os.write(pipe_out, "STEP_ON\n")
-		os.kill(int(pid, signal.SIGUSR2))
+		os.kill(int(pid), signal.SIGUSR2))
 		pass
 	else:
 		raise Exception("Unrecognized action!")

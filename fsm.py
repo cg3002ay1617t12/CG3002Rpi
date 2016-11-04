@@ -143,6 +143,6 @@ State.transitions = {
 	},
 	State.RESET: {
 		Transitions.KEY_SHUTDOWN : State.END,
-		Transitions.KEY_RESTART: State.ACCEPT_START
+		Transitions.KEY_RESTART: State.ACCEPT_BUILDING
 	}
 }
