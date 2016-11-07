@@ -5,3 +5,4 @@ numpy==1.10.4
 enum34
 talkey
 Rpi.GPIO
+picamera

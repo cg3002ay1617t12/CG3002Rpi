@@ -37,6 +37,7 @@ class Transitions(Enum):
 	KEY_INSTR = 8
 	KEY_PREV  = 9
 	KEY_REACHED   = 10
+	KEY_BANANA = 11
 
 # MATRIX = [
 # 	[1,2,3],    (25,22), (25,17), (25,4)
@@ -86,6 +87,8 @@ class KEY(object):
 			self.types.append(Transitions.KEY_PREV)
 		if self.value == 6:
 			self.types.append(Transitions.KEY_REACHED)
+		if self.value == 9:
+			self.types.append(Transitions.KEY_BANANA)
 
 class Action(Enum):
 	START                  = 1
@@ -107,6 +110,7 @@ class Action(Enum):
 	GET_INSTR              = 17
 	GET_PREV               = 18
 	REACHED                = 19
+	TAKE_PHOTO             = 20
 
 State.transitions = {
 	State.MAP_BUILDING  : {
@@ -177,6 +181,7 @@ State.transitions = {
 		Transitions.KEY_HASH : (State.START, Action.START),
 		Transitions.KEY_INSTR : (State.FFA, Action.GET_INSTR),
 		Transitions.KEY_PREV : (State.FFA, Action.GET_PREV),
+		Transitions.KEY_BANANA : (State.FFA, Action.TAKE_PHOTO),
 		Transitions.KEY_REACHED : (State.FFA, Action.REACHED)
 		# Transitions.KEY_STAR : (State.FFA, Action.QUIT)
 		# Transitions.KEY_MUSIC : (State.FFA, Action.PLAY_MUSIC)
@@ -208,6 +213,7 @@ AFFIRMS = {
 	Action.DOWNLOAD_MAP : "Downloading new map, please enter building followed by level",
 	Action.GET_INSTR : "",
 	Action.GET_PREV : "",
+	Action.TAKE_PHOTO : "Taking a photo",
 	Action.REACHED : "You have shot harem bay"
 }
 
@@ -317,6 +323,9 @@ def action_on_transit(val, action):
 	elif action is Action.REACHED:
 		tts(AFFIRMS[action])
 		os.write(pipe_out, "USER_CHECKPOINT_REACHED\n")
+		os.kill(int(pid), signal.SIGUSR2)
+	elif action is Action.TAKE_PHOTO:
+		os.write(pipe_out, "TAKE_PHOTO\n")
 		os.kill(int(pid), signal.SIGUSR2)
 	else:
 		raise Exception("Unrecognized action!")

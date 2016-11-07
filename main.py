@@ -5,6 +5,7 @@ from fsm import *
 from localization import *
 from audio import tts
 from threading import Thread
+from obstacle import *
 
 class App(object):
 	EVENT_PIPE = './event_pipe'
@@ -34,6 +35,7 @@ class App(object):
 		self.PathFinder   = PathFinder()
 		self.StepDetector = StepDetector(plot=plot)
 		self.Localization = Localization(x=0, y=0, north=self.PathFinder.get_angle_of_north(), plot=plot)
+		self.ObstacleDetector = ObstacleDetector()
 		# self.LPF = LocalPathFinder(mode='demo')
 
 		# Init environment and user-defined variables
@@ -218,8 +220,10 @@ class App(object):
 			(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
 			if self.transition is Transitions.KEY_GET_PREV:
 				tts("Previous " + str(self.PathFinder.get_prev_visited_node()))
+				pass
 			elif self.transition is Transitions.SW_REACHED_NODE:
 				print("[MAIN] %s triggered " % (str(self.transition)))
+				pass
 			elif self.transition is Transitions.KEY_REACHED_NODE:
 				# When user press 6
 				new_coord = self.PathFinder.get_next_coordinates()
@@ -228,12 +232,22 @@ class App(object):
 					self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
 				else:
 					print("[MAIN] Error! Invalid new coordinates for reached node")
+				pass
 			elif self.transition is Transitions.KEY_GET_INSTR:
 				self.get_instruction()
+				pass
 			elif self.transition is Transitions.KEY_DECR or self.transition is Transitions.KEY_INCR:
 				self.update_steps()
+				pass
 			elif self.transition is Transitions.KEY_RESTART:
 				tts("Restarting. Press building and level")
+				pass
+			elif self.transition is Transitions.KEY_BANANA:
+				if self.ObstacleDetector.run():
+					self.build_instruction("Banana")
+					self.issue_instruction()
+					self.clear_instruction()
+				pass
 			else:
 				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
 				pass
@@ -242,12 +256,16 @@ class App(object):
 			# self.curr_reached_node_instr = self.PathFinder.get_audio_reached(self.curr_end_node)
 			if self.transition is Transitions.KEY_GET_PREV:
 				tts("Previous " + str(self.PathFinder.get_prev_visited_node()))
+				pass
 			elif self.transition is Transitions.KEY_GET_INSTR:
 				self.get_instruction()
+				pass
 			elif self.transition is Transitions.KEY_DECR or self.transition is Transitions.KEY_INCR:
 				self.update_steps()
+				pass
 			elif self.transition is Transitions.KEY_NAV:
 				print("[MAIN] %s triggered " % (str(self.transition)))
+				pass
 			elif self.transition is Transitions.KEY_RESTART:
 				print("[MAIN] unhandled Transition : %s" % str(self.transition))
 				pass
@@ -256,6 +274,13 @@ class App(object):
 				pass
 			elif self.transition is Transitions.KEY_RESTART:
 				tts("Restarting. Press building and level")
+				pass
+			elif self.transition is Transitions.KEY_BANANA:
+				if self.ObstacleDetector.run():
+					self.build_instruction("Banana")
+					self.issue_instruction()
+					self.clear_instruction()
+				pass
 			else:
 				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
 				pass
