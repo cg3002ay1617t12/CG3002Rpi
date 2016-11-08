@@ -493,22 +493,24 @@ def serial_handler(signum, frame, *args, **kwargs):
 	app.StepDetector.new_data = True
 	app.Localization.new_data = True
 
-def connect_keypad(platform=None):
-	print("[MAIN] Connecting with Keypad...")
-	if platform in ["Linux-4.4.13-v6+-armv6l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"] : # Raspberry Pi
+def connect_keypad(app, platform=None):
+	if platform in app.platform_pi:
+		print("[MAIN] Connecting with Keypad...")
 		cmd     = "python keypad.py"
 	elif platform in ["Darwin-15.2.0-x86_64-i386-64bit", "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty"]:
+		print("[MAIN] Connecting with Keyboard...")
 		cmd     = "python keyboard_sim.py" # Mac, Windows, Ubuntu with connected keyboard
 	else:
+		print("[MAIN] Connecting with Keyboard...")
 		cmd     = "python keyboard_sim.py" # Mac, Windows, Ubuntu with connected keyboard
 	args    = shlex.split(cmd)
 	process = subprocess.Popen(args)
 	print("[MAIN] Connection established!")
 	return process
 
-def connect_picomms(platform=None):
+def connect_picomms(app, platform=None):
 	print("[MAIN] Connecting with Arduino...")
-	if platform in ["Linux-4.4.13-v6+-armv6l-with-debian-8.0", "Linux-4.4.13+-armv6l-with-debian-8.0"] :
+	if platform in app.platform_pi:
 		# cmd     = "python pi_comms.py"
 		cmd     = "python serial_input.py"
 	elif platform == "Darwin-15.2.0-x86_64-i386-64bit" or platform == "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty":
@@ -528,8 +530,8 @@ def main():
 	if os.fork() == 0:
 		# Child processes
 		signal.signal(signal.SIGALRM, timeout_handler)
-		p1 = connect_picomms(platform_)
-		p2 = connect_keypad(platform_)
+		p1 = connect_picomms(app, platform_)
+		p2 = connect_keypad(app, platform_)
 		fpid = open('./keypad_pid', 'w')
 		fpid.write(str(p2.pid))
 		fpid.close()
