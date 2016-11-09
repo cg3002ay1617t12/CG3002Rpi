@@ -1,6 +1,7 @@
 import cv2, io
 import numpy as np
 from picamera import PiCamera
+from time import time
 
 class ObstacleDetector(object):
 	
@@ -23,9 +24,12 @@ class ObstacleDetector(object):
 	def run(self):
 		# Take a picture
 		stream = io.BytesIO()
+		self.cam.start_preview()
+		time.sleep(2)
 		pi_img = self.cam.capture(stream, format='jpeg')
 		data = np.fromstring(stream.getvalue(), dtype=np.uint8)
 		cv_img = cv2.imdecode(data, 1)
+		
 		# Detect banana
 		banana = self.banana_cascade.detectMultiScale(cv_img, 1.2, 5)
 		print(banana)
