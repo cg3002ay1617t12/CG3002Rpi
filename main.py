@@ -249,6 +249,10 @@ class App(object):
 					self.build_instruction("Banana")
 					self.issue_instruction()
 					self.clear_instruction()
+				else:
+					self.build_instruction("Pineapple")
+					self.issue_instruction()
+					self.clear_instruction()
 				pass
 			else:
 				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
@@ -280,6 +284,10 @@ class App(object):
 			elif self.transition is Transitions.KEY_BANANA:
 				if self.ObstacleDetector.run():
 					self.build_instruction("Banana")
+					self.issue_instruction()
+					self.clear_instruction()
+				else:
+					self.build_instruction("Pineapple")
 					self.issue_instruction()
 					self.clear_instruction()
 				pass
