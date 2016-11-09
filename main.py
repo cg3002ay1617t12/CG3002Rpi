@@ -341,6 +341,15 @@ class App(object):
 				elif self.state is State.NAVIGATING:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
+					self.is_table = self.ObstacleDetector.run()
+					if self.is_table:
+						self.build_instruction("Banana")
+						self.issue_instruction()
+						self.clear_instruction()
+					else:
+						self.build_instruction("Pineapple")
+						self.issue_instruction()
+						self.clear_instruction()
 					angle = self.PathFinder.get_angle_to_next_node()
 					# print '[MAIN] Angle: ' + str(angle)
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
@@ -370,6 +379,15 @@ class App(object):
 				elif self.state is State.REACHED:
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
+					self.is_table = self.ObstacleDetector.run()
+					if self.is_table:
+						self.build_instruction("Banana")
+						self.issue_instruction()
+						self.clear_instruction()
+					else:
+						self.build_instruction("Pineapple")
+						self.issue_instruction()
+						self.clear_instruction()
 					angle = self.PathFinder.get_angle_to_next_node()
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if self.StepDetector.curr_steps > 0:
