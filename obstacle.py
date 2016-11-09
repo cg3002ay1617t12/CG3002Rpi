@@ -23,8 +23,8 @@ class ObstacleDetector(object):
 	def run(self):
 		# Take a picture
 		stream = io.BytesIO()
-		self.cam.start_preview()
-		time.sleep(2)
+		# self.cam.start_preview()
+		# time.sleep(2)
 		pi_img = self.cam.capture(stream, format='jpeg')
 		data = np.fromstring(stream.getvalue(), dtype=np.uint8)
 		cv_img = cv2.imdecode(data, 1)
