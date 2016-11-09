@@ -34,7 +34,7 @@ class ObstacleDetector(object):
 			roi_color = cv_img[y:y+h, x:x+w]
 		
 		# Write to file
-		cv2.imwrite("./img_classified.jpg", img)
+		cv2.imwrite("./img_classified.jpg", cv_img)
 
 		if len(banana) > 0:
 			return True
