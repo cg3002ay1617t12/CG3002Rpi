@@ -1,7 +1,6 @@
-import cv2, io
+import cv2, io, time
 import numpy as np
 from picamera import PiCamera
-from time import time
 
 class ObstacleDetector(object):
 	
