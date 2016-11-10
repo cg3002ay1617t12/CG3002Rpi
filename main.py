@@ -85,13 +85,13 @@ class App(object):
 	def clear_instruction(self):
 		self.instruction = ""
 
-	def update_steps(self):
+	def update_steps(self, angle=None):
 		if self.transition is Transitions.KEY_INCR:
 			self.StepDetector.incr_step()
-			self.Localization.incr_step()
+			self.Localization.incr_step(direction=angle)
 		elif self.transition is Transitions.KEY_DECR:
 			self.StepDetector.decr_step()
-			self.Localization.decr_step()
+			self.Localization.decr_step(direction=angle)
 		else:
 			pass
 
@@ -233,7 +233,8 @@ class App(object):
 			elif self.transition is Transitions.KEY_GET_INSTR:
 				self.get_instruction()
 			elif self.transition is Transitions.KEY_DECR or self.transition is Transitions.KEY_INCR:
-				self.update_steps()
+				angle = self.PathFinder.get_angle_to_next_node()
+				self.update_steps(angle)
 			elif self.transition is Transitions.KEY_RESTART:
 				tts("Restarting. Press building and level")
 			else:
@@ -247,7 +248,8 @@ class App(object):
 			elif self.transition is Transitions.KEY_GET_INSTR:
 				self.get_instruction()
 			elif self.transition is Transitions.KEY_DECR or self.transition is Transitions.KEY_INCR:
-				self.update_steps()
+				angle = self.PathFinder.get_angle_to_next_node()
+				self.update_steps(angle)
 			elif self.transition is Transitions.KEY_NAV:
 				print("[MAIN] %s triggered " % (str(self.transition)))
 			elif self.transition is Transitions.KEY_RESTART:
@@ -315,7 +317,7 @@ class App(object):
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if self.StepDetector.curr_steps > 0:
 						self.build_instruction("Step. ")
-					if time.time() - self.start > 2:
+					if time.time() - self.start > 5:
 						# print("[MAIN] Heading : %.2f" % (self.Localization.stabilized_bearing))
 						self.start = time.time()
 						print("[MAIN] (%d, %d) " % (self.Localization.x, self.Localization.y))
