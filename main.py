@@ -208,7 +208,7 @@ class App(object):
 						self.Localization.update_coordinates(x, y)
 						self.update_steps()
 					self.PathFinder.update_source_and_target(self.combined_start_node, self.combined_end_node)
-					print("[MAIN] Source : %d, Dest: %d" % (start_node, end_node))
+					print("[MAIN] Source : %d, Dest: %d" % (self.combined_start_node, self.combined_end_node))
 					print("[MAIN] Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 				except Exception as e:
 					print e
