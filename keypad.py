@@ -387,9 +387,11 @@ def main():
 							time.sleep(0.1)
 							key = KEY((i, j))
 							handler(key)
-						else:
+							while (GPIO.input(i) == 0):
+								pass
+						#else:
 							# Key is already pressed
-							pass
+						#	pass
 					else:
 						MATRIX[i][j] = False
 						pass
