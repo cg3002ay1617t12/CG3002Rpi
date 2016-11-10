@@ -309,7 +309,9 @@ class App(object):
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
 					angle = self.PathFinder.get_angle_to_next_node()
-					print '[MAIN] Angle: ' + str(angle)
+					if time.time() - self.start > 5:
+						self.start = time.time()
+						print '[MAIN] Angle: ' + str(angle)
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if self.StepDetector.curr_steps > 0:
 						self.build_instruction("Step. ")
