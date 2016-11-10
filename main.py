@@ -309,13 +309,14 @@ class App(object):
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
 					angle = self.PathFinder.get_angle_to_next_node()
-					# print '[MAIN] Angle: ' + str(angle)
+					print '[MAIN] Angle: ' + str(angle)
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if self.StepDetector.curr_steps > 0:
 						self.build_instruction("Step. ")
 					if time.time() - self.start > 2:
-						print("[MAIN] Heading : %.2f" % (self.Localization.stabilized_bearing))
+						# print("[MAIN] Heading : %.2f" % (self.Localization.stabilized_bearing))
 						self.start = time.time()
+						print("[MAIN] (%d, %d) " % (self.Localization.x, self.Localization.y))
 					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
 					if reached:
 						self.curr_reached_node_instr = self.PathFinder.get_audio_reached(reached_node)

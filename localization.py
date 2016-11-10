@@ -146,7 +146,7 @@ class Localization(object):
 			# Update incoming data
 			self.process_new_data()
 		if steps_taken > 0 and direction > 0:
-			print("[LOCALIZATION] %d steps taken in %.2f" % (steps_taken, direction))
+			print("[LOCALIZATION] %d steps taken in %.2f" % (steps_taken, update_direction))
 			# Update x, y
 			self.calculate_new_position(steps_taken, update_direction)
 		if self.is_plot:
