@@ -115,6 +115,8 @@ class Localization(object):
 			direction = self.prev_step if incr else (self.prev_step + 180) % 360
 		else:
 			update_prev = True
+		print("[Localization] %d " % self.north)
+		print("[Localization] %d " % direction)
 		theta = (90 - self.north - direction)
 		if theta >= 180:
 			theta = theta - 360
