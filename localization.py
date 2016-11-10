@@ -115,8 +115,8 @@ class Localization(object):
 			direction = self.prev_step if incr else (self.prev_step + 180) % 360
 		else:
 			update_prev = True
-		print("[Localization] %d " % self.north)
-		print("[Localization] %d " % direction)
+		print("[Localization] North %d " % self.north)
+		print("[Localization] Direction %d " % direction)
 		theta = (90 - self.north - direction)
 		if theta >= 180:
 			theta = theta - 360
@@ -124,6 +124,7 @@ class Localization(object):
 			theta = 360 + theta
 		else:
 			print("[LOCALIZATION] Error calculating theta!")
+		print("[Localization] theta %d " % theta)
 		hypo  = Localization.STRIDE_LENGTH * steps_taken
 		self.x = self.x + math.floor(hypo * math.cos(math.pi * theta / 180))
 		self.y = self.y + math.floor(hypo * math.sin(math.pi * theta / 180))
