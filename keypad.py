@@ -244,7 +244,7 @@ def action_on_transit(val, action):
 	elif action is Action.DOWNLOAD_MAP:
 		tts(AFFIRMS[action])
 		print(send)
-		os.write(pipe_out, "DOWNLOAD_MAP" + "\n")
+		os.write(pipe_out, "*" + "\n")
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.CONFIRM_START_BUILDING:
 		tts(AFFIRMS[action], (send,))
