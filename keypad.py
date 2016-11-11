@@ -194,8 +194,8 @@ State.transitions = {
 		# Transitions.KEY_MUSIC : (State.FFA, Action.PLAY_MUSIC)
 	},
 	State.CONFIRM_RESET:  {
-		Transitions.KEY_STAR : (State.MAP_BUILDING, Action.DOWNLOAD_MAP),
-		Transitions.KEY_HASH : (State.FFA, Action.CANCEL_RESET)
+		Transitions.KEY_HASH : (State.MAP_BUILDING, Action.DOWNLOAD_MAP),
+		Transitions.KEY_STAR : (State.FFA, Action.CANCEL_RESET)
 	}
 }
 
@@ -218,7 +218,7 @@ AFFIRMS = {
 	Action.STEP_ON : "Switched on step counter",
 	Action.STEP_OFF : "Switched off step counter",
 	Action.REACHED : "You have shot harem bay",
-	Action.CONFIRM_RESET : "Press star again to confirm restart",
+	Action.CONFIRM_RESET : "Press hash to confirm restart",
 	Action.CANCEL_RESET : "You have cancelled restart"
 }
 
