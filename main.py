@@ -18,6 +18,7 @@ class App(object):
 		fpid.write(str(self.pid))
 		fpid.close()
 		
+		self.is_stepcounter_on = True
 		self.curr_start_node = -1
 		self.curr_end_node   = -1
 		self.transit         = False
@@ -236,7 +237,12 @@ class App(object):
 				angle = self.PathFinder.get_angle_to_next_node()
 				self.update_steps(angle)
 			elif self.transition is Transitions.KEY_RESTART:
-				tts("Restarting. Press building and level")
+				print("Restarting. Press start building and level")
+				pass
+			elif self.transition is Transitions.KEY_STEP_ON:
+				self.is_stepcounter_on = True
+			elif self.transition is Transitions.KEY_STEP_OFF:
+				self.is_stepcounter_off = False
 			else:
 				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
 				pass
@@ -260,6 +266,10 @@ class App(object):
 				pass
 			elif self.transition is Transitions.KEY_RESTART:
 				tts("Restarting. Press building and level")
+			elif self.transition is Transitions.KEY_STEP_ON:
+				self.is_stepcounter_on = True
+			elif self.transition is Transitions.KEY_STEP_OFF:
+				self.is_stepcounter_off = False
 			else:
 				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
 				pass
@@ -309,7 +319,7 @@ class App(object):
 					pass
 				elif self.state is State.NAVIGATING:
 					# Do something, make sure its non-blocking
-					self.StepDetector.run()
+					if self.is_stepcounter_on: self.StepDetector.run()
 					angle = self.PathFinder.get_angle_to_next_node()
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if self.StepDetector.curr_steps > 0:
@@ -337,7 +347,7 @@ class App(object):
 					pass
 				elif self.state is State.REACHED:
 					# Do something, make sure its non-blocking
-					self.StepDetector.run()
+					if self.is_stepcounter_on: self.StepDetector.run()
 					angle = self.PathFinder.get_angle_to_next_node()
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if self.StepDetector.curr_steps > 0:
@@ -360,7 +370,7 @@ class App(object):
 					pass
 				elif self.state is State.RESET:
 					# Do something, make sure its non-blocking
-					self.StepDetector.run()
+					if self.is_stepcounter_on: self.StepDetector.run()
 					angle = self.PathFinder.get_angle_to_next_node()
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if (self.StepDetector.curr_steps > 0):

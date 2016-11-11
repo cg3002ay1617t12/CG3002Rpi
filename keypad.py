@@ -37,6 +37,8 @@ class Transitions(Enum):
 	KEY_INSTR = 8
 	KEY_PREV  = 9
 	KEY_REACHED   = 10
+	KEY_STEP_OFF = 11
+	KEY_STEP_ON = 12
 
 # MATRIX = [
 # 	[1,2,3],    (25,22), (25,17), (25,4)
@@ -86,6 +88,10 @@ class KEY(object):
 			self.types.append(Transitions.KEY_PREV)
 		if self.value == 6:
 			self.types.append(Transitions.KEY_REACHED)
+		if self.value == 1:
+			self.types.append(Transitions.KEY_STEP_ON)
+		if self.value == 3:
+			self.types.append(Transitions.KEY_STEP_FF)
 
 class Action(Enum):
 	START                  = 1
@@ -107,6 +113,8 @@ class Action(Enum):
 	GET_INSTR              = 17
 	GET_PREV               = 18
 	REACHED                = 19
+	STEP_ON                = 20
+	STEP_OFF               = 21
 
 State.transitions = {
 	State.MAP_BUILDING  : {
@@ -177,6 +185,8 @@ State.transitions = {
 		Transitions.KEY_HASH : (State.START, Action.START),
 		Transitions.KEY_INSTR : (State.FFA, Action.GET_INSTR),
 		Transitions.KEY_PREV : (State.FFA, Action.GET_PREV),
+		Transitions.KEY_STEP_ON : (State.FFA, Action.STEP_ON),
+		Transitions.KEY_STEP_FF : (State.FFA, Action.STEP_OFF),
 		Transitions.KEY_REACHED : (State.FFA, Action.REACHED)
 		# Transitions.KEY_STAR : (State.FFA, Action.QUIT)
 		# Transitions.KEY_MUSIC : (State.FFA, Action.PLAY_MUSIC)
@@ -208,6 +218,8 @@ AFFIRMS = {
 	Action.DOWNLOAD_MAP : "Downloading new map, please enter building followed by level",
 	Action.GET_INSTR : "",
 	Action.GET_PREV : "",
+	Action.STEP_ON : "Switched on step counter",
+	Action.STEP_OFF : "Switched off step counter",
 	Action.REACHED : "You have shot harem bay"
 }
 
@@ -313,6 +325,12 @@ def action_on_transit(val, action):
 		pass
 	elif action is Action.GET_PREV:
 		os.write(pipe_out, "GET_PREV\n")
+		os.kill(int(pid), signal.SIGUSR2)
+	elif action is Action.KEY_ON:
+		os.write(pipe_out, "STEP_ON\n")
+		os.kill(int(pid), signal.SIGUSR2)
+	elif action is Action.KEY_OFF:
+		os.write(pipe_out, "STEP_OFF\n")
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.REACHED:
 		tts(AFFIRMS[action])
