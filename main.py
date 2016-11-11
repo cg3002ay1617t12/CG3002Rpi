@@ -93,6 +93,9 @@ class App(object):
 		elif self.transition is Transitions.KEY_DECR:
 			self.StepDetector.decr_step()
 			self.Localization.decr_step(direction=angle)
+			self.build_instruction("Step decremented.")
+			self.issue_instruction()
+			self.clear_instruction()
 		else:
 			pass
 

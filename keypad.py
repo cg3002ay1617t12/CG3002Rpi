@@ -181,7 +181,7 @@ State.transitions = {
 		Transitions.KEY_INCR : (State.FFA, Action.INCR),
 		Transitions.KEY_DECR : (State.FFA, Action.DECR),
 		Transitions.KEY_NAV  : (State.FFA, Action.NAV),
-		Transitions.KEY_STAR  : (State.MAP_BUILDING, Action.DOWNLOAD_MAP),
+		# Transitions.KEY_STAR  : (State.MAP_BUILDING, Action.DOWNLOAD_MAP),
 		Transitions.KEY_INSTR : (State.FFA, Action.GET_INSTR),
 		Transitions.KEY_PREV : (State.FFA, Action.GET_PREV),
 		Transitions.KEY_STEP_ON : (State.FFA, Action.STEP_ON),
