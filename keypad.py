@@ -186,7 +186,7 @@ State.transitions = {
 		Transitions.KEY_INSTR : (State.FFA, Action.GET_INSTR),
 		Transitions.KEY_PREV : (State.FFA, Action.GET_PREV),
 		Transitions.KEY_STEP_ON : (State.FFA, Action.STEP_ON),
-		Transitions.KEY_STEP_FF : (State.FFA, Action.STEP_OFF),
+		Transitions.KEY_STEP_OFF : (State.FFA, Action.STEP_OFF),
 		Transitions.KEY_REACHED : (State.FFA, Action.REACHED)
 		# Transitions.KEY_STAR : (State.FFA, Action.QUIT)
 		# Transitions.KEY_MUSIC : (State.FFA, Action.PLAY_MUSIC)
