@@ -62,9 +62,9 @@ class Transitions(Enum):
 		elif string == 'GET_PREV':
 			return (Transitions.KEY_GET_PREV, string)
 		elif string == 'KEY_ON':
-			return Transitions.KEY_STEP_ON, string)
+			return (Transitions.KEY_STEP_ON, string)
 		elif string == 'KEY_OFF':
-			return Transitions.KEY_STEP_OFF, string)
+			return (Transitions.KEY_STEP_OFF, string)
 		else:
 			return None
 
