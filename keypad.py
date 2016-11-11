@@ -327,9 +327,11 @@ def action_on_transit(val, action):
 		os.write(pipe_out, "GET_PREV\n")
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.KEY_ON:
+		tts(AFFIRMS[action])
 		os.write(pipe_out, "STEP_ON\n")
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.KEY_OFF:
+		tts(AFFIRMS[action])
 		os.write(pipe_out, "STEP_OFF\n")
 		os.kill(int(pid), signal.SIGUSR2)
 	elif action is Action.REACHED:
