@@ -141,7 +141,7 @@ State.transitions = {
 		Transitions.KEY_GET_INSTR : State.NAVIGATING,
 		Transitions.KEY_GET_PREV : State.NAVIGATING,
 		Transitions.KEY_STEP_ON : State.NAVIGATING,
-		Transtions.KEY_STEP_OFF : State.NAVIGATING
+		Transitions.KEY_STEP_OFF : State.NAVIGATING
 	},
 	State.REACHED: {
 		Transitions.KEY_SHUTDOWN : State.END,
@@ -153,7 +153,7 @@ State.transitions = {
 		Transitions.KEY_GET_INSTR : State.REACHED,
 		Transitions.KEY_GET_PREV : State.REACHED,
 		Transitions.KEY_STEP_ON : State.REACHED,
-		Transtions.KEY_STEP_OFF : State.REACHED
+		Transitions.KEY_STEP_OFF : State.REACHED
 	},
 	State.RESET: {
 		Transitions.KEY_SHUTDOWN : State.END,
