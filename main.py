@@ -18,7 +18,7 @@ class App(object):
 		fpid.write(str(self.pid))
 		fpid.close()
 		
-		self.is_stepcounter_on = True
+		self.is_stepcounter_on = False
 		self.curr_start_node = -1
 		self.curr_end_node   = -1
 		self.transit         = False
