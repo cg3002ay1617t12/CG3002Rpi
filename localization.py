@@ -103,11 +103,17 @@ class Localization(object):
 		""" Deg must be negative"""
 		return (deg + 360) if deg < 0 else deg
 
-	def incr_step(self):
-		self.calculate_new_position(1, incr=True)
+	def incr_step(self, direction=None):
+		if direction is None:
+			self.calculate_new_position(1, incr=True)
+		else:
+			self.calculate_new_position(1, direction=direction, incr=True)
 
-	def decr_step(self):
-		self.calculate_new_position(1, incr=False)
+	def decr_step(self, direction=None):
+		if direction is None:
+			self.calculate_new_position(1, incr=False)
+		else:
+			self.calculate_new_position(1, direction=direction, incr=False)
 
 	def calculate_new_position(self, steps_taken, direction=None, incr=False):
 		if direction is None:
@@ -146,9 +152,9 @@ class Localization(object):
 			# Update incoming data
 			self.process_new_data()
 		if steps_taken > 0 and direction > 0:
-			print("[LOCALIZATION] %d steps taken in %.2f" % (steps_taken, direction))
+			print("[LOCALIZATION] %d steps taken in %.2f" % (steps_taken, update_direction))
 			# Update x, y
-			self.calculate_new_position(steps_taken, update_direction)
+			self.calculate_new_position(steps_taken, direction=update_direction)
 		if self.is_plot:
 			# Update plot
 			if (time.time() - self.start) > 1/self.FPS:

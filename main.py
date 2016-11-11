@@ -33,7 +33,7 @@ class App(object):
 			plot = False
 		else:
 			plot = False
-		self.PathFinder   = PathFinder(1, 1)
+		self.PathFinder   = PathFinder()
 		self.StepDetector = StepDetector(plot=plot)
 		self.Localization = Localization(x=0, y=0, north=self.PathFinder.get_angle_of_north(), plot=plot)
 		# self.LPF = LocalPathFinder(mode='demo')
@@ -85,13 +85,13 @@ class App(object):
 	def clear_instruction(self):
 		self.instruction = ""
 
-	def update_steps(self):
+	def update_steps(self, angle=None):
 		if self.transition is Transitions.KEY_INCR:
 			self.StepDetector.incr_step()
-			self.Localization.incr_step()
+			self.Localization.incr_step(direction=angle)
 		elif self.transition is Transitions.KEY_DECR:
 			self.StepDetector.decr_step()
-			self.Localization.decr_step()
+			self.Localization.decr_step(direction=angle)
 		else:
 			pass
 
@@ -109,26 +109,54 @@ class App(object):
 		self.issue_instruction()
 		self.clear_instruction()
 
+	def combine_node_from_building_and_level(self):
+		""" Only call this once user has keyed in start and end node """
+		self.start_prefix = -100
+		self.end_prefix = -100
+		if self.start_building == 1 and self.start_level == 1:
+			self.start_prefix = 0
+		elif self.start_building == 1 and self.start_level == 2:
+			self.start_prefix = 100
+		elif self.start_building == 2 and self.start_level == 2:
+			self.start_prefix = 200
+		elif self.start_building == 2 and self.start_level == 3:
+			self.start_prefix = 300
+		else:
+			print("[MAIN] Error invalid start building and level given!")
+
+		if self.end_building == 1 and self.end_level == 1:
+			self.end_prefix = 0
+		elif self.end_building == 1 and self.end_level == 2:
+			self.end_prefix = 100
+		elif self.end_building == 2 and self.end_level == 2:
+			self.end_prefix = 200
+		elif self.end_building == 2 and self.end_level == 3:
+			self.end_prefix = 300
+		else:
+			print("[MAIN] Error invalid end building and level given!")
+		return (int(self.start_prefix + self.curr_start_node), int(self.end_prefix + self.curr_end_node)) # Start node , end node
+
+
 	def run_once_on_transition(self, userinput):
 		""" Run once upon transition to new state"""
 		print("[MAIN] TRANSITION : " + str(self.state))
 		if self.state is State.END:
 			tts("Shutting down.")
 			pass
-		elif self.state is State.ACCEPT_BUILDING:
+		elif self.state is State.ACCEPT_START_BUILDING:
 			# tts("Please enter building")
 			if self.transition is Transitions.KEY_NODE:
 				try:
-					self.building = int(userinput)
+					self.start_building = int(userinput)
 				except Exception as e:
 					print e
 			pass
-		elif self.state is State.ACCEPT_LEVEL:
+		elif self.state is State.ACCEPT_START_LEVEL:
 			# tts("Please enter level")
 			if self.transition is Transitions.KEY_NODE:
 				try:
-					self.level = int(userinput)
-					self.PathFinder = PathFinder(building=self.building, level=self.level)
+					self.start_level = int(userinput)
+					self.PathFinder = PathFinder()
 				except ValueError as e:
 					print("[MAIN] Error! Wrong building and level entered")
 					tts("Please enter a valid building and level")
@@ -143,27 +171,48 @@ class App(object):
 				except Exception as e:
 					print '[MAIN] AEND exception'
 					print e
-				(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
-				if x is None and y is None:
-					print("[MAIN] Error! Invalid start node given, please try again")
-					tts("Error, invalid start, please enter again")
-				else:
-					bearing = self.Localization.stabilized_bearing
-					self.PathFinder.update_coordinate(x, y, bearing)
-					self.Localization.update_coordinates(x, y)
-					self.update_steps()
+			pass
+		elif self.state is State.ACCEPT_END_BUILDING:
+			# tts("Please enter building")
+			if self.transition is Transitions.KEY_NODE:
+				try:
+					self.end_building = int(userinput)
+				except Exception as e:
+					print e
+			pass
+		elif self.state is State.ACCEPT_END_LEVEL:
+			# tts("Please enter level")
+			if self.transition is Transitions.KEY_NODE:
+				try:
+					self.end_level = int(userinput)
+					self.PathFinder = PathFinder()
+				except ValueError as e:
+					print("[MAIN] Error! Wrong building and level entered")
+					tts("Please enter a valid building and level")
+				except Exception as e:
+					print(e)
 			pass
 		elif self.state is State.ACCEPT_END:
 			# tts("Please enter end destination")
 			if self.transition is Transitions.KEY_NODE:
 				try:
 					self.curr_end_node = int(userinput)
+					(self.combined_start_node, self.combined_end_node) = self.combine_node_from_building_and_level()
+					(x, y)  = self.PathFinder.get_coordinates_from_node(self.combined_start_node)
+					if x is None and y is None:
+						print("[MAIN] Error! Invalid start node given, please try again")
+						tts("Error, invalid start, please enter again")
+					else:
+						bearing = self.Localization.stabilized_bearing
+						self.PathFinder.update_coordinate(x, y, bearing)
+						self.Localization.update_coordinates(x, y)
+						self.update_steps()
+					self.PathFinder.update_source_and_target(self.combined_start_node, self.combined_end_node)
+					print("[MAIN] Source : %d, Dest: %d" % (self.combined_start_node, self.combined_end_node))
+					print("[MAIN] Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 				except Exception as e:
 					print e
 					pass
-				self.PathFinder.update_source_and_target(self.curr_start_node, self.curr_end_node)
-				print("[MAIN] Source : %d, Dest: %d" % (self.curr_start_node, self.curr_end_node))
-				print("[MAIN] Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 			pass
 		elif self.state is State.NAVIGATING:
 			print("[MAIN] Transition for State.NAVIGATING")
@@ -184,7 +233,8 @@ class App(object):
 			elif self.transition is Transitions.KEY_GET_INSTR:
 				self.get_instruction()
 			elif self.transition is Transitions.KEY_DECR or self.transition is Transitions.KEY_INCR:
-				self.update_steps()
+				angle = self.PathFinder.get_angle_to_next_node()
+				self.update_steps(angle)
 			elif self.transition is Transitions.KEY_RESTART:
 				tts("Restarting. Press building and level")
 			else:
@@ -198,7 +248,8 @@ class App(object):
 			elif self.transition is Transitions.KEY_GET_INSTR:
 				self.get_instruction()
 			elif self.transition is Transitions.KEY_DECR or self.transition is Transitions.KEY_INCR:
-				self.update_steps()
+				angle = self.PathFinder.get_angle_to_next_node()
+				self.update_steps(angle)
 			elif self.transition is Transitions.KEY_NAV:
 				print("[MAIN] %s triggered " % (str(self.transition)))
 			elif self.transition is Transitions.KEY_RESTART:
@@ -236,16 +287,20 @@ class App(object):
 			try:
 				if self.state is State.END:
 					break
-				elif self.state is State.ACCEPT_BUILDING:
+				elif self.state is State.ACCEPT_START_BUILDING:
 					# self.Localization.run(self.StepDetector.curr_steps)
 					pass
-				elif self.state is State.ACCEPT_LEVEL:
+				elif self.state is State.ACCEPT_START_LEVEL:
 					# self.Localization.run(self.StepDetector.curr_steps)
 					pass
 				elif self.state is State.ACCEPT_START:
 					# Do something, make sure its non-blocking
 					# self.Localization.run(self.StepDetector.curr_steps)
 					# Cannot do anything because we do not know where the user is
+					pass
+				elif self.state is State.ACCEPT_END_BUILDING:
+					pass
+				elif self.state is State.ACCEPT_END_LEVEL:
 					pass
 				elif self.state is State.ACCEPT_END:
 					# Do something, make sure its non-blocking
@@ -256,11 +311,10 @@ class App(object):
 					# Do something, make sure its non-blocking
 					self.StepDetector.run()
 					angle = self.PathFinder.get_angle_to_next_node()
-					# print '[MAIN] Angle: ' + str(angle)
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if self.StepDetector.curr_steps > 0:
 						self.build_instruction("Step. ")
-					if time.time() - self.start > 2:
+					if time.time() - self.start > 5:
 						print("[MAIN] Heading : %.2f" % (self.Localization.stabilized_bearing))
 						self.start = time.time()
 					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
@@ -288,7 +342,7 @@ class App(object):
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
 					if self.StepDetector.curr_steps > 0:
 						self.build_instruction("Step. ")
-					if time.time() - self.start > 2:
+					if time.time() - self.start > 5:
 						self.start = time.time()
 						print("[MAIN] Heading is : %.2f " % (self.Localization.stabilized_bearing))	
 					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
@@ -420,7 +474,7 @@ def connect_keypad(app, platform=None):
 		print("[MAIN] Connecting with Keypad...")
 		cmd     = "python keypad.py"
 	elif platform in ["Darwin-15.2.0-x86_64-i386-64bit", "Linux-3.4.0+-x86_64-with-Ubuntu-14.04-trusty"]:
-		print("[MAIN] Connecting with Keypboard...")
+		print("[MAIN] Connecting with Keyboard...")
 		cmd     = "python keyboard_sim.py" # Mac, Windows, Ubuntu with connected keyboard
 	else:
 		print("[MAIN] Connecting with Keyboard...")

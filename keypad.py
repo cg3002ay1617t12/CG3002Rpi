@@ -16,10 +16,14 @@ class State(Enum):
 	START                = 4
 	START_1              = 5
 	START_2              = 6
-	END                  = 7
-	END_1                = 8
-	END_2                = 9
-	FFA                  = 10
+	END_BUILDING         = 7
+	END_BUILDING_CONFIRM = 8
+	END_LEVEL            = 9
+	END_LEVEL_CONFIRM    = 10
+	END                  = 11
+	END_1                = 12
+	END_2                = 13
+	FFA                  = 14
 
 class Transitions(Enum):
 	KEY_DIGIT = 0
@@ -84,23 +88,25 @@ class KEY(object):
 			self.types.append(Transitions.KEY_REACHED)
 
 class Action(Enum):
-	START            = 1
-	APPEND           = 2
-	CLEAR            = 3
-	CONFIRM_START    = 4
-	CONFIRM_END      = 5
-	NULL             = 6
-	QUIT             = 7
-	INCR             = 8
-	DECR             = 9
-	PLAY_MUSIC       = 10
-	NAV              = 11
-	CONFIRM_BUILDING = 12
-	CONFIRM_LEVEL    = 13
-	DOWNLOAD_MAP     = 14
-	GET_INSTR        = 15
-	GET_PREV         = 16
-	REACHED          = 17
+	START                  = 1
+	APPEND                 = 2
+	CLEAR                  = 3
+	CONFIRM_START          = 4
+	CONFIRM_END            = 5
+	NULL                   = 6
+	QUIT                   = 7
+	INCR                   = 8
+	DECR                   = 9
+	PLAY_MUSIC             = 10
+	NAV                    = 11
+	CONFIRM_START_BUILDING = 12
+	CONFIRM_START_LEVEL    = 13
+	CONFIRM_END_BUILDING   = 14
+	CONFIRM_END_LEVEL      = 15
+	DOWNLOAD_MAP           = 16
+	GET_INSTR              = 17
+	GET_PREV               = 18
+	REACHED                = 19
 
 State.transitions = {
 	State.MAP_BUILDING  : {
@@ -110,7 +116,7 @@ State.transitions = {
 	State.MAP_BUILDING_CONFIRM  : {
 		Transitions.KEY_DIGIT : (State.MAP_BUILDING_CONFIRM, Action.APPEND),
 		Transitions.KEY_HASH  : (State.MAP_BUILDING, Action.CLEAR),
-		Transitions.KEY_STAR  : (State.MAP_LEVEL, Action.CONFIRM_BUILDING)
+		Transitions.KEY_STAR  : (State.MAP_LEVEL, Action.CONFIRM_START_BUILDING)
 	},
 	State.MAP_LEVEL : {
 		Transitions.KEY_DIGIT : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
@@ -118,7 +124,7 @@ State.transitions = {
 	},
 	State.MAP_LEVEL_CONFIRM : {
 		Transitions.KEY_DIGIT : (State.MAP_LEVEL_CONFIRM, Action.APPEND),
-		Transitions.KEY_STAR : (State.START, Action.CONFIRM_LEVEL),
+		Transitions.KEY_STAR : (State.START, Action.CONFIRM_START_LEVEL),
 		Transitions.KEY_HASH  : (State.MAP_LEVEL, Action.CLEAR)
 	},
 	State.START : {
@@ -130,8 +136,26 @@ State.transitions = {
 		Transitions.KEY_HASH : (State.START, Action.CLEAR)
 	},
 	State.START_2 : {
-		Transitions.KEY_STAR : (State.END, Action.CONFIRM_START),
+		Transitions.KEY_STAR : (State.END_BUILDING, Action.CONFIRM_START),
 		Transitions.KEY_HASH : (State.START, Action.CLEAR)
+	},
+	State.END_BUILDING  : {
+		Transitions.KEY_DIGIT : (State.END_BUILDING_CONFIRM, Action.APPEND),
+		Transitions.KEY_HASH  : (State.END_BUILDING, Action.CLEAR)
+	},
+	State.END_BUILDING_CONFIRM  : {
+		Transitions.KEY_DIGIT : (State.END_BUILDING_CONFIRM, Action.APPEND),
+		Transitions.KEY_HASH  : (State.END_BUILDING, Action.CLEAR),
+		Transitions.KEY_STAR  : (State.END_LEVEL, Action.CONFIRM_END_BUILDING)
+	},
+	State.END_LEVEL : {
+		Transitions.KEY_DIGIT : (State.END_LEVEL_CONFIRM, Action.APPEND),
+		Transitions.KEY_HASH  : (State.END_LEVEL, Action.CLEAR)
+	},
+	State.END_LEVEL_CONFIRM : {
+		Transitions.KEY_DIGIT : (State.END_LEVEL_CONFIRM, Action.APPEND),
+		Transitions.KEY_STAR : (State.END, Action.CONFIRM_END_LEVEL),
+		Transitions.KEY_HASH  : (State.END_LEVEL, Action.CLEAR)
 	},
 	State.END : {
 		Transitions.KEY_DIGIT : (State.END_1, Action.APPEND),
@@ -174,8 +198,10 @@ AFFIRMS = {
 	Action.CLEAR : "cleared all input",
 	Action.CONFIRM_START : "your start destination is %s",
 	Action.CONFIRM_END : "your end destination is %s",
-	Action.CONFIRM_BUILDING : "your building is COM %s",
-	Action.CONFIRM_LEVEL : "your level is %s",
+	Action.CONFIRM_START_BUILDING : "your start building is COM %s",
+	Action.CONFIRM_START_LEVEL : "your start level is %s",
+	Action.CONFIRM_END_BUILDING : "your end building is COM %s",
+	Action.CONFIRM_END_LEVEL : "your end level is %s",
 	Action.NULL : "",
 	Action.QUIT : "Shutting down",
 	Action.NAV : "",
@@ -218,15 +244,15 @@ def action_on_transit(val, action):
 	elif action is Action.DOWNLOAD_MAP:
 		tts(AFFIRMS[action])
 		print(send)
-		os.write(pipe_out, "DOWNLOAD_MAP" + "\n")
+		os.write(pipe_out, "*" + "\n")
 		os.kill(int(pid), signal.SIGUSR2)
-	elif action is Action.CONFIRM_BUILDING:
+	elif action is Action.CONFIRM_START_BUILDING:
 		tts(AFFIRMS[action], (send,))
 		print(send)
 		os.write(pipe_out, send + "\n")
 		os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
-	elif action is Action.CONFIRM_LEVEL:
+	elif action is Action.CONFIRM_START_LEVEL:
 		tts(AFFIRMS[action], (send,))
 		print(send)
 		os.write(pipe_out, send + "\n")
@@ -235,6 +261,18 @@ def action_on_transit(val, action):
 	elif action is Action.CONFIRM_START:
 		print(send)
 		tts(AFFIRMS[action], (send,))
+		os.write(pipe_out, send + "\n")
+		os.kill(int(pid), signal.SIGUSR2)
+		clear_send()
+	elif action is Action.CONFIRM_END_BUILDING:
+		tts(AFFIRMS[action], (send,))
+		print(send)
+		os.write(pipe_out, send + "\n")
+		os.kill(int(pid), signal.SIGUSR2)
+		clear_send()
+	elif action is Action.CONFIRM_END_LEVEL:
+		tts(AFFIRMS[action], (send,))
+		print(send)
 		os.write(pipe_out, send + "\n")
 		os.kill(int(pid), signal.SIGUSR2)
 		clear_send()
@@ -349,9 +387,11 @@ def main():
 							time.sleep(0.1)
 							key = KEY((i, j))
 							handler(key)
-						else:
+							while (GPIO.input(i) == 0):
+								pass
+						#else:
 							# Key is already pressed
-							pass
+						#	pass
 					else:
 						MATRIX[i][j] = False
 						pass
