@@ -242,7 +242,7 @@ class App(object):
 			elif self.transition is Transitions.KEY_STEP_ON:
 				self.is_stepcounter_on = True
 			elif self.transition is Transitions.KEY_STEP_OFF:
-				self.is_stepcounter_off = False
+				self.is_stepcounter_on = False
 			else:
 				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
 				pass
@@ -269,7 +269,7 @@ class App(object):
 			elif self.transition is Transitions.KEY_STEP_ON:
 				self.is_stepcounter_on = True
 			elif self.transition is Transitions.KEY_STEP_OFF:
-				self.is_stepcounter_off = False
+				self.is_stepcounter_on = False
 			else:
 				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
 				pass

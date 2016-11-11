@@ -91,7 +91,7 @@ class KEY(object):
 		if self.value == 1:
 			self.types.append(Transitions.KEY_STEP_ON)
 		if self.value == 3:
-			self.types.append(Transitions.KEY_STEP_FF)
+			self.types.append(Transitions.KEY_STEP_OFF)
 
 class Action(Enum):
 	START                  = 1
