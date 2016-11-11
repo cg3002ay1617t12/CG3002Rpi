@@ -121,6 +121,8 @@ class Localization(object):
 			direction = self.prev_step if incr else (self.prev_step + 180) % 360
 		else:
 			update_prev = True
+			if not incr: # Reverse given direction
+				direction = (direction + 180) % 360
 		theta = (90 - self.north - direction)
 		if theta >= 180:
 			theta = theta - 360
