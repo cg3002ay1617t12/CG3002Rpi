@@ -24,6 +24,7 @@ class State(Enum):
 	END_1                = 12
 	END_2                = 13
 	FFA                  = 14
+	CONFIRM_RESET        = 15
 
 class Transitions(Enum):
 	KEY_DIGIT = 0
@@ -115,6 +116,8 @@ class Action(Enum):
 	REACHED                = 19
 	STEP_ON                = 20
 	STEP_OFF               = 21
+	CONFIRM_RESET          = 22
+	CANCEL_RESET           = 23
 
 State.transitions = {
 	State.MAP_BUILDING  : {
@@ -181,7 +184,7 @@ State.transitions = {
 		Transitions.KEY_INCR : (State.FFA, Action.INCR),
 		Transitions.KEY_DECR : (State.FFA, Action.DECR),
 		Transitions.KEY_NAV  : (State.FFA, Action.NAV),
-		Transitions.KEY_STAR  : (State.MAP_BUILDING, Action.DOWNLOAD_MAP),
+		Transitions.KEY_STAR  : (State.CONFIRM_RESET, Action.CONFIRM_RESET),
 		Transitions.KEY_INSTR : (State.FFA, Action.GET_INSTR),
 		Transitions.KEY_PREV : (State.FFA, Action.GET_PREV),
 		Transitions.KEY_STEP_ON : (State.FFA, Action.STEP_ON),
@@ -189,6 +192,10 @@ State.transitions = {
 		Transitions.KEY_REACHED : (State.FFA, Action.REACHED)
 		# Transitions.KEY_STAR : (State.FFA, Action.QUIT)
 		# Transitions.KEY_MUSIC : (State.FFA, Action.PLAY_MUSIC)
+	},
+	State.CONFIRM_RESET:  {
+		Transitions.KEY_STAR : (State.MAP_BUILDING, Action.DOWNLOAD_MAP),
+		Transitions.KEY_HASH : (State.FFA, Action.CANCEL_RESET)
 	}
 }
 
@@ -210,7 +217,9 @@ AFFIRMS = {
 	Action.GET_PREV : "",
 	Action.STEP_ON : "Switched on step counter",
 	Action.STEP_OFF : "Switched off step counter",
-	Action.REACHED : "You have shot harem bay"
+	Action.REACHED : "You have shot harem bay",
+	Action.CONFIRM_RESET : "Press star again to confirm restart",
+	Action.CANCEL_RESET : "You have cancelled restart"
 }
 
 ALLOWED_BUILDINGS  = [1,2]
@@ -328,6 +337,12 @@ def action_on_transit(val, action):
 		tts(AFFIRMS[action])
 		os.write(pipe_out, "USER_CHECKPOINT_REACHED\n")
 		os.kill(int(pid), signal.SIGUSR2)
+	elif action is Action.CONFIRM_RESET:
+		tts(AFFIRMS[action])
+		pass
+	elif action is Action.CANCEL_RESET:
+		tts(AFFIRMS[action])
+		pass
 	else:
 		raise Exception("Unrecognized action!")
 
