@@ -237,7 +237,7 @@ class App(object):
 				angle = self.PathFinder.get_angle_to_next_node()
 				self.update_steps(angle)
 			elif self.transition is Transitions.KEY_RESTART:
-				print("Restarting. Press start building and level")
+				print("[MAIN] Restarting. Press start building and level")
 				pass
 			elif self.transition is Transitions.KEY_STEP_ON:
 				self.is_stepcounter_on = True

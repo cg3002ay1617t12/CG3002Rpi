@@ -192,18 +192,9 @@ State.transitions = {
 	}
 }
 
-PROMPTS = {
-	Transitions.KEY_DIGIT : "Please enter a digit",
-	Transitions.KEY_HASH  : "To re-enter, press hash",
-	Transitions.KEY_STAR  : "To confirm, press star",
-	Transitions.KEY_INCR  : "Press 2 to increment step",
-	Transitions.KEY_DECR  : "Press 8 to decrement step",
-	Transitions.KEY_MUSIC : "If you are bored of my voice, press 5 to play a song"
-}
-
 AFFIRMS = {
 	Action.START: "Please enter a new start destination",
-	Action.APPEND: "you have entered %s",
+	Action.APPEND: "%s",
 	Action.CLEAR : "cleared all input",
 	Action.CONFIRM_START : "your start destination is %s",
 	Action.CONFIRM_END : "your end destination is %s",
