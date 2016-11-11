@@ -265,7 +265,7 @@ class App(object):
 				print("[MAIN] %s triggered " % str(self.transition))
 				pass
 			elif self.transition is Transitions.KEY_RESTART:
-				tts("Restarting. Press building and level")
+				tts("[MAIN] Restarting. Press building and level")
 			elif self.transition is Transitions.KEY_STEP_ON:
 				self.is_stepcounter_on = True
 			elif self.transition is Transitions.KEY_STEP_OFF:
