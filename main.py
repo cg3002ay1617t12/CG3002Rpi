@@ -28,7 +28,7 @@ class App(object):
 		fpid.write(str(self.pid))
 		fpid.close()
 		
-		self.is_stepcounter_on = False
+		self.is_stepcounter_on = True
 		self.curr_start_node = -1
 		self.curr_end_node   = -1
 		self.transit         = False
@@ -201,6 +201,7 @@ class App(object):
 					self.end_level = int(userinput)
 					self.PathFinder = PathFinder()
 				except ValueError as e:
+					pass
 					# print("[MAIN] Error! Wrong building and level entered")
 					# tts("Please enter a valid building and level")
 				except Exception as e:
@@ -214,6 +215,7 @@ class App(object):
 					(self.combined_start_node, self.combined_end_node) = self.combine_node_from_building_and_level()
 					(x, y)  = self.PathFinder.get_coordinates_from_node(self.combined_start_node)
 					if x is None and y is None:
+						pass
 						# print("[MAIN] Error! Invalid start node given, please try again")
 						# tts("Error, invalid start, please enter again")
 					else:
@@ -236,6 +238,7 @@ class App(object):
 				pass
 				# tts("Previous " + str(self.PathFinder.get_prev_visited_node()))
 			elif self.transition is Transitions.SW_REACHED_NODE:
+				pass
 				# print("[MAIN] %s triggered " % (str(self.transition)))
 			elif self.transition is Transitions.KEY_REACHED_NODE:
 				# When user press 6
