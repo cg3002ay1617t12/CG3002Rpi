@@ -6,7 +6,7 @@ from localization import *
 from audio import tts
 from threading import Thread
 
-CURR_STEP = 0
+CURR = 0
 CURR_INSTR = {
 	5: "Destination reached",
 	4: "Take one step forward.",
@@ -311,6 +311,7 @@ class App(object):
 
 	def run(self):
 		""" Run forever and multiplex between the states """
+		global CURR
 		while True:
 			if self.transit:
 				self.run_once_on_transition(self.userinput)
@@ -342,9 +343,9 @@ class App(object):
 					if self.is_stepcounter_on: self.StepDetector.run()
 					angle = self.PathFinder.get_angle_to_next_node()
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
-					if self.StepDetector.curr_steps > 0 and CURR_STEP <= 5:
-						self.build_instruction(CURR_INSTR[CURR_STEP])
-						CURR_STEP += 1
+					if self.StepDetector.curr_steps > 0 and CURR <= 5:
+						self.build_instruction(CURR_INSTR[CURR])
+						CURR += 1
 					# if time.time() - self.start > 5:
 					# 	print("[MAIN] Heading : %.2f" % (self.Localization.stabilized_bearing))
 					# 	self.start = time.time()

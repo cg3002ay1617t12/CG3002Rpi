@@ -133,7 +133,7 @@ class Localization(object):
 		hypo  = Localization.STRIDE_LENGTH * steps_taken
 		self.x = self.x + math.floor(hypo * math.cos(math.pi * theta / 180))
 		self.y = self.y + math.floor(hypo * math.sin(math.pi * theta / 180))
-		print("[LOCALIZATION] New position: (%d, %d) Bearing: %.2f" %(int(self.x), int(self.y), direction))
+		# print("[LOCALIZATION] New position: (%d, %d) Bearing: %.2f" %(int(self.x), int(self.y), direction))
 		if update_prev:
 			self.prev_step = direction
 
@@ -154,7 +154,7 @@ class Localization(object):
 			# Update incoming data
 			self.process_new_data()
 		if steps_taken > 0 and direction > 0:
-			print("[LOCALIZATION] %d steps taken in %.2f" % (steps_taken, update_direction))
+			# print("[LOCALIZATION] %d steps taken in %.2f" % (steps_taken, update_direction))
 			# Update x, y
 			self.calculate_new_position(steps_taken, direction=update_direction)
 		if self.is_plot:
