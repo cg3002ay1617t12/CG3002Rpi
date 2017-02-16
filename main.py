@@ -6,6 +6,16 @@ from localization import *
 from audio import tts
 from threading import Thread
 
+CURR_STEP = 0
+CURR_INSTR = {
+	5: "Destination reached",
+	4: "Take one step forward.",
+	3: "Turn left. Take one step forward.",
+	2: "Take one step forward.",
+	1: "Take one step forward.",
+	0: "Take one step forward."
+}
+
 class App(object):
 	EVENT_PIPE = './event_pipe'
 	DATA_PIPE  = './data_pipe'
@@ -75,9 +85,9 @@ class App(object):
 		signal.signal(signal.SIGUSR2, transition_handler)
 		signal.signal(signal.SIGUSR1, serial_handler)
 
-	def issue_instruction(self):
+	def issue_instruction(self, demo=False):
 		""" Only issue instruction after interval"""
-		tts(self.instruction)
+		if demo: tts(self.instruction)
 		self.instruction = ""
 
 	def build_instruction(self, instr, placeholders=()):
@@ -163,7 +173,7 @@ class App(object):
 					self.PathFinder = PathFinder()
 				except ValueError as e:
 					print("[MAIN] Error! Wrong building and level entered")
-					tts("Please enter a valid building and level")
+					# tts("Please enter a valid building and level")
 				except Exception as e:
 					print(e)
 			pass
@@ -191,8 +201,8 @@ class App(object):
 					self.end_level = int(userinput)
 					self.PathFinder = PathFinder()
 				except ValueError as e:
-					print("[MAIN] Error! Wrong building and level entered")
-					tts("Please enter a valid building and level")
+					# print("[MAIN] Error! Wrong building and level entered")
+					# tts("Please enter a valid building and level")
 				except Exception as e:
 					print(e)
 			pass
@@ -204,28 +214,29 @@ class App(object):
 					(self.combined_start_node, self.combined_end_node) = self.combine_node_from_building_and_level()
 					(x, y)  = self.PathFinder.get_coordinates_from_node(self.combined_start_node)
 					if x is None and y is None:
-						print("[MAIN] Error! Invalid start node given, please try again")
-						tts("Error, invalid start, please enter again")
+						# print("[MAIN] Error! Invalid start node given, please try again")
+						# tts("Error, invalid start, please enter again")
 					else:
 						bearing = self.Localization.stabilized_bearing
 						self.PathFinder.update_coordinate(x, y, bearing)
 						self.Localization.update_coordinates(x, y)
 						self.update_steps()
 					self.PathFinder.update_source_and_target(self.combined_start_node, self.combined_end_node)
-					print("[MAIN] Source : %d, Dest: %d" % (self.combined_start_node, self.combined_end_node))
-					print("[MAIN] Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
+					# print("[MAIN] Source : %d, Dest: %d" % (self.combined_start_node, self.combined_end_node))
+					# print("[MAIN] Current location: %.2f, %.2f, %.2f" % (self.PathFinder.get_x_coordinate(), self.PathFinder.get_y_coordinate(), self.Localization.stabilized_bearing))
 				except Exception as e:
 					print e
 					pass
 			pass
 		elif self.state is State.NAVIGATING:
-			print("[MAIN] Transition for State.NAVIGATING")
+			# print("[MAIN] Transition for State.NAVIGATING")
 			bearing = self.Localization.stabilized_bearing
 			(x, y)  = self.PathFinder.get_coordinates_from_node(self.curr_start_node)
 			if self.transition is Transitions.KEY_GET_PREV:
-				tts("Previous " + str(self.PathFinder.get_prev_visited_node()))
+				pass
+				# tts("Previous " + str(self.PathFinder.get_prev_visited_node()))
 			elif self.transition is Transitions.SW_REACHED_NODE:
-				print("[MAIN] %s triggered " % (str(self.transition)))
+				# print("[MAIN] %s triggered " % (str(self.transition)))
 			elif self.transition is Transitions.KEY_REACHED_NODE:
 				# When user press 6
 				new_coord = self.PathFinder.get_next_coordinates()
@@ -233,27 +244,30 @@ class App(object):
 					self.Localization.update_coordinates(new_coord[0], new_coord[1])
 					self.PathFinder.update_coordinate(new_coord[0], new_coord[1], self.Localization.stabilized_bearing)
 				else:
-					print("[MAIN] Error! Invalid new coordinates for reached node")
+					pass
+					# print("[MAIN] Error! Invalid new coordinates for reached node")
 			elif self.transition is Transitions.KEY_GET_INSTR:
 				self.get_instruction()
 			elif self.transition is Transitions.KEY_DECR or self.transition is Transitions.KEY_INCR:
 				angle = self.PathFinder.get_angle_to_next_node()
 				self.update_steps(angle)
 			elif self.transition is Transitions.KEY_RESTART:
-				print("[MAIN] Restarting. Press start building and level")
 				pass
+				# print("[MAIN] Restarting. Press start building and level")
 			elif self.transition is Transitions.KEY_STEP_ON:
 				self.is_stepcounter_on = True
 			elif self.transition is Transitions.KEY_STEP_OFF:
 				self.is_stepcounter_on = False
 			else:
-				print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
+				# print("[MAIN] Error unrecognized transition: %s" % str(self.transition))
 				pass
 		elif self.state is State.REACHED:
-			print("[MAIN] Transition for State.REACHED")
+			# print("[MAIN] Transition for State.REACHED")
 			# self.curr_reached_node_instr = self.PathFinder.get_audio_reached(self.curr_end_node)
+			pass
 			if self.transition is Transitions.KEY_GET_PREV:
-				tts("Previous " + str(self.PathFinder.get_prev_visited_node()))
+				# tts("Previous " + str(self.PathFinder.get_prev_visited_node()))
+				pass
 			elif self.transition is Transitions.KEY_GET_INSTR:
 				self.get_instruction()
 			elif self.transition is Transitions.KEY_DECR or self.transition is Transitions.KEY_INCR:
@@ -325,30 +339,32 @@ class App(object):
 					if self.is_stepcounter_on: self.StepDetector.run()
 					angle = self.PathFinder.get_angle_to_next_node()
 					self.Localization.run(self.StepDetector.curr_steps, angle=angle)
+					if self.StepDetector.curr_steps > 0 and CURR_STEP <= 5:
+						self.build_instruction(CURR_INSTR[CURR_STEP])
+						CURR_STEP += 1
+					# if time.time() - self.start > 5:
+					# 	print("[MAIN] Heading : %.2f" % (self.Localization.stabilized_bearing))
+					# 	self.start = time.time()
+					# reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
+					# if reached:
+					# 	self.curr_reached_node_instr = self.PathFinder.get_audio_reached(reached_node)
+					# 	self.build_instruction(self.curr_reached_node_instr)
+					# 	(x, y) = self.PathFinder.get_coordinates_from_node(reached_node)
+					# 	self.Localization.update_coordinates(x, y)
+					# 	self.issue_instruction()
+					# 	self.StepDetector.curr_steps = 0
+					# 	# Transit to REACHED state
+					# 	self.event_pipe.write("CHECKPOINT_REACHED\r\n")
+					# 	os.kill(self.pid, signal.SIGUSR2)
+					# else:
+					# 	self.build_instruction(self.PathFinder.get_audio_next_instruction())
 					if self.StepDetector.curr_steps > 0:
-						self.build_instruction("Step. ")
-					if time.time() - self.start > 5:
-						print("[MAIN] Heading : %.2f" % (self.Localization.stabilized_bearing))
-						self.start = time.time()
-					reached, reached_node = self.PathFinder.update_coordinate(self.Localization.x, self.Localization.y, self.Localization.stabilized_bearing)
-					if reached:
-						self.curr_reached_node_instr = self.PathFinder.get_audio_reached(reached_node)
-						self.build_instruction(self.curr_reached_node_instr)
-						(x, y) = self.PathFinder.get_coordinates_from_node(reached_node)
-						self.Localization.update_coordinates(x, y)
-						self.issue_instruction()
-						self.StepDetector.curr_steps = 0
-						# Transit to REACHED state
-						self.event_pipe.write("CHECKPOINT_REACHED\r\n")
-						os.kill(self.pid, signal.SIGUSR2)
-					else:
-						self.build_instruction(self.PathFinder.get_audio_next_instruction())
-					if self.StepDetector.curr_steps > 0:
-						self.issue_instruction()
+						self.issue_instruction(demo=True)
 					self.StepDetector.curr_steps = 0
 					self.clear_instruction()
 					pass
 				elif self.state is State.REACHED:
+					pass
 					# Do something, make sure its non-blocking
 					if self.is_stepcounter_on: self.StepDetector.run()
 					angle = self.PathFinder.get_angle_to_next_node()
